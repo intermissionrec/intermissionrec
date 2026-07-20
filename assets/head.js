@@ -54,6 +54,6 @@
   // Shared stylesheet
   const css = document.createElement("link");
   css.rel = "stylesheet";
-  css.href = "/assets/style.css";
+  css.href = "./assets/style.css";
   head.appendChild(css);
 })();

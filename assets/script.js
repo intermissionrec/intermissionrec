@@ -1,5 +1,5 @@
 // Load shared head from head.html
-async function loadSharedHead(path = '/assets/head.html') {
+async function loadSharedHead(path = './assets/head.html') {
   try {
     const response = await fetch(path, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Failed to load shared head: ${response.status}`);
