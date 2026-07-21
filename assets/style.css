@@ -1,4 +1,4 @@
-:root {
+ :root {
   --bg: #0a0a0a;
   --bg-alt: #060606;
   --panel: #0d0d0d;
@@ -539,30 +539,39 @@ main { width: 100%; }
   max-width: 45%;
 }
 
-/* ── Artist photo ────────────────────────────────────────────── */
-.artist-photo {
+/* ── Artist image as background (pseudo-element) ─────────────── */
+.artist-card::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 48px; /* align with card padding */
+  transform: translateY(-50%);
   width: 300px;
   aspect-ratio: 3 / 4;
-  flex-shrink: 0;
-  overflow: hidden;
   border-radius: 4px;
-}
-
-.artist-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
+  overflow: hidden;
+  background-color: var(--panel);
+  /* set --artist-image inline on the element, e.g. --artist-image: url('...') */
+  background-image: var(--artist-image);
+  background-repeat: no-repeat;
+  background-size: cover;       /* preserves aspect ratio and crops */
+  background-position: center top;
   filter: grayscale(1) contrast(1.05);
   transition: transform 0.4s ease, filter 0.4s ease;
+  pointer-events: none; /* keep anchor clickable */
 }
 
-.artist-card:hover .artist-photo img {
-  transform: scale(1.03);
+.artist-card:hover::before {
+  transform: translateY(-50%) scale(1.03);
   filter: grayscale(0.8) contrast(1.1);
 }
 
-/* ── Mobile ──────────────────────────────────────────────────── */
+.artist-card:focus-visible::before {
+  transform: translateY(-50%) scale(1.03);
+  filter: grayscale(0.8) contrast(1.1);
+}
+
+/* Mobile adjustments */
 @media (max-width: 768px) {
   .artists-grid {
     grid-template-columns: 1fr;
@@ -584,7 +593,9 @@ main { width: 100%; }
     max-width: 50%;
   }
 
-  .artist-photo {
+  /* scale down the pseudo-element on mobile to match previous 180px width */
+  .artist-card::before {
+    right: 24px;   /* match mobile padding */
     width: 180px;
   }
 }
