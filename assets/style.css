@@ -35,6 +35,12 @@ img { display: block; max-width: 100%; height: auto; }
   overflow: hidden;
 }
 
+/* Make main grow so footer is pushed to the bottom of the viewport */
+.page main {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
 .hero {
   width: 100%;
   display: grid;
@@ -55,6 +61,7 @@ img { display: block; max-width: 100%; height: auto; }
   top: 0;
   z-index: 10;
   width: 100%;
+  /* full-width background */
   background: rgba(15, 15, 15, 0.92);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(10px);
@@ -66,7 +73,7 @@ img { display: block; max-width: 100%; height: auto; }
 .nav {
   width: min(100%, var(--content));
   display: flex;
-  justify-content: center;
+  justify-content: center; /* default: horizontally centered row on wide screens */
   align-items: center;
   gap: 20px;
   min-height: 50px;
@@ -79,6 +86,8 @@ img { display: block; max-width: 100%; height: auto; }
   line-height: 2;
   letter-spacing: -0.01em;
   transition: color .2s ease;
+  /* increase hit area so background looks like a bar behind links */
+  padding: 6px 10px;
 }
 
 .nav a:hover,
@@ -248,7 +257,7 @@ main { width: 100%; }
 
 .footer-top {
   width: 100%;
-  min-height: 50px;
+  min-height: 60px; /* slightly taller for desktop */
   background: var(--bg);
   position: relative;
   display: flex;
@@ -260,7 +269,8 @@ main { width: 100%; }
   width: min(100%, var(--content));
   min-height: 50px;
   position: relative;
-  padding: 0 50px;
+  /* move icons/text ~30px from edges */
+  padding: 0 30px;
 }
 
 .social-left,
@@ -273,7 +283,7 @@ main { width: 100%; }
 }
 
 .social-left {
-  left: 50px;
+  left: 30px;
   gap: 26px;
 }
 
@@ -299,7 +309,7 @@ main { width: 100%; }
 }
 
 .copyright-right {
-  right: 50px;
+  right: 30px;
   color: #555;
   font-size: 14px;
   letter-spacing: -0.01em;
@@ -341,10 +351,12 @@ main { width: 100%; }
 @media (max-width: 1199.98px) {
   .hero { padding: 30px 20px; }
   .nav-wrap { padding: 20px; }
+  /* Mobile / tablet: stack nav vertically and center it */
   .nav {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0;
+    align-items: center; /* center items horizontally */
+    justify-content: center; /* center vertically within nav area */
+    gap: 12px;
     min-height: auto;
   }
   .feature-band { padding: 48px 20px; }
