@@ -52,6 +52,8 @@ async function includeHtmlFragments() {
   });
 
   return Promise.all(promises);
+
+  document.getElementById("year").textContent = new Date().getFullYear();
 }
 
 // Nav + active section logic
@@ -111,5 +113,3 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('resize', setActiveLink);
   window.addEventListener('load', setActiveLink);
 });
-
-document.getElementById("year").textContent = new Date().getFullYear();
