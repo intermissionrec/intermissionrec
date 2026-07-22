@@ -39,7 +39,7 @@ img { display: block; max-width: 100%; height: auto; }
   width: 100%;
   display: grid;
   place-items: center;
-  padding: 45px 20px 28px;
+  padding: 20px 20px 28px;
   background: var(--bg);
 }
 
@@ -59,7 +59,7 @@ img { display: block; max-width: 100%; height: auto; }
   backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
-  padding: 12px 20px;
+  padding: 4px 20px;
 }
 
 .nav {
