@@ -111,3 +111,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('resize', setActiveLink);
   window.addEventListener('load', setActiveLink);
 });
+
+document.getElementById("year").textContent = new Date().getFullYear();
