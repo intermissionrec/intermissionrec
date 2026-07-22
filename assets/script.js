@@ -111,5 +111,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('scroll', setActiveLink, { passive: true });
   window.addEventListener('resize', setActiveLink);
   window.addEventListener('load', setActiveLink);
-  document.getElementById("year").textContent = new Date().getFullYear() + " © INTER(MISSION)";
+
+  const currentYear = new Date().getFullYear();
+  document.querySelectorAll(".year").forEach(el => {
+    el.textContent = currentYear + " © INTER(MISSION)";
+  });
 });
