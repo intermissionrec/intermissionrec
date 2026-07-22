@@ -110,7 +110,6 @@ main { width: 100%; }
   aspect-ratio: 1;
   background: var(--panel);
   overflow: hidden;
-  box-shadow: var(--shadow);
   flex: 0 0 auto;
   transition: transform .25s ease, filter .25s ease;
 }
