@@ -247,7 +247,7 @@ main { width: 100%; }
 }
 
 .footer-top {
-  width: 100%;
+  width: stretch;
   min-height: 50px;
   background: var(--bg);
   position: relative;
@@ -307,7 +307,7 @@ main { width: 100%; }
 }
 
 .footer-bottom {
-  width: 100%;
+  width: stretch;
   min-height: 97px;
   background: var(--bg);
   display: none;
