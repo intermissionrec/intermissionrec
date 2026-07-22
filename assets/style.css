@@ -257,7 +257,7 @@ main { width: 100%; }
 }
 
 .footer-top-inner {
-  width: min(100%, var(--content));
+  width: 100%;
   min-height: 50px;
   position: relative;
   padding: 0 50px;
