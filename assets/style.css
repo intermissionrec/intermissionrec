@@ -54,7 +54,7 @@ img { display: block; max-width: 100%; height: auto; }
   position: sticky;
   top: 0;
   z-index: 10;
-  width: 100%;
+  width: 1920px;
   background: rgba(15, 15, 15, 0.92);
   backdrop-filter: blur(10px);
   display: flex;
@@ -246,7 +246,7 @@ main { width: 100%; }
 }
 
 .footer-top {
-  width: 100%;
+  width: 1920px;
   min-height: 50px;
   background: var(--bg);
   position: relative;
