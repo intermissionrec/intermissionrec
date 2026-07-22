@@ -133,7 +133,7 @@ main { width: 100%; }
   align-items: center;
   justify-content: center;
   gap: 10px;
-  text-align: center;
+  text-align: left;
 }
 
 .copy h1 {
