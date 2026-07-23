@@ -425,63 +425,20 @@ body.artists .artist-name {
   display: block;
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: var(--radius);
-  overflow: hidden;
   background: var(--panel);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--line);
-  transform: translateY(0);
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    filter 0.25s ease;
+  overflow: hidden;
+  transition: transform .25s ease;
 }
 
-/* Image inside card */
+.music-card:hover {
+  transform: scale(1.03);
+}
+
 .music-card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: inherit;
-  filter: saturate(1.05) contrast(1.05);
-  transition:
-    transform 0.35s ease,
-    filter 0.35s ease,
-    opacity 0.35s ease;
 }
-
-/* Subtle highlight overlay */
-.music-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    140deg,
-    rgba(255, 255, 255, 0.18),
-    transparent 45%
-  );
-  mix-blend-mode: screen;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-}
-
-/* Hover state */
-.music-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
-  filter: brightness(1.04);
-}
-
-.music-card:hover img {
-  transform: scale(1.05);
-  filter: saturate(1.2) contrast(1.1) brightness(1.05);
-}
-
-.music-card:hover::after {
-  opacity: 1;
-}
-
 /* Keyboard focus */
 .music-card:focus-visible {
   outline: 2px solid #f2f2f2;
@@ -637,4 +594,47 @@ body.artists .artist-name {
     font-size: clamp(2rem, 8vw, 3rem);
     max-width: 50%;
   }
+
+  body.music .page { height: 100vh; overflow: hidden; }
+
+  body.music main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+  }
+
+  body.music .content-section.alt {
+    height: 100%;
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.music .section-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.music .music-grid {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.music .music-card {
+    width: min(100%, calc((100vh - 300px) / 2));
+    height: auto;
+    margin: auto;
+  }
+}
 }
