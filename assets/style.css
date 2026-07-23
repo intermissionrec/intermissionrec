@@ -637,9 +637,4 @@ body.artists .artist-name {
     font-size: clamp(2rem, 8vw, 3rem);
     max-width: 50%;
   }
-
-  /* scale down the pseudo-element on mobile to match previous 180px width */
-  .artist-card::before {
-    width: 180px;
-  }
 }
