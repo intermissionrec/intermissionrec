@@ -573,7 +573,7 @@ body.music .music-card {
 
 .contact-row:hover {
   opacity: 0.75;
-  transform: translateX(3px);
+  transform: scale(1.02);
 }
 
 .contact-icon {
