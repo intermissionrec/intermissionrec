@@ -415,8 +415,7 @@ body.artists .artist-name {
 
   body.music .music-band {
     height: 100%;
-    display: flex;
-    align-items: stretch;
+    min-height: 0;
   }
 
   body.music .music-grid {
@@ -486,6 +485,10 @@ body.artists .artist-name {
 .music-band {
   width: 100%;
   background: var(--bg);
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  min-height: calc(100vh - 160px);
 }
 
 .music-grid {
