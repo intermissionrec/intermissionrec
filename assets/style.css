@@ -359,8 +359,8 @@ body.home .feature-band {
 }
 
 body.home .hero-logo {
-  width: clamp(60px, 10vh, 112px);
-  height: clamp(60px, 10vh, 112px);
+  width: 96px;
+  height: 96px;
 }
 
 body.home .cover-card {
