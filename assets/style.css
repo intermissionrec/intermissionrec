@@ -400,6 +400,7 @@ body.artists .artist-name {
 @media (min-width: 1200px) {
   body.music .page { 
     height: auto;
+    min-height: auto;
     overflow: visible; 
   }
 
