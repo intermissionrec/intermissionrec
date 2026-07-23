@@ -433,7 +433,7 @@ body.artists .artist-name {
 
   body.music .music-card:hover::before,
   body.music .music-card:focus-visible::before {
-    opacity: .5;
+    opacity: .3;
   }
 
   body.music .music-card:hover .music-title,
