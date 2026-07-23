@@ -398,37 +398,39 @@ body.artists .artist-name {
 }
 
 @media (min-width: 1200px) {
-  body.music .page { 
-    height: auto;
-    min-height: auto;
-    overflow: visible; 
-  }
+body.music .page {
+  height: 100vh;
+  overflow: hidden;
+}
 
-  body.music main {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    overflow: hidden;
-  }
+body.music main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
 
-  body.music .hero-logo {
-    width: clamp(60px, 10vh, 112px);
-    height: clamp(60px, 10vh, 112px);
-  }
+body.music .hero-logo {
+  width: clamp(60px, 10vh, 112px);
+  height: clamp(60px, 10vh, 112px);
+}
 
-  body.music .music-band {
-    height: auto;
-  }
+body.music .music-band {
+  height: 100%;
+  min-height: 0;
+}
 
-  body.music .music-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0;
-  }
+body.music .music-grid {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 0;
+}
 
-  body.music .music-card {
-    min-height: 0;
-  }
+body.music .music-card {
+  min-height: 0;
+}
 
   body.music .music-card:nth-child(even) { border-right: 1px solid var(--line); }
   body.music .music-card:nth-child(5n) { border-right: none; }
