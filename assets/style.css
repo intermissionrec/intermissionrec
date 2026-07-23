@@ -382,6 +382,11 @@ body.artists main {
   overflow: hidden;
 }
 
+body.artists .hero-logo {
+  width: clamp(60px, 10vh, 112px);
+  height: clamp(60px, 10vh, 112px);
+}
+
 body.artists .artists-band {
   height: 100%;
   min-height: 0;
@@ -579,6 +584,11 @@ body.music main {
   min-height: 0;
   display: flex;
   overflow: hidden;
+}
+
+body.music .hero-logo {
+  width: clamp(60px, 10vh, 112px);
+  height: clamp(60px, 10vh, 112px);
 }
 
 body.music .content-section.alt {
