@@ -457,8 +457,8 @@ body.artists .artist-name {
   }
 
   body.contacts .hero-logo {
-    width: clamp(60px, 10vh, 112px);
-    height: clamp(60px, 10vh, 112px);   
+    width: clamp(60px, 10vh, 96px);
+    height: clamp(60px, 10vh, 96px);   
   }
 }
 
