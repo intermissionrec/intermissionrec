@@ -622,6 +622,7 @@ body.artists .artist-name {
   }
 
   .artist-card {
+    min-height: 220px;
     border-right: none;
     border-bottom: 1px solid var(--line);
     padding: 40px 24px;
@@ -639,7 +640,6 @@ body.artists .artist-name {
 
   /* scale down the pseudo-element on mobile to match previous 180px width */
   .artist-card::before {
-    right: 24px;   /* match mobile padding */
     width: 180px;
   }
 }
