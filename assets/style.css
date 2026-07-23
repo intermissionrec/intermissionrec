@@ -35,6 +35,10 @@ img { display: block; max-width: 100%; height: auto; }
   overflow: hidden;
 }
 
+.page > div[data-include] {
+  width: 100%;
+}
+
 .hero {
   width: 100%;
   display: grid;
