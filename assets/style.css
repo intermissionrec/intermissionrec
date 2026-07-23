@@ -253,6 +253,7 @@ main { width: 100%; }
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .footer-top-inner {
@@ -313,6 +314,7 @@ main { width: 100%; }
   align-items: center;
   justify-content: center;
   padding: 0 20px;
+  flex-shrink: 0;
 }
 
 .footer-bottom-inner {
@@ -397,12 +399,12 @@ body.artists .artist-name {
 
 @media (min-width: 1200px) {
   body.music .page { 
-    height: 100vh; 
-    overflow: hidden; 
+    height: auto;
+    overflow: visible; 
   }
 
   body.music main {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-height: 0;
     display: flex;
     overflow: hidden;
@@ -414,19 +416,20 @@ body.artists .artist-name {
   }
 
   body.music .music-band {
-    max-height: calc(100vh - 200px);
+    height: auto;
     min-height: 0;
   }
 
   body.music .music-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    height: 100%;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 0;
   }
 
   body.music .music-card {
     min-height: 0;
+    aspect-ratio: 1;
   }
 
   body.music .music-card:nth-child(even) { border-right: 1px solid var(--line); }
