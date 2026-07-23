@@ -395,6 +395,53 @@ body.artists .artist-name {
   font-size: clamp(1.5rem, 6vh, 4rem);
 }
 
+@media (min-width: 1200px) {
+  body.music .page { height: 100vh; overflow: hidden; }
+
+  body.music main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+  }
+
+  body.music .hero-logo {
+    width: clamp(60px, 10vh, 112px);
+    height: clamp(60px, 10vh, 112px);
+  }
+
+  body.music .music-band {
+    height: 100%;
+    display: flex;
+    align-items: stretch;
+  }
+
+  body.music .music-grid {
+    height: 100%;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+  }
+
+  body.music .music-card {
+  min-height: 0;
+  }
+
+  body.music .music-card:nth-child(even) { border-right: 1px solid var(--line); }
+  body.music .music-card:nth-child(5n) { border-right: none; }
+  body.music .music-card:nth-last-child(-n+2) { border-bottom: 1px solid var(--line); }
+  body.music .music-card:nth-last-child(-n+5) { border-bottom: none; }
+
+  body.music .music-card:hover::before,
+  body.music .music-card:focus-visible::before {
+    opacity: .5;
+  }
+
+  body.music .music-card:hover .music-title,
+  body.music .music-card:focus-visible .music-title {
+    opacity: 1;
+  }
+}
+
 @media (max-width: 1199.98px) {
   .hero { padding: 35px 20px 30px; }
   .nav-wrap { padding: 10px 20px 10px; }
@@ -466,47 +513,6 @@ body.artists .artist-name {
   opacity: 0;
   transition: opacity .3s ease;
 }
-
-body.music .page { height: 100vh; overflow: hidden; }
-
-  body.music main {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    overflow: hidden;
-  }
-
-  body.music .hero-logo {
-    width: clamp(60px, 10vh, 112px);
-    height: clamp(60px, 10vh, 112px);
-  }
-
-  body.music .music-band {
-    height: 100%;
-    display: flex;
-    align-items: stretch;
-  }
-
-  body.music .music-grid {
-    height: 100%;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-  }
-
-  body.music .music-card:nth-child(even) { border-right: 1px solid var(--line); }
-  body.music .music-card:nth-child(5n) { border-right: none; }
-  body.music .music-card:nth-last-child(-n+2) { border-bottom: 1px solid var(--line); }
-  body.music .music-card:nth-last-child(-n+5) { border-bottom: none; }
-
-  body.music .music-card:hover::before,
-  body.music .music-card:focus-visible::before {
-    opacity: .5;
-  }
-
-  body.music .music-card:hover .music-title,
-  body.music .music-card:focus-visible .music-title {
-    opacity: 1;
-  }
 
 .contacts-centered {
   display: flex;
