@@ -457,13 +457,12 @@ body.artists .artist-name {
   inset: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  justify-content: left;
+  text-align: left;
   padding: 24px;
   font-family: 'Inter Tight', sans-serif;
   font-size: clamp(1.1rem, 2vw, 1.8rem);
   font-weight: 600;
-  letter-spacing: -0.02em;
   opacity: 0;
   transition: opacity .3s ease;
 }
