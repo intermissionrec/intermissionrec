@@ -370,6 +370,27 @@ body.home .copy {
   width: clamp(160px, 34vh, 447px);
 }
 
+body.artists .page {
+  height: 100vh;
+  overflow: hidden;
+}
+
+body.artists main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+body.artists .artists-band {
+  height: 100%;
+  min-height: 0;
+}
+
+body.artists .artist-name {
+  font-size: clamp(1.5rem, 6vh, 4rem);
+}
+
 @media (max-width: 1199.98px) {
   .hero { padding: 35px 20px 30px; }
   .nav-wrap { padding: 10px 20px 10px; }
@@ -575,31 +596,22 @@ body.home .copy {
 .artist-card::before {
   content: "";
   position: absolute;
-  top: 50%;
-  right: 48px; /* align with card padding */
-  transform: translateY(-50%);
-  width: 300px;
-  aspect-ratio: 3 / 4;
-  border-radius: 4px;
+  inset: 0;
   overflow: hidden;
   background-color: var(--panel);
-  /* set --artist-image inline on the element, e.g. --artist-image: url('...') */
   background-image: var(--artist-image);
   background-repeat: no-repeat;
-  background-size: cover;       /* preserves aspect ratio and crops */
-  background-position: center top;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.4;
   filter: grayscale(1) contrast(1.05);
-  transition: transform 0.4s ease, filter 0.4s ease;
-  pointer-events: none; /* keep anchor clickable */
+  transition: opacity 0.3s ease, filter 0.4s ease;
+  pointer-events: none;
 }
 
-.artist-card:hover::before {
-  transform: translateY(-50%) scale(1.03);
-  filter: grayscale(0.8) contrast(1.1);
-}
-
+.artist-card:hover::before,
 .artist-card:focus-visible::before {
-  transform: translateY(-50%) scale(1.03);
+  opacity: 0.7;
   filter: grayscale(0.8) contrast(1.1);
 }
 
