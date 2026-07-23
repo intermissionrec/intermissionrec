@@ -466,6 +466,11 @@ body.music .music-card {
 }
 
 @media (max-width: 1199.98px) {
+  .hero-logo {
+    width: 96px;
+    height: 96px;
+  }
+  
   .hero { padding: 35px 20px 30px; }
   .nav-wrap { padding: 10px 20px 10px; }
   .nav {
