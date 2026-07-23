@@ -414,14 +414,15 @@ body.artists .artist-name {
   }
 
   body.music .music-band {
-    height: 100%;
+    max-height: calc(100vh - 200px);
     min-height: 0;
   }
 
   body.music .music-grid {
-    max-height: calc(100vh - 200px);
+    display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(2, 1fr);
+    height: 100%;
   }
 
   body.music .music-card {
