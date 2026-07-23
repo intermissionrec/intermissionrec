@@ -51,7 +51,6 @@
 
   const touchIcon = document.createElement("link");
   touchIcon.rel = "apple-touch-icon";
-  touchIcon.href =
-    "./assets/images/favicon/touch-icon.png";
+  touchIcon.href = "./assets/images/favicon/touch-icon.png";
   head.appendChild(touchIcon);
 })();
