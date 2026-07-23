@@ -423,7 +423,7 @@ body.artists .artist-name {
   }
 
   body.music .music-card {
-  min-height: 0;
+    min-height: 0;
   }
 
   body.music .music-card:nth-child(even) { border-right: 1px solid var(--line); }
