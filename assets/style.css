@@ -557,7 +557,7 @@ body.music .music-card {
   align-items: center;
   justify-content: center;
   gap: 48px;
-  width: 100%;
+  width: auto;
   height: 100%;
 }
 
