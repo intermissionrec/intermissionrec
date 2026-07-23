@@ -396,7 +396,10 @@ body.artists .artist-name {
 }
 
 @media (min-width: 1200px) {
-  body.music .page { height: 100vh; overflow: hidden; }
+  body.music .page { 
+    height: 100vh; 
+    overflow: hidden; 
+  }
 
   body.music main {
     flex: 1 1 auto;
@@ -440,6 +443,18 @@ body.artists .artist-name {
   body.music .music-card:focus-visible .music-title {
     opacity: 1;
   }
+
+  body.contacts .page {
+  height: 100vh;
+  overflow: hidden;
+}
+
+body.contacts main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
 }
 
 @media (max-width: 1199.98px) {
@@ -470,7 +485,6 @@ body.artists .artist-name {
 
 .music-grid {
   width: 100%;
-  min-height: 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
 }
