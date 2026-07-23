@@ -419,7 +419,7 @@ body.artists .artist-name {
   }
 
   body.music .music-grid {
-    height: 100%;
+    max-height: calc(100vh - 200px);
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(2, 1fr);
   }
