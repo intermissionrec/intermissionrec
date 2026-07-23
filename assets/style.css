@@ -616,6 +616,7 @@ body.music .page { height: 100vh; overflow: hidden; }
   }
 
   body.music .music-grid {
+    height: 100%;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(2, 1fr);
   }
