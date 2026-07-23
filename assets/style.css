@@ -405,10 +405,10 @@ body.artists .artist-name {
   }
 
   body.music main {
-    flex: none;
-    min-height: auto;
-    display: block;
-    overflow: visible;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
   }
 
   body.music .hero-logo {
@@ -418,7 +418,6 @@ body.artists .artist-name {
 
   body.music .music-band {
     height: auto;
-    min-height: 0;
   }
 
   body.music .music-grid {
