@@ -33,27 +33,21 @@
   // Favicons
   const lightIcon = document.createElement("link");
   lightIcon.rel = "icon";
-  lightIcon.media = "(prefers-color-scheme: light)";
+  lightIcon.media = "not all and (prefers-color-scheme: light)";
   lightIcon.href =
-    "https://raw.githubusercontent.com/intermissionrec/intermissionrec.github.io/refs/heads/main/intermission%20web%20main/files/favicon-light.png";
+    "./assets/images/favicon/favicon-light.png";
   head.appendChild(lightIcon);
 
   const darkIcon = document.createElement("link");
   darkIcon.rel = "icon";
   darkIcon.media = "(prefers-color-scheme: dark)";
   darkIcon.href =
-    "https://raw.githubusercontent.com/intermissionrec/intermissionrec.github.io/refs/heads/main/intermission%20web%20main/files/favicon-dark.png";
+    "./assets/images/favicon/favicon-dark.png";
   head.appendChild(darkIcon);
 
   const touchIcon = document.createElement("link");
   touchIcon.rel = "apple-touch-icon";
   touchIcon.href =
-    "https://raw.githubusercontent.com/intermissionrec/intermissionrec.github.io/refs/heads/main/intermission%20web%20main/files/touch-icon.png";
+    "./assets/images/favicon/touch-icon.png";
   head.appendChild(touchIcon);
-
-  // Shared stylesheet
-  const css = document.createElement("link");
-  css.rel = "stylesheet";
-  css.href = "./assets/style.css";
-  head.appendChild(css);
 })();
