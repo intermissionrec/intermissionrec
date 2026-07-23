@@ -447,14 +447,19 @@ body.artists .artist-name {
   body.contacts .page {
   height: 100vh;
   overflow: hidden;
-}
+  }
 
-body.contacts main {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  overflow: hidden;
-}
+  body.contacts main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+  }
+
+  body.contacts .hero-logo {
+    width: clamp(60px, 10vh, 112px);
+    height: clamp(60px, 10vh, 112px);   
+  }
 }
 
 @media (max-width: 1199.98px) {
