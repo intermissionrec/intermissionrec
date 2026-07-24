@@ -577,8 +577,12 @@ body.music .music-card {
   .contacts-columns {
     flex-direction: column;
     min-height: calc(100vh - 220px);
-    gap: 72px;
-    padding: 120px 0;
+    gap: 48px;
+    padding: 40px 0;
+  }
+
+  .contact-form-wrap {
+    padding: 0 60px;
   }
 
   .contact-form-wrap h2,
