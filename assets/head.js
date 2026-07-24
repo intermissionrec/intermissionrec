@@ -2,9 +2,6 @@
 (function applySharedHead() {
   const head = document.head;
 
-  // Title
-  document.title = "INTER(MISSION)";
-
   // Description
   const metaDesc = document.createElement("meta");
   metaDesc.name = "description";
