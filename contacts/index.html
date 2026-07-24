@@ -118,23 +118,39 @@
 
     var submitBtn = document.getElementById('submitBtn');
     var originalBtnText = submitBtn.textContent;
+    var resetTimer = null;
+
+    function resetButton() {
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.style.cursor = 'pointer';
+      submitBtn.textContent = originalBtnText;
+      if (resetTimer) {
+        clearTimeout(resetTimer);
+        resetTimer = null;
+      }
+    }
 
     document.getElementById('contactForm').addEventListener('submit', function () {
       submitBtn.disabled = true;
       submitBtn.style.opacity = '0.6';
       submitBtn.style.cursor = 'default';
       submitBtn.innerHTML = '<span class="btn-spinner"></span> Изпращане...';
+
+      // Safety net: force a reset after 12 seconds no matter what, so the
+      // button can never get permanently stuck even in an edge case where
+      // the iframe's load event doesn't fire.
+      resetTimer = setTimeout(function () {
+        resetButton();
+        document.getElementById('formStatus').style.display = 'block';
+      }, 12000);
     });
 
     document.getElementById('hidden_iframe').addEventListener('load', function () {
       if (this.dataset.loaded) {
         document.getElementById('contactForm').reset();
         document.getElementById('formStatus').style.display = 'block';
-
-        submitBtn.disabled = false;
-        submitBtn.style.opacity = '1';
-        submitBtn.style.cursor = 'pointer';
-        submitBtn.textContent = originalBtnText;
+        resetButton();
       }
       this.dataset.loaded = true;
     });
