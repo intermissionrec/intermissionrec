@@ -95,7 +95,7 @@
               <input type="text" name="website" style="position:absolute; left:-9999px;" tabindex="-1" autocomplete="off">
               <input type="hidden" name="startTime" id="startTime" value="">
 
-              <button type="submit" class="platform-link" style="width: 100%; border: none; cursor: pointer;">
+              <button type="submit" class="platform-link" id="submitBtn" style="width: 100%; border: none; cursor: pointer;">
                 Изпрати
               </button>
               <p id="formStatus" class="section-lead" style="margin-top: 12px; margin-bottom: 0; display: none;">
@@ -116,10 +116,25 @@
   <script>
     document.getElementById('startTime').value = Date.now();
 
+    var submitBtn = document.getElementById('submitBtn');
+    var originalBtnText = submitBtn.textContent;
+
+    document.getElementById('contactForm').addEventListener('submit', function () {
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.6';
+      submitBtn.style.cursor = 'default';
+      submitBtn.innerHTML = '<span class="btn-spinner"></span> Изпращане...';
+    });
+
     document.getElementById('hidden_iframe').addEventListener('load', function () {
       if (this.dataset.loaded) {
         document.getElementById('contactForm').reset();
         document.getElementById('formStatus').style.display = 'block';
+
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.textContent = originalBtnText;
       }
       this.dataset.loaded = true;
     });
