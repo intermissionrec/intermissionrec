@@ -98,9 +98,7 @@
               <button type="submit" class="platform-link" id="submitBtn" style="width: 100%; border: none; cursor: pointer;">
                 Изпрати
               </button>
-              <p id="formStatus" class="section-lead" style="margin-top: 12px; margin-bottom: 0; display: none;">
-                Благодарим ти! Съобщението е изпратено.
-              </p>
+              <p id="formStatus" class="section-lead" style="margin-top: 12px; margin-bottom: 0; display: none;"></p>
             </form>
             <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
           </div>
@@ -118,6 +116,7 @@
 
     var submitBtn = document.getElementById('submitBtn');
     var originalBtnText = submitBtn.textContent;
+    var formStatus = document.getElementById('formStatus');
     var resetTimer = null;
 
     function resetButton() {
@@ -136,23 +135,36 @@
       submitBtn.style.opacity = '0.6';
       submitBtn.style.cursor = 'default';
       submitBtn.innerHTML = '<span class="btn-spinner"></span> Изпращане...';
+      formStatus.style.display = 'none';
 
-      // Safety net: force a reset after 12 seconds no matter what, so the
-      // button can never get permanently stuck even in an edge case where
-      // the iframe's load event doesn't fire.
+      // Safety net: force a reset after 12 seconds no matter what, in case
+      // the Worker's response never arrives at all (network failure, etc.)
       resetTimer = setTimeout(function () {
         resetButton();
-        document.getElementById('formStatus').style.display = 'block';
+        formStatus.textContent = 'Съобщението не бе изпратено (изтече времето на изчакване) - опитай отново или ни пиши директно на info@intermissionrec.com.';
+        formStatus.style.color = '#e05a4e';
+        formStatus.style.display = 'block';
       }, 12000);
     });
 
-    document.getElementById('hidden_iframe').addEventListener('load', function () {
-      if (this.dataset.loaded) {
+    // The Worker's response is a tiny page that posts the real result back
+    // to us - this is how we know success vs failure, since we can't read
+    // the iframe's content directly (it's a different domain).
+    window.addEventListener('message', function (event) {
+      if (!event.data || event.data.type !== 'contactFormResult') return;
+
+      resetButton();
+
+      if (event.data.success) {
         document.getElementById('contactForm').reset();
-        document.getElementById('formStatus').style.display = 'block';
-        resetButton();
+        formStatus.textContent = 'Благодарим ти! Съобщението е изпратено.';
+        formStatus.style.color = '';
+        formStatus.style.display = 'block';
+      } else {
+        formStatus.textContent = 'Нещо се обърка: ' + (event.data.error || 'моля опитай отново') + ' - или пиши директно на info@intermissionrec.com.';
+        formStatus.style.color = '#e05a4e';
+        formStatus.style.display = 'block';
       }
-      this.dataset.loaded = true;
     });
   </script>
 </body>
