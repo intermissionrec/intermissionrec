@@ -34,23 +34,23 @@
   const darkIcon = document.createElement("link");
   darkIcon.rel = "icon";
   darkIcon.media = "(prefers-color-scheme: dark)";
-  darkIcon.href = "./assets/images/favicon/favicon-dark.png";
+  darkIcon.href = "/assets/images/favicon/favicon-dark.png";
   head.appendChild(darkIcon);
 
   const darkFallbackIcon = document.createElement("link");
   darkFallbackIcon.rel = "icon";
   darkFallbackIcon.media = "not all and (prefers-color-scheme: light)";
-  darkFallbackIcon.href = "./assets/images/favicon/favicon-dark.png";
+  darkFallbackIcon.href = "/assets/images/favicon/favicon-dark.png";
   head.appendChild(darkFallbackIcon);
 
   const lightIcon = document.createElement("link");
   lightIcon.rel = "icon";
   lightIcon.media = "(prefers-color-scheme: light)";
-  lightIcon.href = "./assets/images/favicon/favicon-light.png";
+  lightIcon.href = "/assets/images/favicon/favicon-light.png";
   head.appendChild(lightIcon);
 
   const touchIcon = document.createElement("link");
   touchIcon.rel = "apple-touch-icon";
-  touchIcon.href = "./assets/images/favicon/touch-icon.png";
+  touchIcon.href = "/assets/images/favicon/touch-icon.png";
   head.appendChild(touchIcon);
 })();
