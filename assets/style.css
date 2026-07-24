@@ -580,7 +580,8 @@ body.music .music-card {
     gap: 48px;
   }
 
-  .contact-form-wrap h2 {
+  .contact-form-wrap h2,
+  #formStatus {
     text-align: center;
   }
 
