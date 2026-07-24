@@ -361,6 +361,10 @@ main { width: 100%; }
   text-align: right;
 }
 
+#formStatus {
+  text-align: right;
+}
+
 .contact-form {
   display: flex;
   flex-direction: column;
