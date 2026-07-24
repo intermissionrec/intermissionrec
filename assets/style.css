@@ -343,6 +343,35 @@ html, body { height: 100%; }
 
 @media (min-width: 1200px) {
 
+  body.smartlink .page {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  body.smartlink main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+  }
+
+  body.smartlink .hero-logo {
+    width: clamp(60px, 10vh, 112px);
+    height: clamp(60px, 10vh, 112px);
+  }
+
+  body.smartlink .feature-band {
+    height: 100%;
+    padding: clamp(12px, 3vh, 64px) 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.smartlink .cover-card {
+    width: clamp(110px, 26vh, 320px);
+  }  
+
 body.home .page {
   height: 100vh;
   overflow: hidden;
@@ -495,6 +524,11 @@ body.music .music-card {
   .card-grid { grid-template-columns: 1fr; }
   .footer-top { display: none; }
   .footer-bottom { display: flex; }
+
+  body.smartlink .music-links {
+    flex-direction: column;
+    align-items: center;
+  }
 }
 
 .music-band {
