@@ -738,6 +738,67 @@ body.music .music-card {
   min-height: calc(100vh - 160px); /* fill below header + nav */
 }
 
+/* ── Artists roster grid (5 per row, new tile-style layout) ──── */
+.artists-roster-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+}
+
+.artist-tile {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--panel);
+  display: block;
+}
+
+.artist-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--artist-image);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(1) contrast(1.05);
+  transition: filter 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
+
+.artist-tile:hover::before,
+.artist-tile:focus-visible::before {
+  filter: grayscale(0) contrast(1.1);
+  transform: scale(1.04);
+}
+
+.artist-tile-name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 16px;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: clamp(0.95rem, 1.4vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  background: linear-gradient(to top, rgba(0,0,0,.75), transparent);
+}
+
+@media (max-width: 900px) {
+  .artists-roster-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .artists-roster-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .artists-grid {
   width: 100%;
   display: grid;
