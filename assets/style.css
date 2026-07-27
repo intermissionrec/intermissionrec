@@ -741,10 +741,11 @@ body.music .music-card {
 /* ── Artists roster grid (auto-balanced columns, max 5) ──── */
 .artists-roster-grid {
   width: 100%;
+  height: 100%;
   display: grid;
   grid-template-columns: repeat(var(--artist-cols, 2), 1fr);
+  grid-auto-rows: 1fr;
   gap: 2px;
-  align-items: start;
 }
 
 .artist-tile {
@@ -756,7 +757,6 @@ body.music .music-card {
   background: var(--panel);
   text-decoration: none;
   color: var(--text);
-  aspect-ratio: 1;
   min-height: 0;
 }
 
