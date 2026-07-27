@@ -91,7 +91,11 @@ img { display: block; max-width: 100%; height: auto; }
   outline: none;
 }
 
-main { width: 100%; }
+main {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+}
 
 .feature-band {
   width: 100%;
@@ -799,7 +803,7 @@ html, body { height: 100%; }
   position: relative;
   width: auto;
   height: auto;
-  max-width: calc(60% - 180px);
+  max-width: calc(60% - 120px);
   max-height: clamp(1.5rem, 3vw, 4rem);
   object-fit: contain;
   opacity: 1;
