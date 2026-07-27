@@ -679,6 +679,127 @@ html, body { height: 100%; }
   transition: opacity .3s ease;
 }
 
+/* ── Smart Link quick-view modal (Music Grid) ─────────────────── */
+.sl-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.sl-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+.sl-modal-content {
+  position: relative;
+  width: min(100%, 760px);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  gap: 40px;
+  padding: 40px;
+}
+
+.sl-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.sl-modal-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.sl-modal-left {
+  flex: 0 0 auto;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sl-modal-cover {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--bg);
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.sl-modal-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sl-modal-info h2 {
+  margin: 0 0 6px;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: clamp(1.3rem, 2vw, 1.8rem);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.sl-modal-info p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.sl-modal-right {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  min-width: 0;
+}
+
+.sl-modal-right .platform-link {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .sl-modal-content {
+    flex-direction: column;
+    padding: 28px;
+    gap: 24px;
+  }
+
+  .sl-modal-left {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+  }
+
+  .sl-modal-cover {
+    max-width: 220px;
+  }
+}
+
 .contacts-centered {
   display: flex;
   flex-direction: column;
@@ -804,7 +925,7 @@ html, body { height: 100%; }
   position: relative;
   width: auto;
   height: auto;
-  max-width: calc(60% - 150px);
+  max-width: calc(60% - 120px);
   max-height: clamp(1.5rem, 3vw, 4rem);
   object-fit: contain;
   opacity: 1;

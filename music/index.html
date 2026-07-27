@@ -114,5 +114,104 @@
   </div>
 
   <script src="../assets/script.js" defer></script>
+
+  <!-- Smart Link quick-view modal -->
+  <div id="smartlinkModal" class="sl-modal" style="display:none;">
+    <div class="sl-modal-backdrop"></div>
+    <div class="sl-modal-content">
+      <button class="sl-modal-close" aria-label="Затвори">&times;</button>
+      <div class="sl-modal-left">
+        <div class="sl-modal-cover">
+          <img id="slModalCoverImg" src="" alt="">
+        </div>
+        <div class="sl-modal-info">
+          <h2 id="slModalTitle"></h2>
+          <p id="slModalArtist"></p>
+        </div>
+      </div>
+      <div class="sl-modal-right" id="slModalLinks"></div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var modal = document.getElementById('smartlinkModal');
+    var closeBtn = modal.querySelector('.sl-modal-close');
+    var backdrop = modal.querySelector('.sl-modal-backdrop');
+    var coverImg = document.getElementById('slModalCoverImg');
+    var titleEl = document.getElementById('slModalTitle');
+    var artistEl = document.getElementById('slModalArtist');
+    var linksEl = document.getElementById('slModalLinks');
+    var originalUrl = window.location.href;
+
+    function openModal(url) {
+      fetch(url)
+        .then(function (res) {
+          if (!res.ok) throw new Error('Failed to load');
+          return res.text();
+        })
+        .then(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          var coverSrc = doc.querySelector('.cover-card img');
+          var title = doc.querySelector('.copy h1');
+          var artist = doc.querySelector('.copy p');
+          var platformLinks = doc.querySelectorAll('.music-links .platform-link');
+
+          coverImg.src = coverSrc ? coverSrc.getAttribute('src') : '';
+          coverImg.alt = title ? title.textContent : '';
+          titleEl.textContent = title ? title.textContent : '';
+          artistEl.textContent = artist ? artist.textContent : '';
+          artistEl.style.display = (artist && artist.textContent) ? 'block' : 'none';
+
+          linksEl.innerHTML = '';
+          platformLinks.forEach(function (a) {
+            var newA = document.createElement('a');
+            newA.href = a.getAttribute('href');
+            newA.className = 'platform-link';
+            newA.target = '_blank';
+            newA.rel = 'noopener noreferrer';
+            newA.textContent = a.textContent;
+            linksEl.appendChild(newA);
+          });
+
+          modal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+          history.pushState({ smartlinkModal: true }, '', url);
+        })
+        .catch(function () {
+          // if anything goes wrong, fall back to a normal navigation
+          window.location.href = url;
+        });
+    }
+
+    function closeModal(skipHistory) {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+      if (!skipHistory) {
+        history.pushState({}, '', originalUrl);
+      }
+    }
+
+    document.querySelectorAll('.music-card').forEach(function (card) {
+      card.addEventListener('click', function (e) {
+        e.preventDefault();
+        openModal(card.getAttribute('href'));
+      });
+    });
+
+    closeBtn.addEventListener('click', function () { closeModal(false); });
+    backdrop.addEventListener('click', function () { closeModal(false); });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.style.display !== 'none') {
+        closeModal(false);
+      }
+    });
+
+    window.addEventListener('popstate', function () {
+      closeModal(true);
+    });
+  })();
+  </script>
 </body>
 </html>
