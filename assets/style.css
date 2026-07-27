@@ -834,7 +834,7 @@ html, body { height: 100%; }
   }
 
   .artist-tile-logo {
-    max-width: 55%;
+    max-width: 35%;
     max-height: clamp(1.95rem, 3.9vw, 5.2rem);
   }
 }
