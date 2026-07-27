@@ -799,7 +799,7 @@ html, body { height: 100%; }
   position: relative;
   width: auto;
   height: auto;
-  max-width: 60%;
+  max-width: calc(60% - 120px);
   max-height: clamp(1.5rem, 3vw, 4rem);
   object-fit: contain;
   opacity: 1;
