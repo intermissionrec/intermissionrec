@@ -142,7 +142,6 @@
     var titleEl = document.getElementById('slModalTitle');
     var artistEl = document.getElementById('slModalArtist');
     var linksEl = document.getElementById('slModalLinks');
-    var originalUrl = window.location.href;
 
     function openModal(url) {
       fetch(url)
@@ -176,7 +175,6 @@
 
           modal.style.display = 'flex';
           document.body.style.overflow = 'hidden';
-          history.pushState({ smartlinkModal: true }, '', url);
         })
         .catch(function () {
           // if anything goes wrong, fall back to a normal navigation
@@ -184,12 +182,9 @@
         });
     }
 
-    function closeModal(skipHistory) {
+    function closeModal() {
       modal.style.display = 'none';
       document.body.style.overflow = '';
-      if (!skipHistory) {
-        history.pushState({}, '', originalUrl);
-      }
     }
 
     document.querySelectorAll('.music-card').forEach(function (card) {
@@ -199,17 +194,13 @@
       });
     });
 
-    closeBtn.addEventListener('click', function () { closeModal(false); });
-    backdrop.addEventListener('click', function () { closeModal(false); });
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
 
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && modal.style.display !== 'none') {
-        closeModal(false);
+        closeModal();
       }
-    });
-
-    window.addEventListener('popstate', function () {
-      closeModal(true);
     });
   })();
   </script>
