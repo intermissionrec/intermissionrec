@@ -146,7 +146,7 @@ main {
 
 .copy h1 {
   margin: 0;
-  width: min(100%, 480px);
+  width: min(100%, 320px);
   font-family: 'Inter Tight', sans-serif;
   font-size: clamp(2rem, 4vw, 3.2rem);
   line-height: 1.05;
@@ -834,7 +834,7 @@ html, body { height: 100%; }
   }
 
   .artist-tile-logo {
-    max-width: 75%;
+    max-width: 55%;
     max-height: clamp(1.95rem, 3.9vw, 5.2rem);
   }
 }
