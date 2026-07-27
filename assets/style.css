@@ -797,9 +797,9 @@ html, body { height: 100%; }
 
 .artist-tile-logo {
   position: relative;
+  height: clamp(1.5rem, 3vw, 4rem);
+  width: auto;
   max-width: 60%;
-  max-height: 40%;
-  object-fit: contain;
   opacity: 1;
   transition: opacity 0.3s ease;
 }
