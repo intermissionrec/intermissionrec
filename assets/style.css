@@ -442,97 +442,97 @@ html, body { height: 100%; }
 
   body.smartlink .cover-card {
     width: clamp(110px, 26vh, 320px);
-  }  
+  }
 
-body.home .page {
-  height: 100vh;
-  overflow: hidden;
-}
+  body.home .page {
+    height: 100vh;
+    overflow: hidden;
+  }
 
-body.home main {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  overflow: hidden;
-}
+  body.home main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+  }
 
-body.home .feature-band {
-  height: 100%;
-  padding: clamp(12px, 5vh, 128px) 20px;
-}
+  body.home .feature-band {
+    height: 100%;
+    padding: clamp(12px, 5vh, 128px) 20px;
+  }
 
-body.home .hero-logo {
-  width: 96px;
-  height: 96px;
-}
+  body.home .hero-logo {
+    width: 96px;
+    height: 96px;
+  }
 
-body.home .cover-card {
-  width: clamp(110px, 34vh, 451px);
-}
+  body.home .cover-card {
+    width: clamp(110px, 34vh, 451px);
+  }
 
-body.home .copy {
-  width: clamp(160px, 34vh, 447px);
-}
+  body.home .copy {
+    width: clamp(160px, 34vh, 447px);
+  }
 
-body.artists .page {
-  height: 100vh;
-  overflow: hidden;
-}
+  body.artists .page {
+    height: 100vh;
+    overflow: hidden;
+  }
 
-body.artists main {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  overflow: hidden;
-}
+  body.artists main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+  }
 
-body.artists .hero-logo {
-  width: clamp(60px, 10vh, 112px);
-  height: clamp(60px, 10vh, 112px);
-}
+  body.artists .hero-logo {
+    width: clamp(60px, 10vh, 112px);
+    height: clamp(60px, 10vh, 112px);
+  }
 
-body.artists .artists-band {
-  height: 100%;
-  min-height: 0;
-}
+  body.artists .artists-band {
+    height: 100%;
+    min-height: 0;
+  }
 
-body.artists .artist-name {
-  font-size: clamp(1.5rem, 6vh, 4rem);
-}
+  body.artists .artist-name {
+    font-size: clamp(1.5rem, 6vh, 4rem);
+  }
 
-body.music .page {
-  height: 100vh;
-  overflow: hidden;
-}
+  body.music .page {
+    height: 100vh;
+    overflow: hidden;
+  }
 
-body.music main {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  overflow: hidden;
-}
+  body.music main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+  }
 
-body.music .hero-logo {
-  width: clamp(60px, 10vh, 112px);
-  height: clamp(60px, 10vh, 112px);
-}
+  body.music .hero-logo {
+    width: clamp(60px, 10vh, 112px);
+    height: clamp(60px, 10vh, 112px);
+  }
 
-body.music .music-band {
-  height: 100%;
-  min-height: 0;
-}
+  body.music .music-band {
+    height: 100%;
+    min-height: 0;
+  }
 
-body.music .music-grid {
-  height: 100%;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 0;
-}
+  body.music .music-grid {
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 0;
+  }
 
-body.music .music-card {
-  min-height: 0;
-}
+  body.music .music-card {
+    min-height: 0;
+  }
 
   body.music .music-card:nth-child(even) { border-right: 1px solid var(--line); }
   body.music .music-card:nth-child(5n) { border-right: none; }
@@ -550,8 +550,8 @@ body.music .music-card {
   }
 
   body.contacts .page {
-  height: 100vh;
-  overflow: hidden;
+    height: 100vh;
+    overflow: hidden;
   }
 
   body.contacts main {
@@ -563,7 +563,7 @@ body.music .music-card {
 
   body.contacts .hero-logo {
     width: clamp(60px, 10vh, 96px);
-    height: clamp(60px, 10vh, 96px);   
+    height: clamp(60px, 10vh, 96px);
   }
 
   body.contacts .content-section {
