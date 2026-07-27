@@ -804,7 +804,7 @@ html, body { height: 100%; }
   position: relative;
   width: auto;
   height: auto;
-  max-width: calc(60% - 120px);
+  max-width: calc(60% - 150px);
   max-height: clamp(1.5rem, 3vw, 4rem);
   object-fit: contain;
   opacity: 1;
