@@ -585,16 +585,6 @@ html, body { height: 100%; }
     padding: 40px 0;
   }
 
-  .artists-roster-grid {
-    grid-template-columns: 1fr;
-    height: auto;
-    grid-auto-rows: auto;
-  }
-
-  .artist-tile {
-    min-height: 220px;
-  }
-
   .contact-form-wrap {
     padding: 0 30px;
   }
@@ -801,6 +791,18 @@ html, body { height: 100%; }
   color: var(--text);
   text-align: left;
   max-width: 60%;
+}
+
+@media (max-width: 1199.98px) {
+  .artists-roster-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+    grid-auto-rows: auto;
+  }
+
+  .artist-tile {
+    min-height: 220px;
+  }
 }
 
 
