@@ -791,6 +791,24 @@ html, body { height: 100%; }
   color: var(--text);
   text-align: left;
   max-width: 60%;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.artist-tile-logo {
+  position: relative;
+  max-width: 60%;
+  max-height: 40%;
+  object-fit: contain;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.artist-tile:hover .artist-tile-name,
+.artist-tile:focus-visible .artist-tile-name,
+.artist-tile:hover .artist-tile-logo,
+.artist-tile:focus-visible .artist-tile-logo {
+  opacity: 0.5;
 }
 
 @media (max-width: 1199.98px) {
