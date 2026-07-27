@@ -779,7 +779,7 @@ html, body { height: 100%; }
 }
 
 .sl-modal-right .platform-link {
-  width: 100%;
+  width: calc(100% - 60px);
 }
 
 @media (max-width: 768px) {
