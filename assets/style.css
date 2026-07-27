@@ -823,6 +823,15 @@ html, body { height: 100%; }
   .artist-tile {
     min-height: 220px;
   }
+
+  .artist-tile-name {
+    font-size: clamp(1.95rem, 3.9vw, 5.2rem);
+  }
+
+  .artist-tile-logo {
+    max-width: 75%;
+    max-height: clamp(1.95rem, 3.9vw, 5.2rem);
+  }
 }
 
 
