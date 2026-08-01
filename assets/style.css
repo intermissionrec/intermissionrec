@@ -1029,11 +1029,15 @@ html, body { height: 100%; }
   .artist-modal-releases {
     display: flex;
     flex-direction: row;
+    flex-shrink: 0;
     width: 100%;
     gap: 0;
     overflow-x: auto;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
     scrollbar-width: none;
   }
 
@@ -1051,6 +1055,7 @@ html, body { height: 100%; }
     width: 100%;
     height: auto;
     aspect-ratio: 1;
+    flex-shrink: 0;
   }
 
   .artist-release-dots {
