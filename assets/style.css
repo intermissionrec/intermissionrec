@@ -846,6 +846,7 @@ html, body { height: 100%; }
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 3;
   transition: color 0.2s ease;
 }
 
@@ -1001,7 +1002,7 @@ html, body { height: 100%; }
 @media (min-width: 769px) {
   .artist-modal-content {
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     padding: 0;
     overflow: hidden;
   }
@@ -1038,7 +1039,7 @@ html, body { height: 100%; }
   }
 
   .artist-modal-info {
-    padding: 0;
+    padding: 0 0 0 12px;
     gap: 12px;
     justify-content: center;
   }
