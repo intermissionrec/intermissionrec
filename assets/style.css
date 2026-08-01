@@ -862,8 +862,13 @@ html, body { height: 100%; }
 }
 
 .artist-modal-social {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2;
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 16px;
 }
 
@@ -951,10 +956,6 @@ html, body { height: 100%; }
   .artist-modal-info {
     align-items: center;
     text-align: center;
-  }
-
-  .artist-modal-social {
-    justify-content: center;
   }
 
   .artist-release-card {
