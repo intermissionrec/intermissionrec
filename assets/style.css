@@ -1028,39 +1028,27 @@ html, body { height: 100%; }
 
   .artist-modal-releases {
     flex-direction: row;
-    gap: 14px;
-    overflow-x: auto;
-    padding-bottom: 4px;
+    width: 100%;
+    gap: 0;
   }
 
   .artist-release-card {
-    flex: 0 0 auto;
-    flex-direction: column;
-    align-items: flex-start;
-    width: 140px;
+    flex: 1 1 0;
+    min-width: 0;
     padding: 0;
-    border-radius: 8px;
+    border-radius: 0;
     background: none !important;
   }
 
   .artist-release-cover {
-    width: 140px;
-    height: 140px;
-    border-radius: 8px;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 0;
     transition: transform 0.2s ease;
   }
 
   .artist-release-card:hover .artist-release-cover {
     transform: scale(1.03);
-  }
-
-  .artist-release-title {
-    margin-top: 8px;
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
   }
 }
 

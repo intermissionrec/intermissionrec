@@ -64,8 +64,9 @@
         <div class="artist-modal-social" id="artistModalSocial"></div>
 
         <h3 class="artist-modal-releases-heading">Последни издания</h3>
-        <div class="artist-modal-releases" id="artistModalReleases"></div>
       </div>
+
+      <div class="artist-modal-releases" id="artistModalReleases"></div>
     </div>
   </div>
 
@@ -143,10 +144,8 @@
             var card = document.createElement('a');
             card.className = 'artist-release-card';
             card.href = rel.url;
-            card.innerHTML =
-              '<span class="artist-release-cover" style="background-image:url(\'' + rel.cover + '\')"></span>' +
-              '<span class="artist-release-title"></span>';
-            card.querySelector('.artist-release-title').textContent = rel.title;
+            card.title = rel.title;
+            card.innerHTML = '<span class="artist-release-cover" style="background-image:url(\'' + rel.cover + '\')"></span>';
             releasesWrap.appendChild(card);
           });
         })
