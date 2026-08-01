@@ -823,6 +823,7 @@ html, body { height: 100%; }
 }
 
 .artist-modal-photo {
+  position: relative;
   flex: 0 0 auto;
   width: 240px;
   aspect-ratio: 1;
@@ -831,10 +832,10 @@ html, body { height: 100%; }
   border-radius: 12px;
 }
 
-.artist-modal-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+#artistModalPhoto {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
   filter: grayscale(1) contrast(1.05);
 }
 

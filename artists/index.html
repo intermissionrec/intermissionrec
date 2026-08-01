@@ -56,7 +56,7 @@
       <button class="artist-modal-close" aria-label="Затвори">&times;</button>
 
       <div class="artist-modal-photo">
-        <img id="artistModalPhoto" src="" alt="">
+        <div id="artistModalPhoto"></div>
         <div id="artistModalNameWrap"></div>
       </div>
 
@@ -88,15 +88,39 @@
       soundcloud: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15v3M5 13v5M8 11v7M11 9v9M14 8v8h6a3 3 0 0 0 0-6 4 4 0 0 0-7.5-1.5"/></svg>'
     };
 
+    function applyPhotoFraming(coverUrl, zoomPercent, xPercent, yPercent) {
+      photoImg.style.backgroundImage = "url('" + coverUrl + "')";
+
+      var loader = new Image();
+      loader.onload = function () {
+        var contW = photoImg.offsetWidth || photoImg.parentElement.offsetWidth;
+        var contH = photoImg.offsetHeight || photoImg.parentElement.offsetHeight;
+        var imgW = loader.naturalWidth;
+        var imgH = loader.naturalHeight;
+        if (!imgW || !imgH || !contW || !contH) return;
+
+        var coverScale = Math.max(contW / imgW, contH / imgH);
+        var totalScale = coverScale * (zoomPercent / 100);
+        var sizeWidthPercent = (imgW * totalScale / contW) * 100;
+        var sizeHeightPercent = (imgH * totalScale / contH) * 100;
+
+        photoImg.style.backgroundSize = sizeWidthPercent + '% ' + sizeHeightPercent + '%';
+        photoImg.style.backgroundPosition = xPercent + '% ' + yPercent + '%';
+      };
+      loader.src = coverUrl;
+    }
+
     function openModal(tile) {
       var name = tile.getAttribute('aria-label') || '';
 
       var style = tile.getAttribute('style') || '';
       var imgMatch = style.match(/--artist-image:\s*url\('([^']*)'\)/);
-      photoImg.src = imgMatch ? imgMatch[1] : '';
-      var photoPos = tile.getAttribute('data-photo-position') || 'center';
-      photoImg.style.objectPosition = 'center ' + photoPos;
-      photoImg.alt = name;
+      var coverUrl = imgMatch ? imgMatch[1] : '';
+      var zoomPercent = parseFloat(tile.getAttribute('data-photo-zoom')) || 100;
+      var xPercent = parseFloat(tile.getAttribute('data-photo-x'));
+      var yPercent = parseFloat(tile.getAttribute('data-photo-y'));
+      if (isNaN(xPercent)) xPercent = 50;
+      if (isNaN(yPercent)) yPercent = 50;
 
       var logoImg = tile.querySelector('.artist-tile-logo');
       if (logoImg) {
@@ -124,6 +148,7 @@
       releasesWrap.innerHTML = '<p class="artist-modal-status">Зареждане...</p>';
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
+      applyPhotoFraming(coverUrl, zoomPercent, xPercent, yPercent);
 
       fetch('../assets/data/smartlinks.json')
         .then(function (res) {
