@@ -1019,7 +1019,6 @@ html, body { height: 100%; }
 
   .artist-modal-info {
     padding: 0;
-    gap: 12px;
     justify-content: center;
   }
 
