@@ -26,7 +26,7 @@
 
     <main>
       <section class="artists-band">
-                                                                        <div class="artists-roster-grid" style="--artist-cols: 2;">
+        <div class="artists-roster-grid" style="--artist-cols: 2;">
           <a class="artist-tile"
             href="https://youtube.com/@Vidrata" target="_blank" rel="noopener noreferrer"
             aria-label="Vidrata"
@@ -41,14 +41,6 @@
             <img class="artist-tile-logo" src="../assets/images/artists/20260728003409-igra-na-dumi-logo.png" alt="игра на думи">
           </a>
         </div>
-      
-      
-      
-      
-      
-      
-      
-      
       </section>
     </main>
 
@@ -56,5 +48,133 @@
   </div>
 
   <script src="../assets/script.js" defer></script>
+
+  <!-- Artist quick-view modal -->
+  <div id="artistModal" class="artist-modal" style="display:none;">
+    <div class="artist-modal-backdrop"></div>
+    <div class="artist-modal-content">
+      <button class="artist-modal-close" aria-label="Затвори">&times;</button>
+
+      <div class="artist-modal-photo">
+        <img id="artistModalPhoto" src="" alt="">
+      </div>
+
+      <div class="artist-modal-info">
+        <div id="artistModalNameWrap"></div>
+
+        <div class="artist-modal-social" id="artistModalSocial"></div>
+
+        <h3 class="artist-modal-releases-heading">Последни издания</h3>
+        <div class="artist-modal-releases" id="artistModalReleases"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var modal = document.getElementById('artistModal');
+    var closeBtn = modal.querySelector('.artist-modal-close');
+    var backdrop = modal.querySelector('.artist-modal-backdrop');
+    var photoImg = document.getElementById('artistModalPhoto');
+    var nameWrap = document.getElementById('artistModalNameWrap');
+    var socialWrap = document.getElementById('artistModalSocial');
+    var releasesWrap = document.getElementById('artistModalReleases');
+
+    var socialIcons = {
+      instagram: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="5"></circle><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle></svg>',
+      youtube: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"/><polygon points="10,9 16,12 10,15" fill="currentColor" stroke="none"/></svg>',
+      facebook: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h-2a4 4 0 0 0-4 4v3H7v4h2v7h4v-7h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>',
+      twitter: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l7.5 9.5L4.5 20h2.3l6-6.8L18 20h2l-8-10.2L18.7 4h-2.3l-5.5 6.2L8 4z"/></svg>',
+      soundcloud: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15v3M5 13v5M8 11v7M11 9v9M14 8v8h6a3 3 0 0 0 0-6 4 4 0 0 0-7.5-1.5"/></svg>'
+    };
+
+    function openModal(tile) {
+      var name = tile.getAttribute('aria-label') || '';
+
+      var style = tile.getAttribute('style') || '';
+      var imgMatch = style.match(/--artist-image:\s*url\('([^']*)'\)/);
+      photoImg.src = imgMatch ? imgMatch[1] : '';
+      photoImg.alt = name;
+
+      var logoImg = tile.querySelector('.artist-tile-logo');
+      if (logoImg) {
+        nameWrap.innerHTML = '<img class="artist-modal-logo" src="' + logoImg.getAttribute('src') + '" alt="' + name + '">';
+      } else {
+        nameWrap.innerHTML = '<h2 class="artist-modal-name"></h2>';
+        nameWrap.querySelector('.artist-modal-name').textContent = name;
+      }
+
+      socialWrap.innerHTML = '';
+      Object.keys(socialIcons).forEach(function (key) {
+        var url = tile.getAttribute('data-' + key);
+        if (url) {
+          var a = document.createElement('a');
+          a.href = url;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.className = 'artist-modal-social-link';
+          a.setAttribute('aria-label', key);
+          a.innerHTML = socialIcons[key];
+          socialWrap.appendChild(a);
+        }
+      });
+
+      releasesWrap.innerHTML = '<p class="artist-modal-status">Зареждане...</p>';
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+
+      fetch('../assets/data/smartlinks.json')
+        .then(function (res) {
+          if (!res.ok) throw new Error('Failed to load');
+          return res.json();
+        })
+        .then(function (data) {
+          var matches = data.filter(function (entry) { return entry.mainArtist === name; });
+          matches.sort(function (a, b) { return b.rank - a.rank; });
+          matches = matches.slice(0, 5);
+
+          releasesWrap.innerHTML = '';
+          if (matches.length === 0) {
+            releasesWrap.innerHTML = '<p class="artist-modal-status">Все още няма издания.</p>';
+            return;
+          }
+          matches.forEach(function (rel) {
+            var card = document.createElement('a');
+            card.className = 'artist-release-card';
+            card.href = rel.url;
+            card.innerHTML =
+              '<span class="artist-release-cover" style="background-image:url(\'' + rel.cover + '\')"></span>' +
+              '<span class="artist-release-title"></span>';
+            card.querySelector('.artist-release-title').textContent = rel.title;
+            releasesWrap.appendChild(card);
+          });
+        })
+        .catch(function () {
+          releasesWrap.innerHTML = '<p class="artist-modal-status">Грешка при зареждане на изданията.</p>';
+        });
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.artist-tile').forEach(function (tile) {
+      tile.addEventListener('click', function (e) {
+        e.preventDefault();
+        openModal(tile);
+      });
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.style.display !== 'none') {
+        closeModal();
+      }
+    });
+  })();
+  </script>
 </body>
 </html>
