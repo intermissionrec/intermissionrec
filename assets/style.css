@@ -788,7 +788,7 @@ html, body { height: 100%; }
 
 .artist-modal-content {
   position: relative;
-  width: min(100%, 780px);
+  width: min(100%, 800px);
   max-height: 90vh;
   overflow-y: auto;
   background: var(--panel);
@@ -1018,8 +1018,8 @@ html, body { height: 100%; }
   }
 
   .artist-modal-info {
-    padding: 0 32px 32px;
-    gap: 24px;
+    padding: 0;
+    gap: 12px;
   }
 
   .artist-modal-social {
@@ -1033,16 +1033,15 @@ html, body { height: 100%; }
   }
 
   .artist-release-card {
-    flex: 1 1 0;
-    min-width: 0;
+    flex: 0 0 160px;
     padding: 0;
     border-radius: 0;
     background: none !important;
   }
 
   .artist-release-cover {
-    width: 100%;
-    aspect-ratio: 1;
+    width: 160px;
+    height: 160px;
     border-radius: 0;
     transition: transform 0.2s ease;
   }
