@@ -990,7 +990,7 @@ html, body { height: 100%; }
     max-width: none;
     margin: 0;
     aspect-ratio: unset;
-    height: 220px;
+    height: clamp(160px, 26vh, 220px);
     border-radius: 0;
   }
 
@@ -1057,6 +1057,7 @@ html, body { height: 100%; }
     width: 100%;
     height: auto;
     aspect-ratio: 1;
+    max-height: 34vh;
     flex-shrink: 0;
   }
 
