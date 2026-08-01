@@ -972,26 +972,103 @@ html, body { height: 100%; }
   font-size: 14px;
 }
 
+.artist-release-dots {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .artist-modal-content {
     flex-direction: column;
-    padding: 28px;
-    gap: 24px;
+    padding: 0;
+    gap: 8px;
+    overflow: hidden;
   }
 
   .artist-modal-photo {
     width: 100%;
-    max-width: 220px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
+    aspect-ratio: unset;
+    height: 260px;
+    border-radius: 0;
+  }
+
+  #artistModalPhoto {
+    top: 60px;
+  }
+
+  #artistModalNameWrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 20px;
+    z-index: 2;
+  }
+
+  .artist-modal-name {
+    font-size: 1.3rem;
+  }
+
+  .artist-modal-logo {
+    max-width: 200px;
+    max-height: 40px;
   }
 
   .artist-modal-info {
     align-items: center;
     text-align: center;
+    padding: 0 0 0 12px;
+  }
+
+  .artist-modal-releases {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .artist-modal-releases::-webkit-scrollbar {
+    display: none;
   }
 
   .artist-release-card {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
     justify-content: center;
+  }
+
+  .artist-release-cover {
+    width: 100%;
+    aspect-ratio: 1;
+  }
+
+  .artist-release-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 0;
+  }
+
+  .artist-release-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background 0.2s ease;
+  }
+
+  .artist-release-dot.active {
+    background: var(--text);
   }
 }
 

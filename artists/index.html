@@ -26,26 +26,21 @@
 
     <main>
       <section class="artists-band">
-                                                <div class="artists-roster-grid" style="--artist-cols: 2;">
+        <div class="artists-roster-grid" style="--artist-cols: 2;">
           <a class="artist-tile"
             href="https://youtube.com/@Vidrata" target="_blank" rel="noopener noreferrer"
-            aria-label="Vidrata" data-instagram="https://instagram.com/vidrata" data-youtube="https://youtube.com/@Vidrata" data-facebook="https://facebook.com/RealVidrata" data-soundcloud="https://soundcloud.com/alexvidrata" data-photo-zoom="100" data-photo-x="50" data-photo-y="40"
+            aria-label="Vidrata"
             style="--artist-image: url('../assets/images/artists/20260727045752-vidrata.jpg');">
             <img class="artist-tile-logo" src="../assets/images/artists/20260727045753-vidrata-logo.png" alt="Vidrata">
           </a>
 
           <a class="artist-tile"
             href="https://youtube.com/@igranadumi" target="_blank" rel="noopener noreferrer"
-            aria-label="игра на думи" data-instagram="https://instagram.com/igranadumimoika" data-youtube="https://youtube.com/@igranadumi" data-photo-zoom="100" data-photo-x="50" data-photo-y="55"
+            aria-label="игра на думи"
             style="--artist-image: url('../assets/images/artists/20260728003406-igra-na-dumi.jpg');">
             <img class="artist-tile-logo" src="../assets/images/artists/20260728003409-igra-na-dumi-logo.png" alt="игра на думи">
           </a>
         </div>
-      
-      
-      
-      
-      
       </section>
     </main>
 
@@ -71,6 +66,7 @@
       </div>
 
       <div class="artist-modal-releases" id="artistModalReleases"></div>
+      <div class="artist-release-dots" id="artistReleaseDots"></div>
     </div>
   </div>
 
@@ -83,6 +79,7 @@
     var nameWrap = document.getElementById('artistModalNameWrap');
     var socialWrap = document.getElementById('artistModalSocial');
     var releasesWrap = document.getElementById('artistModalReleases');
+    var dotsWrap = document.getElementById('artistReleaseDots');
 
     var socialIcons = {
       instagram: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="5"></circle><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle></svg>',
@@ -165,17 +162,61 @@
           matches = matches.slice(0, 5);
 
           releasesWrap.innerHTML = '';
+          dotsWrap.innerHTML = '';
           if (matches.length === 0) {
             releasesWrap.innerHTML = '<p class="artist-modal-status">Все още няма издания.</p>';
             return;
           }
-          matches.forEach(function (rel) {
+
+          function makeCard(rel, isClone) {
             var card = document.createElement('a');
             card.className = 'artist-release-card';
             card.href = rel.url;
             card.title = rel.title;
+            if (isClone) card.setAttribute('data-clone', 'true');
             card.innerHTML = '<span class="artist-release-cover" style="background-image:url(\'' + rel.cover + '\')"></span>';
-            releasesWrap.appendChild(card);
+            return card;
+          }
+
+          matches.forEach(function (rel) {
+            releasesWrap.appendChild(makeCard(rel, false));
+          });
+          // a clone of the first item at the end - swiping past the last
+          // real item lands here, then we instantly jump back to the real
+          // first item (no animation), creating a seamless-looking loop
+          if (matches.length > 1) {
+            releasesWrap.appendChild(makeCard(matches[0], true));
+          }
+
+          matches.forEach(function (rel, i) {
+            var dot = document.createElement('span');
+            dot.className = 'artist-release-dot';
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', function () {
+              var card = releasesWrap.children[i];
+              if (card) card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            });
+            dotsWrap.appendChild(dot);
+          });
+
+          var scrollTimeout = null;
+          releasesWrap.addEventListener('scroll', function () {
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(function () {
+              var cardWidth = releasesWrap.clientWidth;
+              if (!cardWidth) return;
+              var index = Math.round(releasesWrap.scrollLeft / cardWidth);
+
+              if (index >= matches.length) {
+                releasesWrap.style.scrollBehavior = 'auto';
+                releasesWrap.scrollLeft = 0;
+                releasesWrap.style.scrollBehavior = '';
+                index = 0;
+              }
+
+              var dots = dotsWrap.querySelectorAll('.artist-release-dot');
+              dots.forEach(function (d, i) { d.classList.toggle('active', i === index); });
+            }, 80);
           });
         })
         .catch(function () {
