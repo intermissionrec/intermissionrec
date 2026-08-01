@@ -1049,6 +1049,7 @@ html, body { height: 100%; }
 
   .artist-release-cover {
     width: 100%;
+    height: auto;
     aspect-ratio: 1;
   }
 
