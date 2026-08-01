@@ -981,7 +981,8 @@ html, body { height: 100%; }
     flex-direction: column;
     padding: 0;
     gap: 8px;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .artist-modal-photo {
@@ -989,7 +990,7 @@ html, body { height: 100%; }
     max-width: none;
     margin: 0;
     aspect-ratio: unset;
-    height: 260px;
+    height: 220px;
     border-radius: 0;
   }
 
