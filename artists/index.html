@@ -26,7 +26,7 @@
 
     <main>
       <section class="artists-band">
-                        <div class="artists-roster-grid" style="--artist-cols: 2;">
+        <div class="artists-roster-grid" style="--artist-cols: 2;">
           <a class="artist-tile"
             href="https://youtube.com/@Vidrata" target="_blank" rel="noopener noreferrer"
             aria-label="Vidrata" data-instagram="https://instagram.com/vidrata" data-youtube="https://youtube.com/@Vidrata" data-facebook="https://facebook.com/RealVidrata" data-soundcloud="https://soundcloud.com/alexvidrata" data-photo-zoom="100" data-photo-x="50" data-photo-y="40"
@@ -41,8 +41,6 @@
             <img class="artist-tile-logo" src="../assets/images/artists/20260728003409-igra-na-dumi-logo.png" alt="игра на думи">
           </a>
         </div>
-      
-      
       </section>
     </main>
 
@@ -183,10 +181,14 @@
           matches.forEach(function (rel) {
             releasesWrap.appendChild(makeCard(rel, false));
           });
-          // a clone of the first item at the end - swiping past the last
-          // real item lands here, then we instantly jump back to the real
-          // first item (no animation), creating a seamless-looking loop
+
+          // clones at both ends so swiping past either edge lands somewhere,
+          // then we instantly (no animation) jump to the real matching item
+          // on the other side - creating a seamless loop in both directions.
+          // DOM order becomes: [clone-of-last, real-1..real-5, clone-of-first]
+          // so every real item's DOM position is its own index + 1.
           if (matches.length > 1) {
+            releasesWrap.insertBefore(makeCard(matches[matches.length - 1], true), releasesWrap.firstChild);
             releasesWrap.appendChild(makeCard(matches[0], true));
           }
 
@@ -195,11 +197,20 @@
             dot.className = 'artist-release-dot';
             if (i === 0) dot.classList.add('active');
             dot.addEventListener('click', function () {
-              var card = releasesWrap.children[i];
+              var card = releasesWrap.children[i + 1];
               if (card) card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
             });
             dotsWrap.appendChild(dot);
           });
+
+          if (matches.length > 1) {
+            var startWidth = releasesWrap.clientWidth;
+            if (startWidth) {
+              releasesWrap.style.scrollBehavior = 'auto';
+              releasesWrap.scrollLeft = startWidth * 1;
+              releasesWrap.style.scrollBehavior = '';
+            }
+          }
 
           var scrollTimeout = null;
           releasesWrap.addEventListener('scroll', function () {
@@ -207,17 +218,23 @@
             scrollTimeout = setTimeout(function () {
               var cardWidth = releasesWrap.clientWidth;
               if (!cardWidth) return;
-              var index = Math.round(releasesWrap.scrollLeft / cardWidth);
+              var domIndex = Math.round(releasesWrap.scrollLeft / cardWidth);
+              var realIndex = domIndex - 1;
 
-              if (index >= matches.length) {
+              if (domIndex <= 0) {
                 releasesWrap.style.scrollBehavior = 'auto';
-                releasesWrap.scrollLeft = 0;
+                releasesWrap.scrollLeft = cardWidth * matches.length;
                 releasesWrap.style.scrollBehavior = '';
-                index = 0;
+                realIndex = matches.length - 1;
+              } else if (domIndex >= matches.length + 1) {
+                releasesWrap.style.scrollBehavior = 'auto';
+                releasesWrap.scrollLeft = cardWidth * 1;
+                releasesWrap.style.scrollBehavior = '';
+                realIndex = 0;
               }
 
               var dots = dotsWrap.querySelectorAll('.artist-release-dot');
-              dots.forEach(function (d, i) { d.classList.toggle('active', i === index); });
+              dots.forEach(function (d, i) { d.classList.toggle('active', i === realIndex); });
             }, 80);
           });
         })
