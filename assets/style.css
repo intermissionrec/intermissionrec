@@ -1048,6 +1048,7 @@ html, body { height: 100%; }
   .artist-release-card {
     flex: 0 0 100%;
     scroll-snap-align: center;
+    scroll-snap-stop: always;
     justify-content: center;
   }
 
