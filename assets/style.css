@@ -974,6 +974,109 @@ html, body { height: 100%; }
   }
 }
 
+/* ── Artist modal: desktop-only redesign ──────────────────────
+   Full-width hero photo with the logo/name overlaid on it (matching
+   the artist tile's own look), a plain social-icon row below, and a
+   horizontal row of larger release covers instead of the small list. */
+@media (min-width: 769px) {
+  .artist-modal-content {
+    flex-direction: column;
+    gap: 24px;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .artist-modal-close {
+    top: 16px;
+    right: 16px;
+    background: rgba(0, 0, 0, 0.45);
+    border-radius: 50%;
+    z-index: 3;
+  }
+
+  .artist-modal-close:hover {
+    background: rgba(0, 0, 0, 0.65);
+    color: var(--text);
+  }
+
+  .artist-modal-photo {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    aspect-ratio: unset;
+    border-radius: 0;
+  }
+
+  .artist-modal-photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,0) 45%);
+    pointer-events: none;
+  }
+
+  #artistModalNameWrap {
+    position: absolute;
+    left: 32px;
+    bottom: 24px;
+    z-index: 2;
+  }
+
+  .artist-modal-name {
+    margin: 0;
+  }
+
+  .artist-modal-logo {
+    max-height: 70px;
+  }
+
+  .artist-modal-info {
+    padding: 0 32px 32px;
+    gap: 24px;
+  }
+
+  .artist-modal-social {
+    gap: 20px;
+  }
+
+  .artist-modal-releases {
+    flex-direction: row;
+    gap: 14px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .artist-release-card {
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 140px;
+    padding: 0;
+    border-radius: 8px;
+    background: none !important;
+  }
+
+  .artist-release-cover {
+    width: 140px;
+    height: 140px;
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+  }
+
+  .artist-release-card:hover .artist-release-cover {
+    transform: scale(1.03);
+  }
+
+  .artist-release-title {
+    margin-top: 8px;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
   .sl-modal-content {
     flex-direction: column;
