@@ -968,7 +968,7 @@ html, body { height: 100%; }
 @media (min-width: 769px) {
   .artist-modal-content {
     flex-direction: column;
-    gap: 24px;
+    gap: 6px;
     padding: 0;
     overflow: hidden;
   }
