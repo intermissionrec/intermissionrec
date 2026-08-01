@@ -1006,19 +1006,6 @@ html, body { height: 100%; }
     overflow: hidden;
   }
 
-  .artist-modal-close {
-    top: 16px;
-    right: 16px;
-    background: rgba(0, 0, 0, 0.45);
-    border-radius: 50%;
-    z-index: 3;
-  }
-
-  .artist-modal-close:hover {
-    background: rgba(0, 0, 0, 0.65);
-    color: var(--text);
-  }
-
   .artist-modal-photo {
     position: relative;
     width: 100%;
