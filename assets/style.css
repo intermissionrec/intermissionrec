@@ -822,7 +822,7 @@ html, body { height: 100%; }
   position: relative;
   width: min(100%, 800px);
   max-height: 90vh;
-  max-height: 90dvh;
+  max-height: 96dvh;
   overflow-y: auto;
   background: var(--panel);
   border: 1px solid var(--line);
@@ -980,6 +980,7 @@ html, body { height: 100%; }
 
 @media (max-width: 768px) {
   .artist-modal-content {
+    width: 88%;
     flex-direction: column;
     padding: 0;
     gap: 8px;
