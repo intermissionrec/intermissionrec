@@ -990,7 +990,7 @@ html, body { height: 100%; }
     max-width: none;
     margin: 0;
     aspect-ratio: unset;
-    height: clamp(160px, 26vh, 220px);
+    height: 220px;
     border-radius: 0;
   }
 
@@ -1057,7 +1057,6 @@ html, body { height: 100%; }
     width: 100%;
     height: auto;
     aspect-ratio: 1;
-    max-height: 34vh;
     flex-shrink: 0;
   }
 
@@ -1078,6 +1077,16 @@ html, body { height: 100%; }
 
   .artist-release-dot.active {
     background: var(--text);
+  }
+}
+
+/* On phones shorter than an iPhone 15's viewport, scale the entire popup
+   down as a single unit instead of resizing individual pieces - keeps
+   every proportion (photo, cover, spacing) exactly as designed, just
+   smaller overall. */
+@media (max-width: 768px) and (max-height: 750px) {
+  .artist-modal-content {
+    transform: scale(0.85);
   }
 }
 
