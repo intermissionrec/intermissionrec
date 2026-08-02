@@ -124,20 +124,18 @@
       var imgMatch = style.match(/--artist-image:\s*url\('([^']*)'\)/);
       var coverUrl = imgMatch ? imgMatch[1] : '';
 
-      // the stored zoom/position values are calibrated for desktop's wide
-      // 798x360 banner - mobile's banner is a completely different shape,
-      // so mobile always uses the default centered cover instead
+      // desktop and mobile have their own independently-set zoom/position
+      // values, since their banners are completely different shapes
       var isDesktop = window.matchMedia('(min-width: 769px)').matches;
-      var zoomPercent = 100;
-      var xPercent = 50;
-      var yPercent = 50;
-      if (isDesktop) {
-        zoomPercent = parseFloat(tile.getAttribute('data-photo-zoom')) || 100;
-        var storedX = parseFloat(tile.getAttribute('data-photo-x'));
-        var storedY = parseFloat(tile.getAttribute('data-photo-y'));
-        if (!isNaN(storedX)) xPercent = storedX;
-        if (!isNaN(storedY)) yPercent = storedY;
-      }
+      var zoomAttr = isDesktop ? 'data-photo-zoom' : 'data-photo-zoom-m';
+      var xAttr = isDesktop ? 'data-photo-x' : 'data-photo-x-m';
+      var yAttr = isDesktop ? 'data-photo-y' : 'data-photo-y-m';
+
+      var zoomPercent = parseFloat(tile.getAttribute(zoomAttr)) || 100;
+      var xPercent = parseFloat(tile.getAttribute(xAttr));
+      var yPercent = parseFloat(tile.getAttribute(yAttr));
+      if (isNaN(xPercent)) xPercent = 50;
+      if (isNaN(yPercent)) yPercent = 50;
 
       var logoImg = tile.querySelector('.artist-tile-logo');
       if (logoImg) {
