@@ -990,12 +990,23 @@ html, body { height: 100%; }
     max-width: none;
     margin: 0;
     aspect-ratio: unset;
-    height: 220px;
+    height: 264px;
     border-radius: 0;
   }
 
   #artistModalPhoto {
     top: 60px;
+    bottom: 44px;
+  }
+
+  .artist-modal-social {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 44px;
+    padding: 12px 0;
+    justify-content: center;
   }
 
   #artistModalNameWrap {
