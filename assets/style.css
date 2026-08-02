@@ -700,6 +700,7 @@ html, body { height: 100%; }
   position: relative;
   width: min(100%, 760px);
   max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
   background: var(--panel);
   border: 1px solid var(--line);
@@ -821,6 +822,7 @@ html, body { height: 100%; }
   position: relative;
   width: min(100%, 800px);
   max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
   background: var(--panel);
   border: 1px solid var(--line);
