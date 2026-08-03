@@ -1117,6 +1117,10 @@ html, body { height: 100%; }
     overflow: hidden;
   }
 
+  .artist-release-card[data-clone="true"] {
+    display: none;
+  }
+
   .artist-modal-photo {
     position: relative;
     width: 100%;
