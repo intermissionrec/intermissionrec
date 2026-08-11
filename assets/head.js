@@ -2,12 +2,6 @@
 (function applySharedHead() {
   const head = document.head;
 
-  // Description
-  const metaDesc = document.createElement("meta");
-  metaDesc.name = "description";
-  metaDesc.content = "INTER(MISSION) - Български музикален хип-хоп проект.";
-  head.appendChild(metaDesc);
-
   // Preconnects
   const pre1 = document.createElement("link");
   pre1.rel = "preconnect";
