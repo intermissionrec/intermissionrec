@@ -1475,3 +1475,84 @@ img {
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* ── Mobile nav: floating toggle button + centered overlay menu ──
+   Replaces the old "stack nav links below logo" mobile behavior.
+   Desktop (>=1200px) is completely unaffected - toggle/backdrop stay
+   hidden and .nav-wrap/.nav behave exactly as they already did. */
+.mobile-nav-toggle,
+.mobile-nav-backdrop {
+  display: none;
+}
+
+@media (max-width: 1199.98px) {
+  .mobile-nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    cursor: pointer;
+    z-index: 201;
+    box-shadow: var(--shadow);
+  }
+
+  .mobile-nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 199;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, visibility .25s ease;
+  }
+
+  .mobile-nav-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav-wrap {
+    position: fixed;
+    inset: 0;
+    padding: 0;
+    background: none;
+    backdrop-filter: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, visibility .25s ease;
+  }
+
+  .nav-wrap.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav-wrap .nav {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    min-height: auto;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 40px 56px;
+    box-shadow: var(--shadow);
+  }
+
+  .nav-wrap .nav a {
+    font-size: 22px;
+  }
+}
