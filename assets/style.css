@@ -1508,7 +1508,7 @@ img {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.8);
     z-index: 199;
     opacity: 0;
     visibility: hidden;
@@ -1545,11 +1545,6 @@ img {
     align-items: center;
     gap: 24px;
     min-height: auto;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 40px 56px;
-    box-shadow: var(--shadow);
   }
 
   .nav-wrap .nav a {
