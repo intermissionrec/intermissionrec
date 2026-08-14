@@ -100,6 +100,19 @@ const setActiveLink = () => {
   });
 };
 
+// Prevent right-click "Save Image As..." on any image - uses event
+// delegation on document so it also covers images added dynamically
+// later (e.g. cover art populated into the artist/smart-link modals
+// after a click), not just images present at initial page load.
+// Note: this is a deterrent only, same as the CSS drag-prevention -
+// it doesn't provide real protection against someone determined to
+// extract an image via browser dev tools.
+document.addEventListener('contextmenu', (e) => {
+  if (e.target.tagName === 'IMG') {
+    e.preventDefault();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
   // 2. Load header/footer partials
   await includeHtmlFragments();

@@ -28,8 +28,7 @@ body {
 }
 
 /* Form fields need to stay normally selectable/editable - the global
-   pointer cursor and disabled selection above would otherwise make the
-   contact form unusable. */
+   disabled selection above would otherwise make the contact form unusable. */
 input,
 textarea {
   cursor: text;
