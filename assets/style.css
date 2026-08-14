@@ -22,6 +22,19 @@ body {
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Form fields need to stay normally selectable/editable - the global
+   pointer cursor and disabled selection above would otherwise make the
+   contact form unusable. */
+input,
+textarea {
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -362,7 +375,7 @@ main {
   margin: 0 0 20px;
   font-family: 'Inter Tight', sans-serif;
   font-size: clamp(1.6rem, 3vw, 2.2rem);
-  letter-spacing: -0.03em;
+  letter-spacing: 4px;
   text-align: right;
 }
 
@@ -1435,11 +1448,4 @@ html, body { height: 100%; }
     max-width: 50%;
   }
 
-}
-/* ── Discord nav icon alignment only - no separate button styling,
-   the link itself still inherits all standard .nav a rules ────── */
-.nav a.nav-discord {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
