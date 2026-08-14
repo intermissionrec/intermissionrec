@@ -1436,38 +1436,10 @@ html, body { height: 100%; }
   }
 
 }
-/* ── Discord nav button (matches the site's existing pill-button
-   look used by .platform-link, sized to fit the nav bar) ────── */
-.nav a.nav-discord-btn {
+/* ── Discord nav icon alignment only - no separate button styling,
+   the link itself still inherits all standard .nav a rules ────── */
+.nav a.nav-discord {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 36px;
-  padding: 0 18px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel-2);
-  color: var(--text);
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1;
-  transition: transform .2s ease, border-color .2s ease, color .2s ease;
-}
-
-.nav a.nav-discord-btn:hover,
-.nav a.nav-discord-btn:focus-visible {
-  transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, .2);
-  color: #ffffff;
-  outline: none;
-}
-
-.nav a.nav-discord-btn svg {
-  flex-shrink: 0;
-}
-
-@media (max-width: 1199.98px) {
-  .nav a.nav-discord-btn {
-    margin-top: 12px;
-  }
+  gap: 6px;
 }
