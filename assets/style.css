@@ -22,7 +22,7 @@ body {
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  cursor: pointer;
+  cursor: default;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -375,7 +375,7 @@ main {
   margin: 0 0 20px;
   font-family: 'Inter Tight', sans-serif;
   font-size: clamp(1.6rem, 3vw, 2.2rem);
-  letter-spacing: 4px;
+  letter-spacing: 1px;
   text-align: right;
 }
 
