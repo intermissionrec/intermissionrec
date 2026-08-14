@@ -1545,6 +1545,7 @@ img {
     align-items: flex-start;
     gap: 24px;
     min-height: auto;
+    padding-left: 24px;
   }
 
   .nav-wrap .nav a {
