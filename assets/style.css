@@ -1448,13 +1448,27 @@ html, body { height: 100%; }
   }
 
 }
+/* ── Discord nav icon alignment - no separate button styling, the
+   link itself still inherits all standard .nav a rules. Height is
+   set explicitly to 36px to match the effective line-box height the
+   other nav items get from line-height: 2 at 18px font-size, so the
+   Discord link's clickable area matches even though its icon is
+   smaller than that. */
 .nav a.nav-discord {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   line-height: 1;
+  height: 36px;
 }
 
+.nav a.nav-discord svg {
+  flex-shrink: 0;
+}
+
+/* ── Image protection (deterrent only, not true security - any
+   image rendered in a browser can still be extracted via dev
+   tools) ──────────────────────────────────────────────────────── */
 img {
   -webkit-user-drag: none;
   user-drag: none;
