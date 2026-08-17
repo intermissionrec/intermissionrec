@@ -149,6 +149,18 @@ document.addEventListener('contextmenu', (e) => {
   }
 });
 
+// The CSS -webkit-user-drag property only covers Chrome/Safari/Edge -
+// Firefox never implemented it at all. The standard, cross-browser way
+// to block image dragging is the HTML draggable attribute itself.
+// dragstart is used (rather than setting draggable="false" once at
+// load) so it also covers images added dynamically later, same as the
+// contextmenu listener above.
+document.addEventListener('dragstart', (e) => {
+  if (e.target.tagName === 'IMG') {
+    e.preventDefault();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
   // 2. Load header/footer partials
   await includeHtmlFragments();
