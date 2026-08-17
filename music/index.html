@@ -147,44 +147,83 @@
     var artistEl = document.getElementById('slModalArtist');
     var linksEl = document.getElementById('slModalLinks');
 
+    var prefetchCache = {};
+
+    function renderModal(html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var coverSrc = doc.querySelector('.cover-card img');
+      var title = doc.querySelector('.copy h1');
+      var artist = doc.querySelector('.copy p');
+      var platformLinks = doc.querySelectorAll('.music-links .platform-link');
+
+      coverImg.src = coverSrc ? coverSrc.getAttribute('src') : '';
+      coverImg.alt = title ? title.textContent : '';
+      titleEl.textContent = title ? title.textContent : '';
+      artistEl.textContent = artist ? artist.textContent : '';
+      artistEl.style.display = (artist && artist.textContent) ? 'block' : 'none';
+
+      linksEl.innerHTML = '';
+      platformLinks.forEach(function (a) {
+        var newA = document.createElement('a');
+        newA.href = a.getAttribute('href');
+        newA.className = 'platform-link';
+        newA.target = '_blank';
+        newA.rel = 'noopener noreferrer';
+        newA.textContent = a.textContent;
+        linksEl.appendChild(newA);
+      });
+
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
     function openModal(url) {
+      // already prefetched - render instantly, no network wait at all
+      if (prefetchCache[url]) {
+        renderModal(prefetchCache[url]);
+        return;
+      }
+
+      // not prefetched yet (e.g. clicked before background loading
+      // finished) - fall back to fetching it live, same as before
       fetch(url)
         .then(function (res) {
           if (!res.ok) throw new Error('Failed to load');
           return res.text();
         })
         .then(function (html) {
-          var doc = new DOMParser().parseFromString(html, 'text/html');
-          var coverSrc = doc.querySelector('.cover-card img');
-          var title = doc.querySelector('.copy h1');
-          var artist = doc.querySelector('.copy p');
-          var platformLinks = doc.querySelectorAll('.music-links .platform-link');
-
-          coverImg.src = coverSrc ? coverSrc.getAttribute('src') : '';
-          coverImg.alt = title ? title.textContent : '';
-          titleEl.textContent = title ? title.textContent : '';
-          artistEl.textContent = artist ? artist.textContent : '';
-          artistEl.style.display = (artist && artist.textContent) ? 'block' : 'none';
-
-          linksEl.innerHTML = '';
-          platformLinks.forEach(function (a) {
-            var newA = document.createElement('a');
-            newA.href = a.getAttribute('href');
-            newA.className = 'platform-link';
-            newA.target = '_blank';
-            newA.rel = 'noopener noreferrer';
-            newA.textContent = a.textContent;
-            linksEl.appendChild(newA);
-          });
-
-          modal.style.display = 'flex';
-          document.body.style.overflow = 'hidden';
+          prefetchCache[url] = html;
+          renderModal(html);
         })
         .catch(function () {
           // if anything goes wrong, fall back to a normal navigation
           window.location.href = url;
         });
     }
+
+    function prefetchAllSmartLinks() {
+      document.querySelectorAll('.music-card').forEach(function (card) {
+        var url = card.getAttribute('href');
+        if (!url || prefetchCache[url]) return;
+        fetch(url)
+          .then(function (res) {
+            if (!res.ok) throw new Error('Failed to load');
+            return res.text();
+          })
+          .then(function (html) {
+            prefetchCache[url] = html;
+          })
+          .catch(function () {
+            // silently ignore - openModal falls back to a live fetch
+            // for this url if it's ever clicked
+          });
+      });
+    }
+
+    // Runs after the page transition overlay has already faded out
+    // (700ms) rather than competing with it for load, so this doesn't
+    // slow down the page feeling ready.
+    setTimeout(prefetchAllSmartLinks, 1000);
 
     function closeModal() {
       modal.style.display = 'none';
