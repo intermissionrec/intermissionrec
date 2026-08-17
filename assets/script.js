@@ -113,9 +113,13 @@ function setupMobileNav() {
 
   backdrop.addEventListener('click', closeMenu);
 
-  navWrap.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', closeMenu);
-  });
+  // Deliberately NOT closing on nav link clicks: every nav link now
+  // triggers the page transition overlay, which sits at a much higher
+  // z-index and will fully cover this menu once it fades in, then the
+  // whole page navigates away anyway. Closing this menu independently
+  // on click created a visible gap - its own fade-out finishing before
+  // the transition overlay had fully faded in, briefly showing the
+  // real page underneath.
 }
 
 const setActiveLink = () => {
