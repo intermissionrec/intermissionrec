@@ -96,6 +96,43 @@
     var releasesWrap = document.getElementById('artistModalReleases');
     var dotsWrap = document.getElementById('artistReleaseDots');
 
+    var manifestCache = null;
+    var manifestFetchPromise = null;
+
+    function getManifest() {
+      if (manifestCache) return Promise.resolve(manifestCache);
+      if (!manifestFetchPromise) {
+        manifestFetchPromise = fetch('../assets/data/smartlinks.json')
+          .then(function (res) {
+            if (!res.ok) throw new Error('Failed to load');
+            return res.json();
+          })
+          .then(function (data) {
+            manifestCache = data;
+            return data;
+          });
+      }
+      return manifestFetchPromise;
+    }
+
+    function prefetchCoverImages() {
+      getManifest().then(function (data) {
+        data.forEach(function (entry) {
+          if (entry.cover) {
+            var img = new Image();
+            img.src = entry.cover;
+          }
+        });
+      }).catch(function () {
+        // silently ignore - the modal's own fetch below still works
+        // normally if this background prefetch fails for any reason
+      });
+    }
+
+    // Runs after the page transition overlay has already faded out
+    // (700ms) rather than competing with it for load.
+    setTimeout(prefetchCoverImages, 1000);
+
     var socialIcons = {
       instagram: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="5"></circle><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle></svg>',
       youtube: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"/><polygon points="10,9 16,12 10,15" fill="currentColor" stroke="none"/></svg>',
@@ -174,11 +211,7 @@
       document.body.style.overflow = 'hidden';
       applyPhotoFraming(coverUrl, zoomPercent, xPercent, yPercent);
 
-      fetch('../assets/data/smartlinks.json')
-        .then(function (res) {
-          if (!res.ok) throw new Error('Failed to load');
-          return res.json();
-        })
+      getManifest()
         .then(function (data) {
           var matches = data.filter(function (entry) { return entry.mainArtist === name; });
           matches.sort(function (a, b) { return b.rank - a.rank; });
