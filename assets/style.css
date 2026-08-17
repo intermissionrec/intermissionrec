@@ -714,6 +714,11 @@ html, body { height: 100%; }
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(0px);
+  transition: backdrop-filter .25s ease;
+}
+
+.sl-modal.is-open .sl-modal-backdrop {
   backdrop-filter: blur(4px);
 }
 
@@ -845,6 +850,11 @@ html, body { height: 100%; }
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(0px);
+  transition: backdrop-filter .25s ease;
+}
+
+.artist-modal.is-open .artist-modal-backdrop {
   backdrop-filter: blur(4px);
 }
 
