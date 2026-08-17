@@ -597,6 +597,10 @@ html, body { height: 100%; }
 }
 
 @media (max-width: 1199.98px) {
+  .page {
+    overflow: visible;
+  }
+
   .hero-logo {
     width: 96px;
     height: 96px;
