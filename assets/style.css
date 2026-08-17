@@ -852,6 +852,7 @@ html, body { height: 100%; }
 .artist-modal.is-open .artist-modal-backdrop {
   backdrop-filter: blur(4px);
 }
+}
 
 .artist-modal-content {
   position: relative;
