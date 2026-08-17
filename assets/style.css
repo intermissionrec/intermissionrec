@@ -1376,8 +1376,8 @@ html, body { height: 100%; }
   }
 
   .artist-tile-logo {
-    max-width: 220px;
-    max-height: 44px;
+    max-width: var(--logo-max-width-m, 220px);
+    max-height: var(--logo-max-height-m, 44px);
   }
 }
 
@@ -1512,7 +1512,7 @@ img {
     align-items: center;
     justify-content: center;
     position: fixed;
-    bottom: 24px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 56px);
     right: 24px;
     width: 56px;
     height: 56px;
