@@ -716,6 +716,7 @@ html, body { height: 100%; }
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(0px);
   transition: backdrop-filter .25s ease;
+  will-change: backdrop-filter;
 }
 
 .sl-modal.is-open .sl-modal-backdrop {
@@ -852,6 +853,7 @@ html, body { height: 100%; }
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(0px);
   transition: backdrop-filter .25s ease;
+  will-change: backdrop-filter;
 }
 
 .artist-modal.is-open .artist-modal-backdrop {
