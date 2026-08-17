@@ -107,17 +107,19 @@ function markCurrentPageNavLink() {
 // button and backdrop stay hidden via CSS above the mobile breakpoint.
 function setupMobileNav() {
   const toggle = document.querySelector('.mobile-nav-toggle');
+  const toggleWrap = document.querySelector('.mobile-nav-toggle-wrap');
   const navWrap = document.querySelector('.nav-wrap');
   const backdrop = document.querySelector('.mobile-nav-backdrop');
-  if (!toggle || !navWrap || !backdrop) return;
+  if (!toggle || !toggleWrap || !navWrap || !backdrop) return;
 
   // Moved to be a direct child of .page (rather than staying nested
-  // inside the header fragment, which is short) so its containing
-  // block for position: sticky spans the entire page's scrollable
-  // height - otherwise it would only stick within the header
-  // section's own short height range.
+  // inside the header fragment, which is short) so it spans the
+  // entire page's height. It's position:absolute so it doesn't add
+  // any space to .page's own layout - the toggle button inside it
+  // uses position:sticky to stay vertically centered on screen as
+  // you scroll, within that full-page range.
   const page = document.querySelector('.page');
-  if (page) page.appendChild(toggle);
+  if (page) page.appendChild(toggleWrap);
 
   function closeMenu() {
     navWrap.classList.remove('is-open');

@@ -40,6 +40,7 @@ a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; height: auto; }
 
 .page {
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -1502,18 +1503,29 @@ img {
    Desktop (>=1200px) is completely unaffected - toggle/backdrop stay
    hidden and .nav-wrap/.nav behave exactly as they already did. */
 .mobile-nav-toggle,
+.mobile-nav-toggle-wrap,
 .mobile-nav-backdrop {
   display: none;
 }
 
 @media (max-width: 1199.98px) {
+  .mobile-nav-toggle-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    pointer-events: none;
+    z-index: 201;
+  }
+
   .mobile-nav-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
     position: sticky;
-    bottom: 24px;
-    align-self: flex-end;
+    top: 50%;
+    transform: translateY(-50%);
     margin-right: 24px;
     width: 56px;
     height: 56px;
@@ -1522,10 +1534,8 @@ img {
     border: 1px solid var(--line);
     color: var(--text);
     cursor: pointer;
-    z-index: 201;
     box-shadow: var(--shadow);
-    flex-shrink: 0;
-    margin-top: -80px;
+    pointer-events: auto;
   }
 
   .mobile-nav-backdrop {
