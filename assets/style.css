@@ -12,22 +12,6 @@
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
 
-/* Registered as typed <length> properties specifically so they can be
-   smoothly transitioned - working around a documented Chromium bug
-   (issue #1194050) where backdrop-filter itself cannot be transitioned
-   directly and just snaps to its end value instead of animating. */
-@property --sl-blur-amount {
-  syntax: '<length>';
-  inherits: false;
-  initial-value: 0px;
-}
-
-@property --am-blur-amount {
-  syntax: '<length>';
-  inherits: false;
-  initial-value: 0px;
-}
-
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
@@ -730,13 +714,7 @@ html, body { height: 100%; }
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
-  --sl-blur-amount: 0px;
-  backdrop-filter: blur(var(--sl-blur-amount));
-  transition: --sl-blur-amount .25s ease;
-}
-
-.sl-modal.is-open .sl-modal-backdrop {
-  --sl-blur-amount: 4px;
+  backdrop-filter: blur(0px);
 }
 
 .sl-modal-content {
@@ -867,13 +845,7 @@ html, body { height: 100%; }
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
-  --am-blur-amount: 0px;
-  backdrop-filter: blur(var(--am-blur-amount));
-  transition: --am-blur-amount .25s ease;
-}
-
-.artist-modal.is-open .artist-modal-backdrop {
-  --am-blur-amount: 4px;
+  backdrop-filter: blur(0px);
 }
 
 .artist-modal-content {
@@ -1597,6 +1569,12 @@ img {
   }
 }
 
+/* ── Page transition overlay ───────────────────────────────────
+   Full-screen panel with the logo, present in the static HTML of
+   every main page (not injected by JS) so it covers the page
+   instantly on load with no flash of raw content first. Visible by
+   default; JS fades it out shortly after load, and brings it back
+   before navigating to another page. Static logo, no animation. */
 .page-transition-overlay {
   position: fixed;
   inset: 0;

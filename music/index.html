@@ -147,6 +147,28 @@
     var artistEl = document.getElementById('slModalArtist');
     var linksEl = document.getElementById('slModalLinks');
 
+    // Manually animates backdrop-filter frame by frame instead of relying
+    // on a CSS transition, which proved unreliable for this property
+    // across every browser tested (Chrome, Firefox, Safari, Edge, Opera).
+    var blurAnimFrame = null;
+    function animateBlur(fromBlur, toBlur, duration) {
+      if (blurAnimFrame) cancelAnimationFrame(blurAnimFrame);
+      var startTime = null;
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        var current = fromBlur + (toBlur - fromBlur) * progress;
+        backdrop.style.backdropFilter = 'blur(' + current + 'px)';
+        backdrop.style.webkitBackdropFilter = 'blur(' + current + 'px)';
+        if (progress < 1) {
+          blurAnimFrame = requestAnimationFrame(step);
+        } else {
+          blurAnimFrame = null;
+        }
+      }
+      blurAnimFrame = requestAnimationFrame(step);
+    }
+
     var prefetchCache = {};
 
     function renderModal(html) {
@@ -174,6 +196,7 @@
       });
 
       modal.classList.add('is-open');
+      animateBlur(0, 4, 250);
       document.body.style.overflow = 'hidden';
     }
 
@@ -227,6 +250,7 @@
 
     function closeModal() {
       modal.classList.remove('is-open');
+      animateBlur(4, 0, 250);
       document.body.style.overflow = '';
     }
 
