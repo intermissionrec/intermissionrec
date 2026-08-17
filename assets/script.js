@@ -205,6 +205,7 @@ function isPageTransitionLink(link) {
   if (!link) return false;
   if (link.classList.contains('hero-logo-link')) return true;
   if (link.closest('.nav')) return true;
+  if (link.classList.contains('cover-card')) return true;
   return false;
 }
 
