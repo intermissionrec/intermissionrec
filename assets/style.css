@@ -12,22 +12,6 @@
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
 
-/* Registered as typed <length> properties specifically so they can be
-   smoothly transitioned - working around a documented Chromium bug
-   (issue #1194050) where backdrop-filter itself cannot be transitioned
-   directly and just snaps to its end value instead of animating. */
-@property --sl-blur-amount {
-  syntax: '<length>';
-  inherits: false;
-  initial-value: 0px;
-}
-
-@property --am-blur-amount {
-  syntax: '<length>';
-  inherits: false;
-  initial-value: 0px;
-}
-
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
@@ -61,6 +45,12 @@ img { display: block; max-width: 100%; height: auto; }
   flex-direction: column;
   align-items: center;
   overflow: hidden;
+  filter: blur(0px);
+  transition: filter .25s ease;
+}
+
+body.modal-open .page {
+  filter: blur(8px);
 }
 
 .page > div[data-include] {
@@ -730,13 +720,6 @@ html, body { height: 100%; }
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
-  --sl-blur-amount: 0px;
-  backdrop-filter: blur(var(--sl-blur-amount));
-  transition: --sl-blur-amount .25s ease;
-}
-
-.sl-modal.is-open .sl-modal-backdrop {
-  --sl-blur-amount: 4px;
 }
 
 .sl-modal-content {
@@ -867,13 +850,6 @@ html, body { height: 100%; }
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
-  --am-blur-amount: 0px;
-  backdrop-filter: blur(var(--am-blur-amount));
-  transition: --am-blur-amount .25s ease;
-}
-
-.artist-modal.is-open .artist-modal-backdrop {
-  --am-blur-amount: 4px;
 }
 
 .artist-modal-content {

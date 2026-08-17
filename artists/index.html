@@ -171,6 +171,7 @@
       // modal's own opacity fade, even though both are triggered by
       // the same class. Now both start at the same instant.
       modal.classList.add('is-open');
+      document.body.classList.add('modal-open');
 
       var name = tile.getAttribute('aria-label') || '';
 
@@ -324,6 +325,7 @@
 
     function closeModal() {
       modal.classList.remove('is-open');
+      document.body.classList.remove('modal-open');
       document.body.style.overflow = '';
     }
 
