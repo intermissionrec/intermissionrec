@@ -82,26 +82,6 @@ function computeNavAndSections() {
   });
 }
 
-// Removes href from whichever nav link points to the page currently
-// being viewed - it's already a no-op click (see setupPageTransitionLinks
-// below), so there's nothing lost by making it a real non-link: no URL
-// preview on hover, and it accurately reflects that clicking it does
-// nothing. aria-current="page" replaces the lost link semantics for
-// screen readers, so it's still announced as "current page" rather
-// than silently disappearing. Every other page still links to this one
-// normally, so this has no effect on discoverability/SEO.
-function markCurrentPageNavLink() {
-  navLinks.forEach(link => {
-    const href = link.getAttribute('href');
-    if (!href || href.startsWith('#')) return;
-    const slug = href.split('?')[0].split('#')[0].replace(/\/+$/, '').split('/').pop();
-    if (slug && document.body.classList.contains(slug)) {
-      link.removeAttribute('href');
-      link.setAttribute('aria-current', 'page');
-    }
-  });
-}
-
 // Mobile nav: floating toggle button opens/closes a centered overlay
 // menu with a dimmed backdrop. No-op on desktop since the toggle
 // button and backdrop stay hidden via CSS above the mobile breakpoint.
@@ -201,7 +181,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 3. Now the .nav exists, so compute nav and sections
   computeNavAndSections();
-  markCurrentPageNavLink();
   setupMobileNav();
   setActiveLink();
 
