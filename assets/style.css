@@ -1345,8 +1345,8 @@ html, body { height: 100%; }
   position: relative;
   width: 100%;
   height: 100%;
-  max-width: 216px;
-  max-height: 64px;
+  max-width: var(--logo-max-width, 216px);
+  max-height: var(--logo-max-height, 64px);
   object-fit: contain;
   object-position: left center;
   opacity: 1;
