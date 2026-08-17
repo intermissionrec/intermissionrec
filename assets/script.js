@@ -194,7 +194,7 @@ function playEntranceTransition() {
 function isPageTransitionLink(link) {
   if (!link) return false;
   if (link.classList.contains('hero-logo-link')) return true;
-  if (link.closest('.nav') && !link.classList.contains('nav-discord')) return true;
+  if (link.closest('.nav')) return true;
   return false;
 }
 
