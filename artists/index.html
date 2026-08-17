@@ -96,28 +96,6 @@
     var releasesWrap = document.getElementById('artistModalReleases');
     var dotsWrap = document.getElementById('artistReleaseDots');
 
-    // Manually animates backdrop-filter frame by frame instead of relying
-    // on a CSS transition, which proved unreliable for this property
-    // across every browser tested (Chrome, Firefox, Safari, Edge, Opera).
-    var blurAnimFrame = null;
-    function animateBlur(fromBlur, toBlur, duration) {
-      if (blurAnimFrame) cancelAnimationFrame(blurAnimFrame);
-      var startTime = null;
-      function step(timestamp) {
-        if (!startTime) startTime = timestamp;
-        var progress = Math.min((timestamp - startTime) / duration, 1);
-        var current = fromBlur + (toBlur - fromBlur) * progress;
-        backdrop.style.backdropFilter = 'blur(' + current + 'px)';
-        backdrop.style.webkitBackdropFilter = 'blur(' + current + 'px)';
-        if (progress < 1) {
-          blurAnimFrame = requestAnimationFrame(step);
-        } else {
-          blurAnimFrame = null;
-        }
-      }
-      blurAnimFrame = requestAnimationFrame(step);
-    }
-
     var manifestCache = null;
     var manifestFetchPromise = null;
 
@@ -186,6 +164,14 @@
     }
 
     function openModal(tile) {
+      // Added first, before any other setup work in this function -
+      // this is what actually fixes the delayed blur: previously this
+      // ran after several other lines of setup code, so the blur
+      // (queued behind that work) started visibly later than the
+      // modal's own opacity fade, even though both are triggered by
+      // the same class. Now both start at the same instant.
+      modal.classList.add('is-open');
+
       var name = tile.getAttribute('aria-label') || '';
 
       var style = tile.getAttribute('style') || '';
@@ -229,8 +215,6 @@
       });
 
       releasesWrap.innerHTML = '<p class="artist-modal-status">Зареждане...</p>';
-      modal.classList.add('is-open');
-      animateBlur(0, 4, 250);
       document.body.style.overflow = 'hidden';
       applyPhotoFraming(coverUrl, zoomPercent, xPercent, yPercent);
 
@@ -340,7 +324,6 @@
 
     function closeModal() {
       modal.classList.remove('is-open');
-      animateBlur(4, 0, 250);
       document.body.style.overflow = '';
     }
 
