@@ -50,7 +50,7 @@ img { display: block; max-width: 100%; height: auto; }
 }
 
 body.modal-open .page {
-  filter: blur(8px);
+  filter: blur(2px);
 }
 
 .page > div[data-include] {
