@@ -1552,3 +1552,45 @@ img {
     font-size: 22px;
   }
 }
+
+/* ── Page transition overlay ───────────────────────────────────
+   Full-screen opaque black panel with the logo, present in the
+   static HTML of every main page (not injected by JS) so it covers
+   the page instantly on load with no flash of raw content first.
+   Visible by default; JS fades it out after the entrance animation
+   plays, and brings it back before navigating to another page. */
+.page-transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .5s ease, visibility .5s ease;
+  pointer-events: none;
+}
+
+.page-transition-overlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.page-transition-overlay img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+}
+
+.page-transition-overlay.is-animating img {
+  animation: pageTransitionPulse 0.9s ease-in-out;
+}
+
+@keyframes pageTransitionPulse {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35); }
+  70% { transform: scale(0.85); }
+  100% { transform: scale(1); }
+}

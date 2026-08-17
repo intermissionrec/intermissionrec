@@ -136,6 +136,13 @@ const setActiveLink = () => {
   });
 };
 
+// Prevent right-click "Save Image As..." on any image - uses event
+// delegation on document so it also covers images added dynamically
+// later (e.g. cover art populated into the artist/smart-link modals
+// after a click), not just images present at initial page load.
+// Note: this is a deterrent only, same as the CSS drag-prevention -
+// it doesn't provide real protection against someone determined to
+// extract an image via browser dev tools.
 document.addEventListener('contextmenu', (e) => {
   if (e.target.tagName === 'IMG') {
     e.preventDefault();
@@ -143,8 +150,10 @@ document.addEventListener('contextmenu', (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // 2. Load header/footer partials
   await includeHtmlFragments();
 
+  // 3. Now the .nav exists, so compute nav and sections
   computeNavAndSections();
   setupMobileNav();
   setActiveLink();
@@ -157,4 +166,57 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll(".year").forEach(el => {
     el.textContent = currentYear + " © INTER(MISSION)";
   });
+
+  setupPageTransitionLinks();
 });
+
+// ── Page transitions ───────────────────────────────────────────
+// Full-screen black overlay with the logo, present in every page's
+// static HTML (not injected here) so it covers the page with zero
+// flash on load. Only the header logo and main nav links (excluding
+// Discord, which leaves the site) trigger a transition - smart link
+// cards, music cards, artist tiles, and external/contact links are
+// deliberately left alone.
+const pageTransitionOverlay = document.getElementById('pageTransitionOverlay');
+
+function playEntranceTransition() {
+  if (!pageTransitionOverlay) return;
+  pageTransitionOverlay.classList.add('is-animating');
+  setTimeout(() => {
+    pageTransitionOverlay.classList.add('is-hidden');
+  }, 700);
+}
+
+function isPageTransitionLink(link) {
+  if (!link) return false;
+  if (link.classList.contains('hero-logo-link')) return true;
+  if (link.closest('.nav') && !link.classList.contains('nav-discord')) return true;
+  return false;
+}
+
+function setupPageTransitionLinks() {
+  if (!pageTransitionOverlay) return;
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a');
+    if (!isPageTransitionLink(link)) return;
+    // let ctrl/cmd/shift-click and middle-click open in a new tab normally
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+
+    const href = link.getAttribute('href');
+    if (!href) return;
+
+    e.preventDefault();
+
+    pageTransitionOverlay.classList.remove('is-hidden');
+    pageTransitionOverlay.classList.remove('is-animating');
+    void pageTransitionOverlay.offsetWidth; // restart the animation
+    pageTransitionOverlay.classList.add('is-animating');
+
+    setTimeout(() => {
+      window.location.href = href;
+    }, 550);
+  });
+}
+
+playEntranceTransition();
