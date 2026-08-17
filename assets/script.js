@@ -228,6 +228,20 @@ function setupPageTransitionLinks() {
       return;
     }
 
+    // same idea, generalized to every other nav link: clicking Артисти
+    // while already on the artists page (etc.) shouldn't reload either.
+    // Each page's <body> already carries a class matching its own name
+    // (body.artists, body.music, body.contacts), so comparing the
+    // clicked link's destination slug against that tells us if we're
+    // already there.
+    if (link.closest('.nav')) {
+      const slug = href.split('?')[0].split('#')[0].replace(/\/+$/, '').split('/').pop();
+      if (slug && document.body.classList.contains(slug)) {
+        e.preventDefault();
+        return;
+      }
+    }
+
     e.preventDefault();
 
     pageTransitionOverlay.classList.remove('is-hidden');
