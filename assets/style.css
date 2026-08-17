@@ -715,6 +715,12 @@ html, body { height: 100%; }
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(0px);
+  transition: backdrop-filter .25s ease;
+  will-change: backdrop-filter;
+}
+
+.sl-modal.is-open .sl-modal-backdrop {
+  backdrop-filter: blur(4px);
 }
 
 .sl-modal-content {
@@ -847,6 +853,7 @@ html, body { height: 100%; }
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(0px);
   transition: backdrop-filter .25s ease;
+  will-change: backdrop-filter;
 }
 
 .artist-modal.is-open .artist-modal-backdrop {
@@ -1574,12 +1581,6 @@ img {
   }
 }
 
-/* ── Page transition overlay ───────────────────────────────────
-   Full-screen panel with the logo, present in the static HTML of
-   every main page (not injected by JS) so it covers the page
-   instantly on load with no flash of raw content first. Visible by
-   default; JS fades it out shortly after load, and brings it back
-   before navigating to another page. Static logo, no animation. */
 .page-transition-overlay {
   position: fixed;
   inset: 0;
