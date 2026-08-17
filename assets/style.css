@@ -1511,9 +1511,10 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 56px);
-    right: 24px;
+    position: sticky;
+    bottom: 24px;
+    align-self: flex-end;
+    margin-right: 24px;
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -1523,6 +1524,7 @@ img {
     cursor: pointer;
     z-index: 201;
     box-shadow: var(--shadow);
+    flex-shrink: 0;
   }
 
   .mobile-nav-backdrop {
