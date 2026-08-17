@@ -1525,6 +1525,7 @@ img {
     z-index: 201;
     box-shadow: var(--shadow);
     flex-shrink: 0;
+    margin-top: -80px;
   }
 
   .mobile-nav-backdrop {
