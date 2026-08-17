@@ -1345,7 +1345,7 @@ html, body { height: 100%; }
   position: relative;
   width: 100%;
   height: 100%;
-  max-width: calc(60% - 120px);
+  max-width: calc(60% - 168px);
   max-height: clamp(1.5rem, 3vw, 4rem);
   object-fit: contain;
   opacity: 1;
