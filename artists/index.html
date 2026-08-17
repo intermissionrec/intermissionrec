@@ -241,14 +241,7 @@
       // resolve as a microtask fast enough that the browser's very
       // first paint already shows everything fully built, skipping
       // past the transition's starting frame entirely.
-      // Delayed by slightly longer than the blur animation's own
-      // duration (250ms), not just one frame - if building/inserting
-      // the release cards takes longer than a single frame to run, it
-      // can block the main thread long enough that the blur animation
-      // never gets a chance to paint any intermediate frames at all,
-      // regardless of what mechanism drives it.
-      setTimeout(function () {
-        getManifest()
+      getManifest()
           .then(function (data) {
             var matches = data.filter(function (entry) { return entry.mainArtist === name; });
           matches.sort(function (a, b) { return b.rank - a.rank; });
@@ -343,7 +336,6 @@
         .catch(function () {
           releasesWrap.innerHTML = '<p class="artist-modal-status">Грешка при зареждане на изданията.</p>';
         });
-      }, 300);
     }
 
     function closeModal() {
