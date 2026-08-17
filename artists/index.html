@@ -65,7 +65,7 @@
   <script src="../assets/script.js" defer></script>
 
   <!-- Artist quick-view modal -->
-  <div id="artistModal" class="artist-modal" style="display:none;">
+  <div id="artistModal" class="artist-modal">
     <div class="artist-modal-backdrop"></div>
     <div class="artist-modal-content">
       <button class="artist-modal-close" aria-label="Затвори">&times;</button>
@@ -207,7 +207,7 @@
       });
 
       releasesWrap.innerHTML = '<p class="artist-modal-status">Зареждане...</p>';
-      modal.style.display = 'flex';
+      modal.classList.add('is-open');
       document.body.style.overflow = 'hidden';
       applyPhotoFraming(coverUrl, zoomPercent, xPercent, yPercent);
 
@@ -309,7 +309,7 @@
     }
 
     function closeModal() {
-      modal.style.display = 'none';
+      modal.classList.remove('is-open');
       document.body.style.overflow = '';
     }
 
@@ -324,7 +324,7 @@
     backdrop.addEventListener('click', closeModal);
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && modal.style.display !== 'none') {
+      if (e.key === 'Escape' && modal.classList.contains('is-open')) {
         closeModal();
       }
     });

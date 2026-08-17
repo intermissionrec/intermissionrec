@@ -120,7 +120,7 @@
   <script src="../assets/script.js" defer></script>
 
   <!-- Smart Link quick-view modal -->
-  <div id="smartlinkModal" class="sl-modal" style="display:none;">
+  <div id="smartlinkModal" class="sl-modal">
     <div class="sl-modal-backdrop"></div>
     <div class="sl-modal-content">
       <button class="sl-modal-close" aria-label="Затвори">&times;</button>
@@ -173,7 +173,7 @@
         linksEl.appendChild(newA);
       });
 
-      modal.style.display = 'flex';
+      modal.classList.add('is-open');
       document.body.style.overflow = 'hidden';
     }
 
@@ -226,7 +226,7 @@
     setTimeout(prefetchAllSmartLinks, 1000);
 
     function closeModal() {
-      modal.style.display = 'none';
+      modal.classList.remove('is-open');
       document.body.style.overflow = '';
     }
 
@@ -241,7 +241,7 @@
     backdrop.addEventListener('click', closeModal);
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && modal.style.display !== 'none') {
+      if (e.key === 'Escape' && modal.classList.contains('is-open')) {
         closeModal();
       }
     });
