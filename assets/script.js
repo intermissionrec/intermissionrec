@@ -182,6 +182,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupPageTransitionLinks();
 });
 
+// ── Page transitions ───────────────────────────────────────────
+// Full-screen black overlay with the logo, present in every page's
+// static HTML (not injected here) so it covers the page with zero
+// flash on load. The header logo and every main nav link (including
+// Discord) trigger a transition - smart link cards, music cards,
+// artist tiles, and contact links are deliberately left alone.
 const pageTransitionOverlay = document.getElementById('pageTransitionOverlay');
 
 function playEntranceTransition() {
@@ -210,6 +216,13 @@ function setupPageTransitionLinks() {
     const href = link.getAttribute('href');
     if (!href) return;
 
+    // clicking the home logo while already on the home page shouldn't
+    // reload the page or play the transition at all
+    if (link.classList.contains('hero-logo-link') && document.body.classList.contains('home')) {
+      e.preventDefault();
+      return;
+    }
+
     e.preventDefault();
 
     pageTransitionOverlay.classList.remove('is-hidden');
@@ -220,4 +233,6 @@ function setupPageTransitionLinks() {
   });
 }
 
+// Runs immediately (not waiting for DOMContentLoaded/fragments) since
+// the overlay element is already present in the page's own static HTML.
 playEntranceTransition();

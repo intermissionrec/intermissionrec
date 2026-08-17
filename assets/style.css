@@ -1569,12 +1569,13 @@ img {
   opacity: 1;
   visibility: visible;
   transition: opacity .5s ease, visibility .5s ease;
-  pointer-events: none;
+  cursor: default;
 }
 
 .page-transition-overlay.is-hidden {
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
 }
 
 .page-transition-overlay img {
