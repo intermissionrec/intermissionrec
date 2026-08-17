@@ -240,3 +240,9 @@ function setupPageTransitionLinks() {
 // Runs immediately (not waiting for DOMContentLoaded/fragments) since
 // the overlay element is already present in the page's own static HTML.
 playEntranceTransition();
+
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted && pageTransitionOverlay) {
+    pageTransitionOverlay.classList.add('is-hidden');
+  }
+});
