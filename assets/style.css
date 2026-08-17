@@ -1215,12 +1215,11 @@ html, body { height: 100%; }
   gap: 28px;
   color: var(--text);
   text-decoration: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
 .contact-row:hover {
   opacity: 0.75;
-  transform: scale(1.02);
 }
 
 .contact-icon {
