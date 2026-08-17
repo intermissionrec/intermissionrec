@@ -211,9 +211,17 @@
       document.body.style.overflow = 'hidden';
       applyPhotoFraming(coverUrl, zoomPercent, xPercent, yPercent);
 
-      getManifest()
-        .then(function (data) {
-          var matches = data.filter(function (entry) { return entry.mainArtist === name; });
+      // Deferred by a frame so the browser actually paints the modal's
+      // opening state (and the backdrop blur starting its transition)
+      // before this runs - otherwise, since the manifest is normally
+      // already cached from the earlier prefetch, this whole chain can
+      // resolve as a microtask fast enough that the browser's very
+      // first paint already shows everything fully built, skipping
+      // past the transition's starting frame entirely.
+      requestAnimationFrame(function () {
+        getManifest()
+          .then(function (data) {
+            var matches = data.filter(function (entry) { return entry.mainArtist === name; });
           matches.sort(function (a, b) { return b.rank - a.rank; });
           matches = matches.slice(0, 5);
 
@@ -306,6 +314,7 @@
         .catch(function () {
           releasesWrap.innerHTML = '<p class="artist-modal-status">Грешка при зареждане на изданията.</p>';
         });
+      });
     }
 
     function closeModal() {
