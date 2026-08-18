@@ -87,26 +87,24 @@ function computeNavAndSections() {
 // button and backdrop stay hidden via CSS above the mobile breakpoint.
 function setupMobileNav() {
   const toggle = document.querySelector('.mobile-nav-toggle');
-  const toggleWrap = document.querySelector('.mobile-nav-toggle-wrap');
   const navWrap = document.querySelector('.nav-wrap');
   const backdrop = document.querySelector('.mobile-nav-backdrop');
-  if (!toggle || !toggleWrap || !navWrap || !backdrop) return;
+  if (!toggle || !navWrap || !backdrop) return;
 
   // All three overlay pieces (toggle button, nav links, backdrop) only
   // need relocating on mobile - on desktop, .nav-wrap already works
   // correctly in its original position (a sticky top bar within the
   // header), and moving it out to body would place it after the
   // footer in DOM order, breaking that entirely. The relocation only
-  // exists to give position:sticky/absolute a full-page-height
-  // containing block and to keep these pieces outside .page's blur
-  // filter - neither of which applies on desktop.
+  // exists to keep these pieces outside .page's blur filter (filter
+  // on an ancestor visually affects position:fixed descendants too,
+  // unlike most other CSS effects) - not needed on desktop at all.
   const isMobile = window.matchMedia('(max-width: 1199.98px)').matches;
   if (isMobile) {
-    // All three moved to be direct children of body (not .page) so
-    // they're completely outside .page's DOM subtree - immune to its
-    // blur filter, and (for the toggle button specifically) sticky
-    // positioning gets a containing block spanning the full page.
-    document.body.appendChild(toggleWrap);
+    // Moved to be direct children of body (not .page) so they're
+    // completely outside .page's DOM subtree - immune to its blur
+    // filter.
+    document.body.appendChild(toggle);
     document.body.appendChild(navWrap);
     document.body.appendChild(backdrop);
   }
