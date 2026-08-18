@@ -101,6 +101,14 @@ function setupMobileNav() {
   const page = document.querySelector('.page');
   if (page) page.appendChild(toggleWrap);
 
+  // nav-wrap and the backdrop also lived inside the header fragment
+  // (a descendant of .page), so they were getting blurred along with
+  // the background content whenever .page's blur was active - moving
+  // them to be direct children of body keeps them outside that
+  // element's subtree entirely, immune to its filter.
+  document.body.appendChild(navWrap);
+  document.body.appendChild(backdrop);
+
   function closeMenu() {
     navWrap.classList.remove('is-open');
     backdrop.classList.remove('is-open');

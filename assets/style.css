@@ -19,7 +19,7 @@ body {
   min-height: 100vh;
   background: #060606;
   color: var(--text);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Satoshi', sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   cursor: default;
@@ -166,7 +166,7 @@ main {
 .copy h1 {
   margin: 0;
   width: min(100%, 320px);
-  font-family: 'Inter Tight', sans-serif;
+  font-family: 'Clash Display', sans-serif;
   font-size: clamp(2rem, 4vw, 3.2rem);
   line-height: 1.05;
   font-weight: 600;
@@ -199,7 +199,7 @@ main {
 
 .section-inner h2 {
   margin: 0 0 20px;
-  font-family: 'Inter Tight', sans-serif;
+  font-family: 'Clash Display', sans-serif;
   font-size: clamp(1.8rem, 3vw, 2.8rem);
   letter-spacing: -0.03em;
 }
@@ -379,7 +379,7 @@ main {
 
 .contact-form-wrap h2 {
   margin: 0 0 20px;
-  font-family: 'Inter Tight', sans-serif;
+  font-family: 'Clash Display', sans-serif;
   font-size: clamp(1.6rem, 3vw, 2.2rem);
   letter-spacing: 1px;
   text-align: right;
@@ -403,7 +403,7 @@ main {
   border: 1px solid var(--line);
   border-radius: 12px;
   color: var(--text);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Satoshi', sans-serif;
   font-size: 16px;
   resize: vertical;
 }
@@ -695,7 +695,7 @@ html, body { height: 100%; }
   justify-content: left;
   text-align: left;
   padding: 24px;
-  font-family: 'Inter Tight', sans-serif;
+  font-family: 'Clash Display', sans-serif;
   font-size: clamp(1.1rem, 2vw, 1.8rem);
   font-weight: 600;
   opacity: 0;
@@ -788,7 +788,7 @@ html, body { height: 100%; }
 
 .sl-modal-info h2 {
   margin: 0 0 6px;
-  font-family: 'Inter Tight', sans-serif;
+  font-family: 'Clash Display', sans-serif;
   font-size: clamp(1.3rem, 2vw, 1.8rem);
   font-weight: 600;
   line-height: 1.15;
@@ -922,7 +922,7 @@ html, body { height: 100%; }
 
 .artist-modal-name {
   margin: 0;
-  font-family: 'Inter Tight', sans-serif;
+  font-family: 'Clash Display', sans-serif;
   font-size: clamp(1.6rem, 3vw, 2.4rem);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -963,7 +963,7 @@ html, body { height: 100%; }
 
 .artist-modal-releases-heading {
   margin: 0;
-  font-family: 'Inter Tight', sans-serif;
+  font-family: 'Clash Display', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--muted);
@@ -1266,7 +1266,7 @@ html, body { height: 100%; }
 }
 
 .contact-label {
-  font-family: 'Inter Tight', sans-serif;
+  font-family: 'Clash Display', sans-serif;
   font-size: 26px;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -1334,7 +1334,7 @@ html, body { height: 100%; }
 
 .artist-tile-name {
   position: relative;
-  font-family: 'Inter Tight', sans-serif;
+  font-family: 'Clash Display', sans-serif;
   font-size: clamp(1.5rem, 3vw, 4rem);
   font-weight: 700;
   line-height: 1.05;
@@ -1418,7 +1418,7 @@ html, body { height: 100%; }
 
 /* ── Artist name ─────────────────────────────────────────────── */
 .artist-name {
-  font-family: 'Inter Tight', sans-serif;
+  font-family: 'Clash Display', sans-serif;
   font-size: clamp(2.4rem, 5vw, 4rem);
   font-weight: 700;
   line-height: 1.05;

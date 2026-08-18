@@ -5,20 +5,16 @@
   // Preconnects
   const pre1 = document.createElement("link");
   pre1.rel = "preconnect";
-  pre1.href = "https://fonts.googleapis.com";
+  pre1.href = "https://api.fontshare.com";
   head.appendChild(pre1);
 
-  const pre2 = document.createElement("link");
-  pre2.rel = "preconnect";
-  pre2.href = "https://fonts.gstatic.com";
-  pre2.crossOrigin = "anonymous";
-  head.appendChild(pre2);
-
-  // Fonts
+  // Fonts - Clash Display for headlines (weights 600/700, matching
+  // actual usage across style.css), Satoshi for body text (weights
+  // 400/500/700, matching the previous Inter usage it replaces)
   const fonts = document.createElement("link");
   fonts.rel = "stylesheet";
   fonts.href =
-    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Inter+Tight:wght@600&display=swap";
+    "https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700&display=swap";
   head.appendChild(fonts);
 
   // Favicons
