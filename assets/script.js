@@ -105,12 +105,16 @@ function setupMobileNav() {
     navWrap.classList.remove('is-open');
     backdrop.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    document.body.classList.remove('modal-open');
   }
 
   function openMenu() {
     navWrap.classList.add('is-open');
     backdrop.classList.add('is-open');
     toggle.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
   }
 
   toggle.addEventListener('click', () => {
