@@ -92,22 +92,24 @@ function setupMobileNav() {
   const backdrop = document.querySelector('.mobile-nav-backdrop');
   if (!toggle || !toggleWrap || !navWrap || !backdrop) return;
 
-  // Moved to be a direct child of .page (rather than staying nested
-  // inside the header fragment, which is short) so it spans the
-  // entire page's height. It's position:absolute so it doesn't add
-  // any space to .page's own layout - the toggle button inside it
-  // uses position:sticky to stay vertically centered on screen as
-  // you scroll, within that full-page range.
-  const page = document.querySelector('.page');
-  if (page) page.appendChild(toggleWrap);
-
-  // nav-wrap and the backdrop also lived inside the header fragment
-  // (a descendant of .page), so they were getting blurred along with
-  // the background content whenever .page's blur was active - moving
-  // them to be direct children of body keeps them outside that
-  // element's subtree entirely, immune to its filter.
-  document.body.appendChild(navWrap);
-  document.body.appendChild(backdrop);
+  // All three overlay pieces (toggle button, nav links, backdrop) only
+  // need relocating on mobile - on desktop, .nav-wrap already works
+  // correctly in its original position (a sticky top bar within the
+  // header), and moving it out to body would place it after the
+  // footer in DOM order, breaking that entirely. The relocation only
+  // exists to give position:sticky/absolute a full-page-height
+  // containing block and to keep these pieces outside .page's blur
+  // filter - neither of which applies on desktop.
+  const isMobile = window.matchMedia('(max-width: 1199.98px)').matches;
+  if (isMobile) {
+    // All three moved to be direct children of body (not .page) so
+    // they're completely outside .page's DOM subtree - immune to its
+    // blur filter, and (for the toggle button specifically) sticky
+    // positioning gets a containing block spanning the full page.
+    document.body.appendChild(toggleWrap);
+    document.body.appendChild(navWrap);
+    document.body.appendChild(backdrop);
+  }
 
   function closeMenu() {
     navWrap.classList.remove('is-open');
