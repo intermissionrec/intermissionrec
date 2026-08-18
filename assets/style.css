@@ -1039,6 +1039,7 @@ html, body { height: 100%; }
 
 .artist-modal-status {
   margin: 0;
+  width: 100%;
   color: var(--muted);
   font-size: 14px;
   text-align: center;
