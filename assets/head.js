@@ -5,16 +5,23 @@
   // Preconnects
   const pre1 = document.createElement("link");
   pre1.rel = "preconnect";
-  pre1.href = "https://api.fontshare.com";
+  pre1.href = "https://fonts.googleapis.com";
   head.appendChild(pre1);
 
-  // Fonts - Clash Display for headlines (weights 600/700, matching
-  // actual usage across style.css), Satoshi for body text (weights
-  // 400/500/700, matching the previous Inter usage it replaces)
+  const pre2 = document.createElement("link");
+  pre2.rel = "preconnect";
+  pre2.href = "https://fonts.gstatic.com";
+  pre2.crossOrigin = "anonymous";
+  head.appendChild(pre2);
+
+  // Fonts - Montserrat for headlines (weights 600/700, matching
+  // actual usage across style.css), Rubik for body text (weights
+  // 400/500/700, matching prior usage) - both confirmed to support
+  // Cyrillic, unlike the previous Clash Display/Satoshi pairing
   const fonts = document.createElement("link");
   fonts.rel = "stylesheet";
   fonts.href =
-    "https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700&display=swap";
+    "https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Rubik:wght@400;500;700&display=swap";
   head.appendChild(fonts);
 
   // Favicons
