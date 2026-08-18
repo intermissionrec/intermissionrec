@@ -98,7 +98,7 @@ function setupMobileNav() {
   // entirely. The relocation only exists to keep these pieces outside
   // .page's blur filter, since the menu overlay itself should stay
   // sharp while open - not needed on desktop at all.
-  const isMobile = window.matchMedia('(max-width: 1199.98px)').matches;
+  const isMobile = window.matchMedia('(max-width: 919.98px)').matches;
   if (isMobile) {
     document.body.appendChild(navWrap);
     document.body.appendChild(backdrop);

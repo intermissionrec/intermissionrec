@@ -442,7 +442,7 @@ main {
 
 html, body { height: 100%; }
 
-@media (min-width: 1200px) {
+@media (min-width: 920px) {
 
   body.smartlink .page {
     height: 100vh;
@@ -601,7 +601,7 @@ html, body { height: 100%; }
   }
 }
 
-@media (max-width: 1199.98px) {
+@media (max-width: 919.98px) {
   .page {
     overflow: visible;
   }
@@ -685,7 +685,7 @@ html, body { height: 100%; }
    or squash differently depending on screen resolution. Squares stay
    consistent regardless of viewport height, at the cost of a taller
    page (more rows needed to fit the same content). */
-@media (max-width: 1199.98px) {
+@media (max-width: 919.98px) {
   .music-band {
     align-items: flex-start;
     min-height: 0;
@@ -1395,7 +1395,7 @@ html, body { height: 100%; }
   opacity: 0.5;
 }
 
-@media (max-width: 1199.98px) {
+@media (max-width: 919.98px) {
   .artists-roster-grid {
     grid-template-columns: 1fr;
     height: auto;
@@ -1534,14 +1534,14 @@ img {
 
 /* ── Mobile nav: floating toggle button + centered overlay menu ──
    Replaces the old "stack nav links below logo" mobile behavior.
-   Desktop (>=1200px) is completely unaffected - toggle/backdrop stay
+   Desktop (>=920px) is completely unaffected - toggle/backdrop stay
    hidden and .nav-wrap/.nav behave exactly as they already did. */
 .mobile-nav-toggle,
 .mobile-nav-backdrop {
   display: none;
 }
 
-@media (max-width: 1199.98px) {
+@media (max-width: 919.98px) {
   .mobile-nav-toggle {
     display: flex;
     align-items: center;
