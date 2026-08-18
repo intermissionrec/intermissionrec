@@ -381,6 +381,7 @@ main {
   margin: 0 0 20px;
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(1.6rem, 3vw, 2.2rem);
+  letter-spacing: 1px;
   text-align: right;
 }
 
@@ -672,6 +673,23 @@ html, body { height: 100%; }
 
 .music-card:nth-child(even) { border-right: none; }
 .music-card:nth-last-child(-n+2) { border-bottom: none; }
+
+/* Mobile: force a fixed square shape instead of letting card height
+   be determined by dividing .music-band's viewport-relative
+   min-height among the grid rows - that approach made cards stretch
+   or squash differently depending on screen resolution. Squares stay
+   consistent regardless of viewport height, at the cost of a taller
+   page (more rows needed to fit the same content). */
+@media (max-width: 1199.98px) {
+  .music-band {
+    align-items: flex-start;
+    min-height: 0;
+  }
+
+  .music-card {
+    aspect-ratio: 1;
+  }
+}
 
 .music-card::before {
   content: "";
