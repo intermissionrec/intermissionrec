@@ -1567,7 +1567,7 @@ img {
      menu's backdrop too, making it unclickable to close. */
   .mobile-nav-toggle[aria-expanded="true"] {
     position: fixed;
-    top: 60px;
+    top: 65px;
     right: 20px;
     transform: none;
     z-index: 202;
