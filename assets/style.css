@@ -46,11 +46,25 @@ img { display: block; max-width: 100%; height: auto; }
   flex-direction: column;
   align-items: center;
   overflow: hidden;
+}
+
+.page > * {
   filter: blur(0px);
   transition: filter .25s ease;
 }
 
-body.modal-open .page {
+/* Card modals (artist/music) blur the entire page, header included -
+   this is the "open a card" case, and the button should visibly
+   recede into the background along with everything else. */
+body.modal-open .page > * {
+  filter: blur(2px);
+}
+
+/* The mobile nav menu itself blurs everything EXCEPT the header
+   (:first-child - the header fragment is reliably .page's first
+   child across every page), since the toggle button lives there and
+   shouldn't blur when it's the menu being opened rather than a card. */
+body.nav-open .page > *:not(:first-child) {
   filter: blur(2px);
 }
 

@@ -111,7 +111,7 @@ function setupMobileNav() {
     backdrop.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
-    document.body.classList.remove('modal-open');
+    document.body.classList.remove('nav-open');
   }
 
   function openMenu() {
@@ -119,7 +119,7 @@ function setupMobileNav() {
     backdrop.classList.add('is-open');
     toggle.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
-    document.body.classList.add('modal-open');
+    document.body.classList.add('nav-open');
   }
 
   toggle.addEventListener('click', () => {
