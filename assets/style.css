@@ -834,8 +834,8 @@ html, body { height: 100%; }
 @media (max-width: 768px) {
   .sl-modal-content {
     flex-direction: column;
-    padding: 28px;
-    gap: 24px;
+    padding: 20px;
+    gap: 16px;
   }
 
   .sl-modal-left {
@@ -845,7 +845,15 @@ html, body { height: 100%; }
   }
 
   .sl-modal-cover {
-    max-width: 220px;
+    max-width: 140px;
+  }
+
+  .sl-modal-right {
+    gap: 8px;
+  }
+
+  .sl-modal-right .platform-link {
+    min-height: 36px;
   }
 }
 
@@ -1543,8 +1551,17 @@ img {
     border: 1px solid var(--line);
     color: var(--text);
     cursor: pointer;
-    z-index: 201;
+    z-index: 90;
     box-shadow: var(--shadow);
+  }
+
+  /* Raised above the mobile nav overlay (200) specifically while the
+     menu is open, using the aria-expanded state the JS already
+     toggles - otherwise the button's own lowered z-index (needed to
+     sit behind the artist/music modals) would put it behind the
+     menu's backdrop too, making it unclickable to close. */
+  .mobile-nav-toggle[aria-expanded="true"] {
+    z-index: 202;
   }
 
   .mobile-nav-backdrop {
