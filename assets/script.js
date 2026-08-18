@@ -97,14 +97,21 @@ function setupMobileNav() {
   // would place it after the footer in DOM order, breaking that
   // entirely. The relocation only exists to keep these pieces outside
   // .page's blur filter, since the menu overlay itself should stay
-  // sharp while open - not needed on desktop at all. The toggle
-  // button deliberately stays where it is (inside the header), so it
-  // blurs naturally along with the rest of the header/background.
+  // sharp while open - not needed on desktop at all.
   const isMobile = window.matchMedia('(max-width: 1199.98px)').matches;
   if (isMobile) {
     document.body.appendChild(navWrap);
     document.body.appendChild(backdrop);
   }
+
+  // The toggle button normally stays inside the header, blurring
+  // naturally along with everything else when a card modal opens.
+  // But while the *menu itself* is open, it needs to stay outside
+  // .page's blur so it remains visible and clickable to close the
+  // menu - so it's temporarily relocated to body only for that
+  // duration, then moved back to its original spot in the header
+  // once the menu closes.
+  const toggleHomeParent = toggle.parentElement;
 
   function closeMenu() {
     navWrap.classList.remove('is-open');
@@ -112,6 +119,7 @@ function setupMobileNav() {
     toggle.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
     document.body.classList.remove('nav-open');
+    if (isMobile && toggleHomeParent) toggleHomeParent.appendChild(toggle);
   }
 
   function openMenu() {
@@ -120,6 +128,7 @@ function setupMobileNav() {
     toggle.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
     document.body.classList.add('nav-open');
+    if (isMobile) document.body.appendChild(toggle);
   }
 
   toggle.addEventListener('click', () => {

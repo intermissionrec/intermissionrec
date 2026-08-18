@@ -46,25 +46,16 @@ img { display: block; max-width: 100%; height: auto; }
   flex-direction: column;
   align-items: center;
   overflow: hidden;
-}
-
-.page > * {
   filter: blur(0px);
   transition: filter .25s ease;
 }
 
-/* Card modals (artist/music) blur the entire page, header included -
-   this is the "open a card" case, and the button should visibly
-   recede into the background along with everything else. */
-body.modal-open .page > * {
-  filter: blur(2px);
-}
-
-/* The mobile nav menu itself blurs everything EXCEPT the header
-   (:first-child - the header fragment is reliably .page's first
-   child across every page), since the toggle button lives there and
-   shouldn't blur when it's the menu being opened rather than a card. */
-body.nav-open .page > *:not(:first-child) {
+/* Both card modals and the mobile nav menu blur the entire page the
+   same way - the toggle button staying visible/clickable while the
+   menu is open is handled separately, by temporarily relocating it
+   out of .page in JS rather than excluding it from this blur. */
+body.modal-open .page,
+body.nav-open .page {
   filter: blur(2px);
 }
 
@@ -1575,6 +1566,10 @@ img {
      sit behind the artist/music modals) would put it behind the
      menu's backdrop too, making it unclickable to close. */
   .mobile-nav-toggle[aria-expanded="true"] {
+    position: fixed;
+    top: 24px;
+    right: 20px;
+    transform: none;
     z-index: 202;
   }
 
