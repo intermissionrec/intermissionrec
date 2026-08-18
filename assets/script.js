@@ -91,20 +91,17 @@ function setupMobileNav() {
   const backdrop = document.querySelector('.mobile-nav-backdrop');
   if (!toggle || !navWrap || !backdrop) return;
 
-  // All three overlay pieces (toggle button, nav links, backdrop) only
-  // need relocating on mobile - on desktop, .nav-wrap already works
-  // correctly in its original position (a sticky top bar within the
-  // header), and moving it out to body would place it after the
-  // footer in DOM order, breaking that entirely. The relocation only
-  // exists to keep these pieces outside .page's blur filter (filter
-  // on an ancestor visually affects position:fixed descendants too,
-  // unlike most other CSS effects) - not needed on desktop at all.
+  // nav-wrap and the backdrop need relocating on mobile - on desktop,
+  // .nav-wrap already works correctly in its original position (a
+  // sticky top bar within the header), and moving it out to body
+  // would place it after the footer in DOM order, breaking that
+  // entirely. The relocation only exists to keep these pieces outside
+  // .page's blur filter, since the menu overlay itself should stay
+  // sharp while open - not needed on desktop at all. The toggle
+  // button deliberately stays where it is (inside the header), so it
+  // blurs naturally along with the rest of the header/background.
   const isMobile = window.matchMedia('(max-width: 1199.98px)').matches;
   if (isMobile) {
-    // Moved to be direct children of body (not .page) so they're
-    // completely outside .page's DOM subtree - immune to its blur
-    // filter.
-    document.body.appendChild(toggle);
     document.body.appendChild(navWrap);
     document.body.appendChild(backdrop);
   }

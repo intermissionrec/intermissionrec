@@ -59,6 +59,7 @@ body.modal-open .page {
 }
 
 .hero {
+  position: relative;
   width: 100%;
   display: grid;
   place-items: center;
@@ -1541,18 +1542,17 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--panel-2);
-    border: 1px solid var(--line);
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
     color: var(--text);
     cursor: pointer;
     z-index: 90;
-    box-shadow: var(--shadow);
   }
 
   /* Raised above the mobile nav overlay (200) specifically while the
