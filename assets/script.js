@@ -98,7 +98,8 @@ function computeNavAndSections() {
 // "thickness" of this stack as a real side profile, rather than
 // simulating depth with a flat image. Shared by both the header logo
 // (hover-triggered) and the page-transition logo (continuous spin).
-function buildLogoDepthLayers(wrap, front, layerClass, layerCount, useShading) {
+function buildLogoDepthLayers(wrap, front, layerClass, layerCount, useShading, spacing, useBlur) {
+  spacing = spacing || 1;
   for (let i = 1; i <= layerCount; i++) {
     const layer = front.cloneNode(true);
     layer.className = layerClass;
@@ -106,10 +107,11 @@ function buildLogoDepthLayers(wrap, front, layerClass, layerCount, useShading) {
     layer.removeAttribute('height');
     layer.setAttribute('aria-hidden', 'true');
     layer.alt = '';
-    layer.style.transform = `translateZ(${-i}px)`;
-    if (useShading) {
-      layer.style.filter = `brightness(${Math.max(1 - i * 0.035, 0.4)})`;
-    }
+    layer.style.transform = `translateZ(${-i * spacing}px)`;
+    const filters = [];
+    if (useShading) filters.push(`brightness(${Math.max(1 - i * 0.035, 0.4)})`);
+    if (useBlur) filters.push('blur(0.4px)');
+    if (filters.length) layer.style.filter = filters.join(' ');
     wrap.insertBefore(layer, front);
   }
 }
@@ -125,7 +127,7 @@ function setupLogo3D() {
   const front = wrap ? wrap.querySelector('.hero-logo') : null;
   if (!wrap || !front) return;
 
-  buildLogoDepthLayers(wrap, front, 'hero-logo-depth-layer', 14, true);
+  buildLogoDepthLayers(wrap, front, 'hero-logo-depth-layer', 20, true, 2, true);
 
   const link = document.querySelector('.hero-logo-link');
   if (!link) return;
@@ -182,7 +184,7 @@ function setupTransitionLogoSpin() {
   // as the overlay is visible (not a brief one-shot animation), so
   // it's worth trimming the ongoing rendering cost, especially since
   // this runs right during the most contended moment of page load.
-  buildLogoDepthLayers(wrap, front, 'transition-logo-depth-layer', 6, false);
+  buildLogoDepthLayers(wrap, front, 'transition-logo-depth-layer', 10, false, 1.5, false);
 
   let startTs = parseInt(sessionStorage.getItem('logoSpinStart') || '', 10);
   if (!startTs) {
