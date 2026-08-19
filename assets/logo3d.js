@@ -33,6 +33,18 @@ window.__logoModelReady = loadModel();
 // what gets rotated, never the model itself.
 function createCenteredInstance(sourceScene) {
   const instance = sourceScene.clone(true);
+
+  // Backface culling (Three.js's default) only renders triangles whose
+  // normal points toward the camera - if the camera ends up on the
+  // side the mesh's winding order treats as "behind," the whole thing
+  // would render invisible even with correct positioning. Forcing
+  // double-sided materials removes this failure mode entirely.
+  instance.traverse((child) => {
+    if (child.isMesh && child.material) {
+      child.material.side = THREE.DoubleSide;
+    }
+  });
+
   const box = new THREE.Box3().setFromObject(instance);
   const center = box.getCenter(new THREE.Vector3());
   instance.position.sub(center);
@@ -169,7 +181,7 @@ async function setupHeaderLogo3D() {
   link.addEventListener('mouseenter', () => {
     if (spinning) return;
     spinning = true;
-    startAngle = pivot.rotation.y;
+    startAngle = pivot.rotation[upAxis];
     startTime = performance.now();
     requestAnimationFrame(frame);
   });
@@ -196,10 +208,11 @@ async function setupTransitionLogo3D() {
 
   const { scene, camera, renderer } = createScene(canvas);
   const sourceScene = await loadModel();
-  const pivot = createCenteredInstance(sourceScene);
+  const { pivot, depthAxis, upAxis } = createCenteredInstance(sourceScene);
   scene.add(pivot);
+  addLighting(scene, depthAxis);
 
-  fitCameraToObject(camera, pivot);
+  fitCameraToObject(camera, pivot, depthAxis, upAxis);
   resizeRendererToCanvas(renderer, camera, canvas);
 
   new ResizeObserver(() => {
@@ -223,7 +236,7 @@ async function setupTransitionLogo3D() {
     if (visible) {
       const elapsed = Date.now() - startTs;
       const t = (elapsed % TRANSITION_SPIN_LOOP_MS) / TRANSITION_SPIN_LOOP_MS;
-      pivot.rotation.y = t * Math.PI * 2;
+      pivot.rotation[upAxis] = t * Math.PI * 2;
       renderer.render(scene, camera);
     }
     requestAnimationFrame(frame);
