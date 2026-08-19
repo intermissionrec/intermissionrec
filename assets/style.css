@@ -72,11 +72,20 @@ body.nav-open .page {
   background: var(--bg);
 }
 
-.hero-logo-link { display: inline-flex; }
+.hero-logo-link {
+  display: inline-flex;
+  perspective: 800px;
+}
+
 .hero-logo {
   width: 96px;
   height: 96px;
   object-fit: cover;
+  transition: transform 0.7s ease;
+}
+
+.hero-logo-link:hover .hero-logo {
+  transform: rotateY(360deg);
 }
 
 .nav-wrap {
