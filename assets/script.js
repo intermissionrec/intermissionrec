@@ -109,7 +109,12 @@ function buildLogoDepthLayers(wrap, front, layerClass, layerCount, useShading, s
     layer.alt = '';
     layer.style.transform = `translateZ(${-i * spacing}px)`;
     const filters = [];
-    if (useShading) filters.push(`brightness(${Math.max(1 - i * 0.035, 0.4)})`);
+    if (useShading) {
+      const midpoint = (layerCount + 1) / 2;
+      const distanceFromMid = Math.abs(i - midpoint) / midpoint; // 0 at middle, ~1 at either end
+      const brightnessValue = 0.4 + 0.6 * distanceFromMid; // grey (0.4) at middle, white (1.0) at both ends
+      filters.push(`brightness(${brightnessValue})`);
+    }
     if (useBlur) filters.push('blur(0.4px)');
     if (filters.length) layer.style.filter = filters.join(' ');
     wrap.insertBefore(layer, front);
