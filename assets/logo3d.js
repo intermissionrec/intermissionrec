@@ -106,14 +106,19 @@ function fitCameraToObject(camera, pivot, depthAxis, upAxis) {
   const box = new THREE.Box3().setFromObject(pivot);
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
-  const fitDist = ((maxDim / 2) / Math.tan((camera.fov * Math.PI) / 360)) * 1.6;
+  // 1.333 instead of 1.6 - moving the camera closer makes the model
+  // appear ~20% larger on screen (apparent size scales inversely with
+  // distance for a perspective camera: 1.6 / 1.2 = 1.333).
+  const fitDist = ((maxDim / 2) / Math.tan((camera.fov * Math.PI) / 360)) * 1.333;
 
   const position = new THREE.Vector3();
   position[depthAxis] = fitDist;
   camera.position.copy(position);
 
+  // Negative, not positive - confirmed by direct visual feedback that
+  // positive rendered upside down for this model's orientation.
   const up = new THREE.Vector3();
-  up[upAxis] = 1;
+  up[upAxis] = -1;
   camera.up.copy(up);
 
   camera.lookAt(0, 0, 0);
@@ -244,5 +249,5 @@ async function setupTransitionLogo3D() {
   requestAnimationFrame(frame);
 }
 
-setupTransitionLogo3D();
-setupHeaderLogo3D();
+setupTransitionLogo3D().catch((e) => console.error('[logo3d] Transition logo setup failed:', e));
+setupHeaderLogo3D().catch((e) => console.error('[logo3d] Header logo setup failed:', e));
