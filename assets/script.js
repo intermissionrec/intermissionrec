@@ -127,7 +127,8 @@ function setupLogo3D() {
     }
   });
 
-  wrap.addEventListener('animationend', () => {
+  wrap.addEventListener('animationend', (e) => {
+    if (e.target !== wrap) return;
     wrap.classList.remove('is-spinning');
   });
 }

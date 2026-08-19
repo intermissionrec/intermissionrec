@@ -94,16 +94,22 @@ body.nav-open .page {
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transition: opacity 0.1s ease;
 }
 
 .hero-logo-3d.is-spinning .hero-logo-depth-layer {
-  opacity: 1;
+  animation: logoLayerFade 1.2s ease;
 }
 
 @keyframes logoSpin3D {
   from { transform: rotateY(0deg); }
   to { transform: rotateY(360deg); }
+}
+
+@keyframes logoLayerFade {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .nav-wrap {
