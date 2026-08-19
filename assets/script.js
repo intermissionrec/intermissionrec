@@ -196,6 +196,10 @@ document.addEventListener('dragstart', (e) => {
 document.addEventListener('DOMContentLoaded', async () => {
   // 2. Load header/footer partials
   await includeHtmlFragments();
+  // Signals that .hero-logo-link etc. now actually exist in the DOM -
+  // logo3d.js waits for this before querying for them, since it runs
+  // independently and would otherwise race against this async fetch.
+  document.dispatchEvent(new CustomEvent('header-ready'));
 
   // 3. Now the .nav exists, so compute nav and sections
   computeNavAndSections();

@@ -138,12 +138,25 @@ function easeInOutCubic(t) {
 }
 
 // --- Header logo: hover-triggered, one-shot 360deg rotation ---
+function waitForHeaderReady() {
+  if (document.querySelector('.hero-logo-link')) return Promise.resolve();
+  return new Promise((resolve) => {
+    document.addEventListener('header-ready', resolve, { once: true });
+  });
+}
+
 async function setupHeaderLogo3D() {
   // Desktop-only - some mobile browsers simulate mouseenter/hover on
   // tap for compatibility with desktop-oriented sites, which could
   // trigger this unintentionally when someone just taps the logo to
   // navigate home.
   if (window.matchMedia('(max-width: 919.98px)').matches) return;
+
+  // The header is inserted into the DOM by script.js's async fragment
+  // fetch, which runs independently of this module - without waiting
+  // here, these queries could easily run before that fetch completes,
+  // silently finding nothing and never attaching the hover listener.
+  await waitForHeaderReady();
 
   const link = document.querySelector('.hero-logo-link');
   const canvas = document.querySelector('.hero-logo-canvas');
