@@ -39,7 +39,23 @@ function createCenteredInstance(sourceScene) {
 
   const pivot = new THREE.Group();
   pivot.add(instance);
-  return pivot;
+
+  // Auto-detects the model's own depth (extrusion) and up (rotation)
+  // axes from its actual geometry, rather than assuming a fixed
+  // convention - the exported model's thinnest bounding-box dimension
+  // is almost certainly the extrusion/depth axis for a flat logo (the
+  // camera needs to look down this to see the flat face rather than
+  // an edge-on sliver), and the middle dimension is the model's own
+  // vertical direction (the axis to spin around so the camera sees
+  // front, then edge, then back, then edge again as it turns).
+  const size = box.getSize(new THREE.Vector3());
+  const dims = [
+    { axis: 'x', value: size.x },
+    { axis: 'y', value: size.y },
+    { axis: 'z', value: size.z },
+  ].sort((a, b) => a.value - b.value);
+
+  return { pivot, depthAxis: dims[0].axis, upAxis: dims[1].axis };
 }
 
 function createScene(canvas) {
@@ -49,27 +65,45 @@ function createScene(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+  return { scene, camera, renderer };
+}
+
+// Called once the model's depth axis is known (detected from its
+// geometry, since it isn't assumed) - the key light needs to come
+// from roughly the same direction as the camera to actually work as
+// front-lighting; positioning it before that axis is known would put
+// it in the wrong place entirely.
+function addLighting(scene, depthAxis) {
   // Front-facing key light - as the logo turns, faces angling away
   // from this fall into shadow, which is what actually sells the
   // depth as it rotates.
   const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
-  keyLight.position.set(0, 0.4, 3);
+  const lightPos = new THREE.Vector3(0.3, 0.3, 0.3);
+  lightPos[depthAxis] = 3;
+  keyLight.position.copy(lightPos);
   scene.add(keyLight);
 
   // Dim ambient fill so the shadowed sides read as dark grey rather
   // than dropping to pure black.
   const fillLight = new THREE.AmbientLight(0xffffff, 0.35);
   scene.add(fillLight);
-
-  return { scene, camera, renderer };
 }
 
-function fitCameraToObject(camera, pivot) {
+
+function fitCameraToObject(camera, pivot, depthAxis, upAxis) {
   const box = new THREE.Box3().setFromObject(pivot);
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
-  const fitDist = (maxDim / 2) / Math.tan((camera.fov * Math.PI) / 360);
-  camera.position.set(0, 0, fitDist * 1.6);
+  const fitDist = ((maxDim / 2) / Math.tan((camera.fov * Math.PI) / 360)) * 1.6;
+
+  const position = new THREE.Vector3();
+  position[depthAxis] = fitDist;
+  camera.position.copy(position);
+
+  const up = new THREE.Vector3();
+  up[upAxis] = 1;
+  camera.up.copy(up);
+
   camera.lookAt(0, 0, 0);
 }
 
@@ -100,10 +134,11 @@ async function setupHeaderLogo3D() {
 
   const { scene, camera, renderer } = createScene(canvas);
   const sourceScene = await loadModel();
-  const pivot = createCenteredInstance(sourceScene);
+  const { pivot, depthAxis, upAxis } = createCenteredInstance(sourceScene);
   scene.add(pivot);
+  addLighting(scene, depthAxis);
 
-  fitCameraToObject(camera, pivot);
+  fitCameraToObject(camera, pivot, depthAxis, upAxis);
   resizeRendererToCanvas(renderer, camera, canvas);
   renderer.render(scene, camera);
 
@@ -119,7 +154,7 @@ async function setupHeaderLogo3D() {
 
   function frame(now) {
     const t = Math.min((now - startTime) / DURATION_MS, 1);
-    pivot.rotation.y = startAngle + easeInOutCubic(t) * Math.PI * 2;
+    pivot.rotation[upAxis] = startAngle + easeInOutCubic(t) * Math.PI * 2;
     renderer.render(scene, camera);
     if (t < 1) {
       requestAnimationFrame(frame);
