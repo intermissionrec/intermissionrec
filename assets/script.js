@@ -189,7 +189,7 @@ function setupTransitionLogoSpin() {
   // as the overlay is visible (not a brief one-shot animation), so
   // it's worth trimming the ongoing rendering cost, especially since
   // this runs right during the most contended moment of page load.
-  buildLogoDepthLayers(wrap, front, 'transition-logo-depth-layer', 10, false, 1.5, false);
+  buildLogoDepthLayers(wrap, front, 'transition-logo-depth-layer', 10, true, 1.5, false);
 
   let startTs = parseInt(sessionStorage.getItem('logoSpinStart') || '', 10);
   if (!startTs) {
