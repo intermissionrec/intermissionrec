@@ -113,6 +113,23 @@ function setupLogo3D() {
     layer.style.filter = `brightness(${Math.max(1 - i * 0.035, 0.4)})`;
     wrap.insertBefore(layer, front);
   }
+
+  const link = document.querySelector('.hero-logo-link');
+  if (!link) return;
+
+  // Deliberately no mouseleave handler at all - the only thing that
+  // ever removes is-spinning is the rotation's own animationend
+  // event, so once started, the spin always plays out in full
+  // regardless of where the mouse goes in the meantime.
+  link.addEventListener('mouseenter', () => {
+    if (!wrap.classList.contains('is-spinning')) {
+      wrap.classList.add('is-spinning');
+    }
+  });
+
+  wrap.addEventListener('animationend', () => {
+    wrap.classList.remove('is-spinning');
+  });
 }
 
 function setupMobileNav() {

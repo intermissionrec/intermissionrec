@@ -83,7 +83,7 @@ body.nav-open .page {
   transform-style: preserve-3d;
 }
 
-.hero-logo-link:hover .hero-logo-3d {
+.hero-logo-3d.is-spinning {
   animation: logoSpin3D 1.2s ease;
 }
 
@@ -93,6 +93,12 @@ body.nav-open .page {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.hero-logo-3d.is-spinning .hero-logo-depth-layer {
+  opacity: 1;
 }
 
 @keyframes logoSpin3D {
