@@ -91,6 +91,27 @@ function computeNavAndSections() {
 // on the wrapper, rotating that wrapper reveals the actual "thickness"
 // of this stack as a real side profile, rather than simulating depth
 // with a flat image and a fake lighting animation.
+// Builds the 3D-extrusion illusion by stacking several identical
+// copies of a logo image a few pixels apart in Z space (like very
+// thin pages in a book). Combined with transform-style: preserve-3d
+// on the wrapper, rotating that wrapper reveals the actual geometric
+// "thickness" of this stack as a real side profile, rather than
+// simulating depth with a flat image. Shared by both the header logo
+// (hover-triggered) and the page-transition logo (continuous spin).
+function buildLogoDepthLayers(wrap, front, layerClass, layerCount) {
+  for (let i = 1; i <= layerCount; i++) {
+    const layer = front.cloneNode(true);
+    layer.className = layerClass;
+    layer.removeAttribute('width');
+    layer.removeAttribute('height');
+    layer.setAttribute('aria-hidden', 'true');
+    layer.alt = '';
+    layer.style.transform = `translateZ(${-i}px)`;
+    layer.style.filter = `brightness(${Math.max(1 - i * 0.035, 0.4)})`;
+    wrap.insertBefore(layer, front);
+  }
+}
+
 function setupLogo3D() {
   // Desktop-only - some mobile browsers simulate mouseenter/hover on
   // tap for compatibility with desktop-oriented sites, which could
@@ -102,23 +123,7 @@ function setupLogo3D() {
   const front = wrap ? wrap.querySelector('.hero-logo') : null;
   if (!wrap || !front) return;
 
-  const LAYER_COUNT = 14;
-  for (let i = 1; i <= LAYER_COUNT; i++) {
-    const layer = front.cloneNode(true);
-    // Deliberately replacing the class entirely (not adding to it) -
-    // keeping the original hero-logo class here would pull in its
-    // various per-page/breakpoint width/height overrides elsewhere in
-    // the stylesheet, which would fight with this layer's own
-    // width:100%/height:100% sizing.
-    layer.className = 'hero-logo-depth-layer';
-    layer.removeAttribute('width');
-    layer.removeAttribute('height');
-    layer.setAttribute('aria-hidden', 'true');
-    layer.alt = '';
-    layer.style.transform = `translateZ(${-i}px)`;
-    layer.style.filter = `brightness(${Math.max(1 - i * 0.035, 0.4)})`;
-    wrap.insertBefore(layer, front);
-  }
+  buildLogoDepthLayers(wrap, front, 'hero-logo-depth-layer', 14);
 
   const link = document.querySelector('.hero-logo-link');
   if (!link) return;
@@ -137,6 +142,39 @@ function setupLogo3D() {
     if (e.target !== wrap) return;
     wrap.classList.remove('is-spinning');
   });
+}
+
+// The page-transition overlay's logo spins continuously (not a
+// one-shot hover effect), and - since a page transition is a genuine
+// browser navigation between two entirely separate page loads, with
+// no JS state naturally surviving that boundary - its rotation
+// position is persisted across that boundary via sessionStorage. A
+// single fixed "virtual start timestamp" is stored once and reused on
+// every subsequent page; each page just calculates how far into the
+// infinite loop that timestamp implies *right now* using real
+// wall-clock time, then applies that as a negative animation-delay so
+// the spin appears to continue seamlessly - including accounting for
+// however long the actual page load itself took, not just time spent
+// on each individual page.
+const TRANSITION_SPIN_LOOP_MS = 2000;
+
+function setupTransitionLogoSpin() {
+  if (!pageTransitionOverlay) return;
+  const front = pageTransitionOverlay.querySelector('.page-transition-logo');
+  const wrap = pageTransitionOverlay.querySelector('.page-transition-logo-3d');
+  if (!front || !wrap) return;
+
+  buildLogoDepthLayers(wrap, front, 'transition-logo-depth-layer', 14);
+
+  let startTs = parseInt(sessionStorage.getItem('logoSpinStart') || '', 10);
+  if (!startTs) {
+    startTs = Date.now();
+    sessionStorage.setItem('logoSpinStart', String(startTs));
+  }
+
+  const elapsed = Date.now() - startTs;
+  const offsetInLoop = elapsed % TRANSITION_SPIN_LOOP_MS;
+  wrap.style.animationDelay = `-${offsetInLoop}ms`;
 }
 
 function setupMobileNav() {
@@ -337,6 +375,7 @@ function setupPageTransitionLinks() {
 
 // Runs immediately (not waiting for DOMContentLoaded/fragments) since
 // the overlay element is already present in the page's own static HTML.
+setupTransitionLogoSpin();
 playEntranceTransition();
 
 window.addEventListener('pageshow', (event) => {

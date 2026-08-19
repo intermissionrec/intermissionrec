@@ -108,6 +108,7 @@ body.nav-open .page {
 @keyframes logoLayerFade {
   0% { opacity: 0; }
   8% { opacity: 1; }
+  92% { opacity: 0; }
   100% { opacity: 0; }
 }
 
@@ -1667,6 +1668,7 @@ img {
   visibility: visible;
   transition: opacity .5s ease, visibility .5s ease;
   cursor: default;
+  perspective: 500px;
 }
 
 .page-transition-overlay.is-hidden {
@@ -1679,4 +1681,24 @@ img {
   width: 150px;
   height: 150px;
   object-fit: cover;
+}
+
+.page-transition-logo-3d {
+  position: relative;
+  display: inline-flex;
+  transform-style: preserve-3d;
+  animation: transitionLogoSpin 2s linear infinite;
+}
+
+.transition-logo-depth-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes transitionLogoSpin {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
 }
