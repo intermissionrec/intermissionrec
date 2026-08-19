@@ -92,6 +92,12 @@ function computeNavAndSections() {
 // of this stack as a real side profile, rather than simulating depth
 // with a flat image and a fake lighting animation.
 function setupLogo3D() {
+  // Desktop-only - some mobile browsers simulate mouseenter/hover on
+  // tap for compatibility with desktop-oriented sites, which could
+  // trigger this unintentionally when someone just taps the logo to
+  // navigate home.
+  if (window.matchMedia('(max-width: 919.98px)').matches) return;
+
   const wrap = document.querySelector('.hero-logo-3d');
   const front = wrap ? wrap.querySelector('.hero-logo') : null;
   if (!wrap || !front) return;
