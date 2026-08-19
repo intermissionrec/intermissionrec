@@ -127,7 +127,7 @@ function setupLogo3D() {
   const front = wrap ? wrap.querySelector('.hero-logo') : null;
   if (!wrap || !front) return;
 
-  buildLogoDepthLayers(wrap, front, 'hero-logo-depth-layer', 20, true, 2, true);
+  buildLogoDepthLayers(wrap, front, 'hero-logo-depth-layer', 10, true, 1.5, false);
 
   const link = document.querySelector('.hero-logo-link');
   if (!link) return;
