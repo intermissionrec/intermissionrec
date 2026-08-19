@@ -106,10 +106,10 @@ function fitCameraToObject(camera, pivot, depthAxis, upAxis) {
   const box = new THREE.Box3().setFromObject(pivot);
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
-  // 1.333 instead of 1.6 - moving the camera closer makes the model
-  // appear ~20% larger on screen (apparent size scales inversely with
-  // distance for a perspective camera: 1.6 / 1.2 = 1.333).
-  const fitDist = ((maxDim / 2) / Math.tan((camera.fov * Math.PI) / 360)) * 1.333;
+  // 1.067 instead of 1.6 - moving the camera closer makes the model
+  // appear ~50% larger on screen (apparent size scales inversely with
+  // distance for a perspective camera: 1.6 / 1.5 = 1.067).
+  const fitDist = ((maxDim / 2) / Math.tan((camera.fov * Math.PI) / 360)) * 1.067;
 
   const position = new THREE.Vector3();
   position[depthAxis] = fitDist;
@@ -171,7 +171,7 @@ async function setupHeaderLogo3D() {
 
   function frame(now) {
     const t = Math.min((now - startTime) / DURATION_MS, 1);
-    pivot.rotation[upAxis] = startAngle + easeInOutCubic(t) * Math.PI * 2;
+    pivot.rotation[upAxis] = startAngle - easeInOutCubic(t) * Math.PI * 2;
     renderer.render(scene, camera);
     if (t < 1) {
       requestAnimationFrame(frame);
@@ -241,7 +241,7 @@ async function setupTransitionLogo3D() {
     if (visible) {
       const elapsed = Date.now() - startTs;
       const t = (elapsed % TRANSITION_SPIN_LOOP_MS) / TRANSITION_SPIN_LOOP_MS;
-      pivot.rotation[upAxis] = t * Math.PI * 2;
+      pivot.rotation[upAxis] = -t * Math.PI * 2;
       renderer.render(scene, camera);
     }
     requestAnimationFrame(frame);
