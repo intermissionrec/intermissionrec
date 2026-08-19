@@ -133,8 +133,8 @@ function resizeRendererToCanvas(renderer, camera, canvasEl) {
   camera.updateProjectionMatrix();
 }
 
-function easeInOutCubic(t) {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
 }
 
 // --- Header logo: hover-triggered, one-shot 360deg rotation ---
@@ -184,7 +184,7 @@ async function setupHeaderLogo3D() {
 
   function frame(now) {
     const t = Math.min((now - startTime) / DURATION_MS, 1);
-    pivot.rotation[upAxis] = startAngle - easeInOutCubic(t) * Math.PI * 2;
+    pivot.rotation[upAxis] = startAngle - easeOutCubic(t) * Math.PI * 2;
     renderer.render(scene, camera);
     if (t < 1) {
       requestAnimationFrame(frame);
@@ -263,4 +263,8 @@ async function setupTransitionLogo3D() {
 }
 
 setupTransitionLogo3D().catch((e) => console.error('[logo3d] Transition logo setup failed:', e));
-setupHeaderLogo3D().catch((e) => console.error('[logo3d] Header logo setup failed:', e));
+setupHeaderLogo3D().catch((e) => {
+  console.error('[logo3d] Header logo setup failed:', e);
+  const canvas = document.querySelector('.hero-logo-canvas');
+  if (canvas) canvas.classList.add('webgl-fallback');
+});

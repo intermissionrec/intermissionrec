@@ -78,10 +78,14 @@ body.nav-open .page {
 
 .hero-logo-canvas {
   display: block;
-  /* Fallback in case WebGL fails or isn't supported - the canvas
-     itself would just be blank/transparent in that case, so this
-     ensures the logo still shows something rather than nothing. Any
-     successful Three.js render draws its own pixels on top of this. */
+}
+
+/* Fallback only applied by logo3d.js if the 3D setup genuinely fails
+   (WebGL unsupported, model failed to load, etc.) - deliberately NOT
+   a default/unconditional background, since the canvas renders with a
+   transparent background and that would show through in the gaps
+   around the model's silhouette even on a fully successful render. */
+.hero-logo-canvas.webgl-fallback {
   background: url('images/logo/intermission-logo.png') center / contain no-repeat;
 }
 
