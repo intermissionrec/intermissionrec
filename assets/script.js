@@ -85,6 +85,36 @@ function computeNavAndSections() {
 // Mobile nav: floating toggle button opens/closes a centered overlay
 // menu with a dimmed backdrop. No-op on desktop since the toggle
 // button and backdrop stay hidden via CSS above the mobile breakpoint.
+// Builds the logo's 3D-extrusion illusion by stacking several
+// identical copies of it a few pixels apart in Z space (like very
+// thin pages in a book). Combined with transform-style: preserve-3d
+// on the wrapper, rotating that wrapper reveals the actual "thickness"
+// of this stack as a real side profile, rather than simulating depth
+// with a flat image and a fake lighting animation.
+function setupLogo3D() {
+  const wrap = document.querySelector('.hero-logo-3d');
+  const front = wrap ? wrap.querySelector('.hero-logo') : null;
+  if (!wrap || !front) return;
+
+  const LAYER_COUNT = 14;
+  for (let i = 1; i <= LAYER_COUNT; i++) {
+    const layer = front.cloneNode(true);
+    // Deliberately replacing the class entirely (not adding to it) -
+    // keeping the original hero-logo class here would pull in its
+    // various per-page/breakpoint width/height overrides elsewhere in
+    // the stylesheet, which would fight with this layer's own
+    // width:100%/height:100% sizing.
+    layer.className = 'hero-logo-depth-layer';
+    layer.removeAttribute('width');
+    layer.removeAttribute('height');
+    layer.setAttribute('aria-hidden', 'true');
+    layer.alt = '';
+    layer.style.transform = `translateZ(${-i}px)`;
+    layer.style.filter = `brightness(${Math.max(1 - i * 0.035, 0.4)})`;
+    wrap.insertBefore(layer, front);
+  }
+}
+
 function setupMobileNav() {
   const toggle = document.querySelector('.mobile-nav-toggle');
   const navWrap = document.querySelector('.nav-wrap');
@@ -200,6 +230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 3. Now the .nav exists, so compute nav and sections
   computeNavAndSections();
   setupMobileNav();
+  setupLogo3D();
   setActiveLink();
 
   window.addEventListener('scroll', setActiveLink, { passive: true });
