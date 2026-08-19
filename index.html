@@ -20,6 +20,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="./assets/head.js"></script>
   <link rel="stylesheet" href="./assets/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body class="home">
   <div id="pageTransitionOverlay" class="page-transition-overlay"></div>
@@ -43,6 +51,7 @@
 
     <div data-include="./components/footer.html"></div>
   </div>
+  <script type="module" src="./assets/logo3d.js"></script>
   <script src="./assets/script.js" defer></script>
 </body>
 </html>

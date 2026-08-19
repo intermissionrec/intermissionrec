@@ -85,123 +85,6 @@ function computeNavAndSections() {
 // Mobile nav: floating toggle button opens/closes a centered overlay
 // menu with a dimmed backdrop. No-op on desktop since the toggle
 // button and backdrop stay hidden via CSS above the mobile breakpoint.
-// Builds the logo's 3D-extrusion illusion by stacking several
-// identical copies of it a few pixels apart in Z space (like very
-// thin pages in a book). Combined with transform-style: preserve-3d
-// on the wrapper, rotating that wrapper reveals the actual "thickness"
-// of this stack as a real side profile, rather than simulating depth
-// with a flat image and a fake lighting animation.
-// Builds the 3D-extrusion illusion by stacking several identical
-// copies of a logo image a few pixels apart in Z space (like very
-// thin pages in a book). Combined with transform-style: preserve-3d
-// on the wrapper, rotating that wrapper reveals the actual geometric
-// "thickness" of this stack as a real side profile, rather than
-// simulating depth with a flat image. Shared by both the header logo
-// (hover-triggered) and the page-transition logo (continuous spin).
-function buildLogoDepthLayers(wrap, front, layerClass, layerCount, useShading, spacing, useBlur) {
-  spacing = spacing || 1;
-  for (let i = 1; i <= layerCount; i++) {
-    const layer = front.cloneNode(true);
-    layer.className = layerClass;
-    layer.removeAttribute('width');
-    layer.removeAttribute('height');
-    layer.setAttribute('aria-hidden', 'true');
-    layer.alt = '';
-    layer.style.transform = `translateZ(${-i * spacing}px)`;
-    const filters = [];
-    if (useShading) {
-      const midpoint = (layerCount + 1) / 2;
-      const distanceFromMid = Math.abs(i - midpoint) / midpoint; // 0 at middle, ~1 at either end
-      const brightnessValue = 0.4 + 0.6 * distanceFromMid; // grey (0.4) at middle, white (1.0) at both ends
-      filters.push(`brightness(${brightnessValue})`);
-    }
-    if (useBlur) filters.push('blur(0.4px)');
-    if (filters.length) layer.style.filter = filters.join(' ');
-    wrap.insertBefore(layer, front);
-  }
-}
-
-function setupLogo3D() {
-  // Desktop-only - some mobile browsers simulate mouseenter/hover on
-  // tap for compatibility with desktop-oriented sites, which could
-  // trigger this unintentionally when someone just taps the logo to
-  // navigate home.
-  if (window.matchMedia('(max-width: 919.98px)').matches) return;
-
-  const wrap = document.querySelector('.hero-logo-3d');
-  const front = wrap ? wrap.querySelector('.hero-logo') : null;
-  if (!wrap || !front) return;
-
-  buildLogoDepthLayers(wrap, front, 'hero-logo-depth-layer', 10, true, 1.5, false);
-
-  const link = document.querySelector('.hero-logo-link');
-  if (!link) return;
-
-  // Deliberately no mouseleave handler at all - the only thing that
-  // ever removes is-spinning is the rotation's own animationend
-  // event, so once started, the spin always plays out in full
-  // regardless of where the mouse goes in the meantime.
-  link.addEventListener('mouseenter', () => {
-    if (!wrap.classList.contains('is-spinning')) {
-      wrap.classList.add('is-spinning');
-    }
-  });
-
-  wrap.addEventListener('animationend', (e) => {
-    if (e.target !== wrap) return;
-    wrap.classList.remove('is-spinning');
-  });
-}
-
-// The page-transition overlay's logo spins continuously (not a
-// one-shot hover effect), and - since a page transition is a genuine
-// browser navigation between two entirely separate page loads, with
-// no JS state naturally surviving that boundary - its rotation
-// position is persisted across that boundary via sessionStorage. A
-// single fixed "virtual start timestamp" is stored once and reused on
-// every subsequent page; each page just calculates how far into the
-// infinite loop that timestamp implies *right now* using real
-// wall-clock time, then applies that as a negative animation-delay so
-// the spin appears to continue seamlessly - including accounting for
-// however long the actual page load itself took, not just time spent
-// on each individual page.
-const TRANSITION_SPIN_LOOP_MS = 2000;
-
-function setupTransitionLogoSpin() {
-  if (!pageTransitionOverlay) return;
-
-  const wrap = document.createElement('div');
-  wrap.className = 'page-transition-logo-3d';
-
-  const front = document.createElement('img');
-  front.className = 'page-transition-logo';
-  // Absolute URL - this element is now built entirely in JS rather
-  // than living in each page's own HTML, so there's no per-page
-  // relative path (./ vs ../) available to reference here.
-  front.src = 'https://intermissionrec.com/assets/images/logo/intermission-logo.png';
-  front.alt = '';
-
-  wrap.appendChild(front);
-  pageTransitionOverlay.appendChild(wrap);
-
-  // Fewer layers and no per-layer shading filter compared to the
-  // header logo's hover effect - this spins continuously for as long
-  // as the overlay is visible (not a brief one-shot animation), so
-  // it's worth trimming the ongoing rendering cost, especially since
-  // this runs right during the most contended moment of page load.
-  buildLogoDepthLayers(wrap, front, 'transition-logo-depth-layer', 10, true, 1.5, false);
-
-  let startTs = parseInt(sessionStorage.getItem('logoSpinStart') || '', 10);
-  if (!startTs) {
-    startTs = Date.now();
-    sessionStorage.setItem('logoSpinStart', String(startTs));
-  }
-
-  const elapsed = Date.now() - startTs;
-  const offsetInLoop = elapsed % TRANSITION_SPIN_LOOP_MS;
-  wrap.style.animationDelay = `-${offsetInLoop}ms`;
-}
-
 function setupMobileNav() {
   const toggle = document.querySelector('.mobile-nav-toggle');
   const navWrap = document.querySelector('.nav-wrap');
@@ -317,7 +200,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 3. Now the .nav exists, so compute nav and sections
   computeNavAndSections();
   setupMobileNav();
-  setupLogo3D();
   setActiveLink();
 
   window.addEventListener('scroll', setActiveLink, { passive: true });
@@ -342,9 +224,21 @@ const pageTransitionOverlay = document.getElementById('pageTransitionOverlay');
 
 function playEntranceTransition() {
   if (!pageTransitionOverlay) return;
-  setTimeout(() => {
+  // Waits for both the original minimum delay and the 3D model being
+  // ready (exposed globally by logo3d.js) - unlike the old static PNG,
+  // the model loads over the network, so without this the overlay
+  // could hide before the logo has actually appeared in it. Capped by
+  // a race against a hard maximum so a slow or failed fetch never
+  // leaves the overlay stuck indefinitely.
+  const modelReady = window.__logoModelReady || Promise.resolve();
+  const minDelay = new Promise((resolve) => setTimeout(resolve, 700));
+  const maxWait = new Promise((resolve) => setTimeout(resolve, 2500));
+  Promise.race([
+    Promise.all([modelReady.catch(() => {}), minDelay]),
+    maxWait,
+  ]).then(() => {
     pageTransitionOverlay.classList.add('is-hidden');
-  }, 700);
+  });
 }
 
 function isPageTransitionLink(link) {
@@ -400,7 +294,6 @@ function setupPageTransitionLinks() {
 
 // Runs immediately (not waiting for DOMContentLoaded/fragments) since
 // the overlay element is already present in the page's own static HTML.
-setupTransitionLogoSpin();
 playEntranceTransition();
 
 window.addEventListener('pageshow', (event) => {

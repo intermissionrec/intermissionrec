@@ -74,42 +74,15 @@ body.nav-open .page {
 
 .hero-logo-link {
   display: inline-flex;
-  perspective: 300px;
 }
 
-.hero-logo-3d {
-  position: relative;
-  display: inline-flex;
-  transform-style: preserve-3d;
-}
-
-.hero-logo-3d.is-spinning {
-  animation: logoSpin3D 1.2s ease;
-}
-
-.hero-logo-depth-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0;
-}
-
-.hero-logo-3d.is-spinning .hero-logo-depth-layer {
-  animation: logoLayerFade 1.2s ease;
-}
-
-@keyframes logoSpin3D {
-  from { transform: rotateY(0deg); }
-  to { transform: rotateY(360deg); }
-}
-
-@keyframes logoLayerFade {
-  0% { opacity: 0; }
-  8% { opacity: 1; }
-  92% { opacity: 0; }
-  100% { opacity: 0; }
+.hero-logo-canvas {
+  display: block;
+  /* Fallback in case WebGL fails or isn't supported - the canvas
+     itself would just be blank/transparent in that case, so this
+     ensures the logo still shows something rather than nothing. Any
+     successful Three.js render draws its own pixels on top of this. */
+  background: url('images/logo/intermission-logo.png') center / contain no-repeat;
 }
 
 .nav-wrap {
@@ -1668,7 +1641,6 @@ img {
   visibility: visible;
   transition: opacity .5s ease, visibility .5s ease;
   cursor: default;
-  perspective: 500px;
 }
 
 .page-transition-overlay.is-hidden {
@@ -1677,28 +1649,8 @@ img {
   pointer-events: none;
 }
 
-.page-transition-overlay img {
+.page-transition-logo-canvas {
+  display: block;
   width: 150px;
   height: 150px;
-  object-fit: cover;
-}
-
-.page-transition-logo-3d {
-  position: relative;
-  display: inline-flex;
-  transform-style: preserve-3d;
-  animation: transitionLogoSpin 2s linear infinite;
-}
-
-.transition-logo-depth-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-@keyframes transitionLogoSpin {
-  from { transform: rotateY(0deg); }
-  to { transform: rotateY(360deg); }
 }
