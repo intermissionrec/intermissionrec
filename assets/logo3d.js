@@ -193,6 +193,16 @@ async function setupHeaderLogo3D() {
   const MAX_FRAME_DELTA_MS = 50;
 
   const ROTATION_MS = 1500;       // how long the spin itself takes
+  // easeOutQuad starts at full velocity - without a delay, the model
+  // would already be well into its turn (~80deg) by the time the fade
+  // -in has made it visible enough to notice, making it look like the
+  // spin starts partway through rather than from 0deg. Delaying
+  // rotation's own start until the fade-in finishes fixes this,
+  // without changing anything about how the ending behaves - the
+  // fade-out still happens exactly this many ms before rotation's own
+  // completion, which is what actually defines its feel; it just now
+  // completes later in absolute time since rotation itself starts later.
+  const ROTATION_START_DELAY_MS = 180; // matches INITIAL_FADE_MS below
   // easeOutQuad's deceleration means the last ~112ms of rotation is
   // already visually imperceptible before it mathematically reaches
   // 360deg. Starting the fade during that already-invisible window
@@ -204,7 +214,8 @@ async function setupHeaderLogo3D() {
   const FADE_LEAD_MS = 227;       // fade starts this many ms before rotation's mathematical end
   const CROSSFADE_MS = 75;        // 3D -> 2D fade duration
   const INITIAL_FADE_MS = 180;    // 2D -> 3D fade-in duration at hover start
-  const FADE_OUT_START_MS = ROTATION_MS - FADE_LEAD_MS;
+  const FADE_OUT_START_MS = ROTATION_START_DELAY_MS + ROTATION_MS - FADE_LEAD_MS;
+  const TOTAL_MS = ROTATION_START_DELAY_MS + ROTATION_MS;
 
   function frame(now) {
     const delta = Math.min(now - lastFrameTime, MAX_FRAME_DELTA_MS);
@@ -212,10 +223,12 @@ async function setupHeaderLogo3D() {
     animElapsed += delta;
     const elapsed = animElapsed;
 
-    // Rotation runs for its own fixed window, then stays pinned at
-    // exactly 360deg/0deg for the remainder of the sequence - it
-    // never resumes or continues once settled.
-    const rotationT = Math.min(elapsed / ROTATION_MS, 1);
+    // Rotation runs for its own fixed window starting only after the
+    // delay, then stays pinned at exactly 360deg/0deg for the
+    // remainder of the sequence - it never resumes or continues once
+    // settled.
+    const rotationElapsed = Math.max(0, elapsed - ROTATION_START_DELAY_MS);
+    const rotationT = Math.min(rotationElapsed / ROTATION_MS, 1);
     pivot.rotation[upAxis] = startAngle - easeOutQuad(rotationT) * Math.PI * 2;
 
     // Single opacity value drives both elements as exact inverses of
@@ -259,7 +272,7 @@ async function setupHeaderLogo3D() {
     img.style.opacity = Math.sin(imgOpacity * Math.PI / 2);
 
     renderer.render(scene, camera);
-    if (elapsed < ROTATION_MS) {
+    if (elapsed < TOTAL_MS) {
       requestAnimationFrame(frame);
     } else {
       spinning = false;
