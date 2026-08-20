@@ -197,7 +197,7 @@ async function setupHeaderLogo3D() {
   // lets the transition complete before the viewer would ever notice
   // anything was still moving.
   const FADE_LEAD_MS = 166;       // fade starts this many ms before rotation's mathematical end
-  const CROSSFADE_MS = 50;        // 3D -> 2D fade duration
+  const CROSSFADE_MS = 400;       // TEMP: bumped way up to test whether the fade mechanism itself works at all, separate from whether the duration is long enough to perceive
   const INITIAL_FADE_MS = 120;    // 2D -> 3D fade-in duration at hover start
   const FADE_OUT_START_MS = ROTATION_MS - FADE_LEAD_MS;
 
