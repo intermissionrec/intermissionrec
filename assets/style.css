@@ -91,10 +91,6 @@ body.nav-open .page {
   transition: opacity 120ms ease;
 }
 
-.hero-logo-wrap .hero-logo {
-  transition: opacity 120ms ease;
-}
-
 .nav-wrap {
   position: sticky;
   top: 0;

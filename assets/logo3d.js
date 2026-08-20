@@ -216,14 +216,19 @@ async function setupHeaderLogo3D() {
   // once triggered - JS only needs to set the target value once, and
   // the interpolation continues correctly even if the JS thread is
   // busy or rAF is delayed.
-  function setOpacity(canvasTarget, durationMs) {
-    const canvasFadingIn = canvasTarget > 0.5;
+  // img stays permanently opaque, never animated at all - since
+  // canvas sits directly on top of it (position: absolute; inset: 0),
+  // the logo is always either the fully-visible 2D image showing
+  // through, or covered by canvas at whatever opacity it currently
+  // has. This makes a simultaneous-dip (both elements translucent at
+  // once) structurally impossible, rather than just less likely with
+  // careful easing curves.
+  img.style.opacity = '1';
+
+  function setOpacity(canvasTarget, durationMs, easing) {
     canvas.style.transitionDuration = `${durationMs}ms`;
-    canvas.style.transitionTimingFunction = canvasFadingIn ? 'ease-out' : 'ease-in';
-    img.style.transitionDuration = `${durationMs}ms`;
-    img.style.transitionTimingFunction = canvasFadingIn ? 'ease-in' : 'ease-out';
+    canvas.style.transitionTimingFunction = easing;
     canvas.style.opacity = canvasTarget;
-    img.style.opacity = 1 - canvasTarget;
   }
 
   function frame(now) {
@@ -271,8 +276,8 @@ async function setupHeaderLogo3D() {
     animElapsed = 0;
     lastFrameTime = performance.now();
 
-    setOpacity(1, INITIAL_FADE_MS);
-    setTimeout(() => setOpacity(0, CROSSFADE_MS), FADE_OUT_START_MS);
+    setOpacity(1, INITIAL_FADE_MS, 'ease');
+    setTimeout(() => setOpacity(0, CROSSFADE_MS, 'ease'), FADE_OUT_START_MS);
 
     requestAnimationFrame(frame);
   });
