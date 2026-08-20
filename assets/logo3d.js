@@ -183,11 +183,18 @@ async function setupHeaderLogo3D() {
   let startTime = 0;
 
   const ROTATION_MS = 1500;       // how long the spin itself takes
-  const PAUSE_MS = 50;            // rotation holds fully settled before any fade starts
-  const CROSSFADE_MS = 50;        // 3D -> 2D smooth crossfade, after the pause
+  // easeOutQuad's deceleration means the last ~112ms of rotation is
+  // already visually imperceptible before it mathematically reaches
+  // 360deg. Starting the fade during that already-invisible window
+  // (rather than waiting for it to finish, then pausing, then fading)
+  // lets the transition complete before the viewer would ever notice
+  // anything was still moving, rather than adding a separate,
+  // perceivable delay on top of it.
+  const FADE_LEAD_MS = 100;       // fade starts this many ms before rotation's mathematical end
+  const CROSSFADE_MS = 80;        // short enough that the fade itself finishes before rotation does
   const INITIAL_FADE_MS = 120;    // 2D -> 3D fade-in at hover start, overlapping the start of rotation
-  const FADE_OUT_START_MS = ROTATION_MS + PAUSE_MS;
-  const TOTAL_MS = FADE_OUT_START_MS + CROSSFADE_MS;
+  const FADE_OUT_START_MS = ROTATION_MS - FADE_LEAD_MS;
+  const TOTAL_MS = Math.max(ROTATION_MS, FADE_OUT_START_MS + CROSSFADE_MS);
 
   function frame(now) {
     const elapsed = now - startTime;
@@ -201,9 +208,9 @@ async function setupHeaderLogo3D() {
     // Single opacity value drives both elements as exact inverses of
     // each other, so they can never desync the way two independently
     // timed curves could: fades in quickly at hover start (2D->3D),
-    // stays fully opaque through the rotation AND the pause after it,
-    // then - only once the pause has genuinely elapsed - crossfades
-    // smoothly back out (3D->2D).
+    // stays fully opaque through most of the rotation, then - once
+    // rotation is already visually settled - crossfades smoothly back
+    // out (3D->2D).
     let canvasOpacity;
     if (elapsed < INITIAL_FADE_MS) {
       canvasOpacity = elapsed / INITIAL_FADE_MS;
