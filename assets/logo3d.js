@@ -258,8 +258,13 @@ async function setupHeaderLogo3D() {
     if (rotationDone && fadeDone) spinning = false;
   }
 
-  img.addEventListener('transitionend', (e) => {
+  canvas.addEventListener('transitionend', (e) => {
     if (e.propertyName !== 'opacity') return;
+    // Canvas animates twice per hover (fade in, then fade out later) -
+    // only the second one (settled back at 0) means the sequence has
+    // actually finished; the first (settled at 1) just means the
+    // initial reveal completed, with the spin still in progress.
+    if (parseFloat(canvas.style.opacity) !== 0) return;
     fadeDone = true;
     maybeFinishSpin();
   });
