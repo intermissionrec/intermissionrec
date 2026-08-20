@@ -160,7 +160,8 @@ async function setupHeaderLogo3D() {
 
   const link = document.querySelector('.hero-logo-link');
   const canvas = document.querySelector('.hero-logo-canvas');
-  if (!link || !canvas) return;
+  const img = document.querySelector('.hero-logo-wrap .hero-logo');
+  if (!link || !canvas || !img) return;
 
   const { scene, camera, renderer } = createScene(canvas);
   const sourceScene = await loadModel();
@@ -191,7 +192,9 @@ async function setupHeaderLogo3D() {
   function frame(now) {
     const t = Math.min((now - startTime) / DURATION_MS, 1);
     pivot.rotation[upAxis] = startAngle - easeOutCubic(t) * Math.PI * 2;
-    canvas.style.opacity = layerOpacity(t);
+    const opacity = layerOpacity(t);
+    canvas.style.opacity = opacity;
+    img.style.opacity = 1 - opacity;
     renderer.render(scene, camera);
     if (t < 1) {
       requestAnimationFrame(frame);
