@@ -232,6 +232,23 @@ async function setupHeaderLogo3D() {
     } else {
       canvasOpacity = Math.max(0, 1 - (elapsed - FADE_OUT_START_MS) / CROSSFADE_MS);
     }
+
+    // img's initial fade-out is deliberately slower than canvas's
+    // fade-in (50ms longer) - staying independent of canvasOpacity
+    // here, rather than being its strict inverse, so the 2D logo
+    // stays visible a bit longer, overlapping with the 3D content as
+    // it appears rather than seeming to disappear before the 3D logo
+    // has actually shown up.
+    const IMG_FADE_OUT_MS = INITIAL_FADE_MS + 50;
+    let imgOpacity;
+    if (elapsed < IMG_FADE_OUT_MS) {
+      imgOpacity = Math.max(0, 1 - elapsed / IMG_FADE_OUT_MS);
+    } else if (elapsed < FADE_OUT_START_MS) {
+      imgOpacity = 0;
+    } else {
+      imgOpacity = Math.min(1, (elapsed - FADE_OUT_START_MS) / CROSSFADE_MS);
+    }
+
     // Equal-power crossfade (same technique used for audio crossfades
     // to avoid a perceived volume dip) rather than linear - a linear
     // fade puts both layers at only 50% opacity simultaneously at the
@@ -239,7 +256,7 @@ async function setupHeaderLogo3D() {
     // neither one is close to solid at that moment. sin/cos keeps
     // both layers around 71% at the midpoint instead.
     canvas.style.opacity = Math.sin(canvasOpacity * Math.PI / 2);
-    img.style.opacity = Math.sin((1 - canvasOpacity) * Math.PI / 2);
+    img.style.opacity = Math.sin(imgOpacity * Math.PI / 2);
 
     renderer.render(scene, camera);
     if (elapsed < ROTATION_MS) {
