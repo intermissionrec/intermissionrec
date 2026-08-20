@@ -133,10 +133,6 @@ function resizeRendererToCanvas(renderer, camera, canvasEl) {
   camera.updateProjectionMatrix();
 }
 
-function easeOutCubic(t) {
-  return 1 - Math.pow(1 - t, 3);
-}
-
 // --- Header logo: hover-triggered, one-shot 360deg rotation ---
 function waitForHeaderReady() {
   if (document.querySelector('.hero-logo-link')) return Promise.resolve();
@@ -192,7 +188,7 @@ async function setupHeaderLogo3D() {
   // Independent from the canvas's curve - fades out 150ms slower
   // (0.08 + 150/DURATION_MS) and fades in starting 100ms earlier
   // (0.92 - 100/DURATION_MS) than the canvas's own timing.
-  const imgFadeOutEnd = 0.08 + 150 / DURATION_MS;
+  const imgFadeOutEnd = 0.08;
   const imgFadeInStart = 0.92 - 100 / DURATION_MS;
   function imgOpacity(t) {
     if (t < imgFadeOutEnd) return 1 - t / imgFadeOutEnd;
@@ -202,7 +198,7 @@ async function setupHeaderLogo3D() {
 
   function frame(now) {
     const t = Math.min((now - startTime) / DURATION_MS, 1);
-    pivot.rotation[upAxis] = startAngle - easeOutCubic(t) * Math.PI * 2;
+    pivot.rotation[upAxis] = startAngle - t * Math.PI * 2;
     const opacity = layerOpacity(t);
     canvas.style.opacity = opacity;
     img.style.opacity = imgOpacity(t);
