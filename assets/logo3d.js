@@ -201,7 +201,7 @@ async function setupHeaderLogo3D() {
   // guess) so the fade starts right when exactly 5 degrees of
   // rotation remain, derived from easeOutQuad's curve:
   // remaining_fraction = (1-t)^2, solved for t at 5/360 remaining.
-  const FADE_LEAD_MS = 677;       // fade starts this many ms before rotation's mathematical end
+  const FADE_LEAD_MS = 227;       // fade starts this many ms before rotation's mathematical end
   const CROSSFADE_MS = 50;        // 3D -> 2D fade duration
   const INITIAL_FADE_MS = 100;    // 2D -> 3D fade-in duration at hover start
   const FADE_OUT_START_MS = ROTATION_MS - FADE_LEAD_MS;
