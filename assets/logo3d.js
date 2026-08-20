@@ -91,6 +91,44 @@ function createScene(canvas) {
   return { scene, camera, renderer };
 }
 
+// Comprehensive diagnostic snapshot, logged repeatedly during and
+// after a hover - captures every element and property that could
+// plausibly explain the logo going dark, plus a direct poll of
+// isContextLost() (not just relying on the event, in case a loss and
+// near-instant restore happened too fast for that to be observed).
+// Every hypothesis tried so far (img's opacity, canvas's own
+// transparency, WebGL context loss via the event) has been ruled out
+// directly - this is meant to surface whatever the real cause
+// actually is from real browser state, rather than guessing further.
+function startDiagnosticPolling(canvas, img, link, renderer) {
+  const startTs = performance.now();
+  const gl = renderer.getContext();
+  const ancestors = [
+    ['.hero-logo-wrap', document.querySelector('.hero-logo-wrap')],
+    ['.hero-logo-link', link],
+    ['.hero', document.querySelector('.hero')],
+    ['.nav-wrap', document.querySelector('.nav-wrap')],
+  ];
+  const intervalId = setInterval(() => {
+    const t = (performance.now() - startTs).toFixed(0);
+    const canvasComputed = getComputedStyle(canvas);
+    const imgComputed = getComputedStyle(img);
+    console.log(
+      `[DIAG t=${t}ms] canvas: inline_opacity=${canvas.style.opacity} computed_opacity=${canvasComputed.opacity} bg=${canvasComputed.backgroundColor} vis=${canvasComputed.visibility} display=${canvasComputed.display}` +
+      ` | img: inline_opacity=${img.style.opacity} computed_opacity=${imgComputed.opacity} vis=${imgComputed.visibility}` +
+      ` | contextLost=${gl ? gl.isContextLost() : 'no-gl-ref'}`
+    );
+    ancestors.forEach(([name, el]) => {
+      if (!el) return;
+      const s = getComputedStyle(el);
+      if (parseFloat(s.opacity) < 0.99 || s.visibility !== 'visible' || s.display === 'none') {
+        console.warn(`[DIAG t=${t}ms] ANCESTOR ${name} is NOT fully visible: opacity=${s.opacity} visibility=${s.visibility} display=${s.display}`);
+      }
+    });
+  }, 100);
+  setTimeout(() => clearInterval(intervalId), 3000);
+}
+
 // Called once the model's depth axis is known (detected from its
 // geometry, since it isn't assumed) - the key light needs to come
 // from roughly the same direction as the camera to actually work as
@@ -298,6 +336,8 @@ async function setupHeaderLogo3D() {
     startAngle = pivot.rotation[upAxis];
     animElapsed = 0;
     lastFrameTime = performance.now();
+
+    startDiagnosticPolling(canvas, img, link, renderer);
 
     setOpacity(1, INITIAL_FADE_MS, 'ease');
     setTimeout(() => setOpacity(0, CROSSFADE_MS, 'ease'), FADE_OUT_START_MS);
