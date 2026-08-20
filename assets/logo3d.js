@@ -181,36 +181,42 @@ async function setupHeaderLogo3D() {
   let spinning = false;
   let startAngle = 0;
   let startTime = 0;
-  const DURATION_MS = 1500;
 
-  function layerOpacity(t) {
-    if (t < 0.08) return t / 0.08;
-    if (t < 0.92) return 1;
-    return Math.max(0, 1 - (t - 0.92) / 0.08);
-  }
-
-  // Independent from the canvas's curve - fades out 150ms slower
-  // (0.08 + 150/DURATION_MS) and fades in starting 100ms earlier
-  // (0.92 - 100/DURATION_MS) than the canvas's own timing.
-  const imgFadeOutEnd = 0.08;
-  const imgFadeInStart = 0.92;
-  function imgOpacity(t) {
-    if (t < imgFadeOutEnd) return 1 - t / imgFadeOutEnd;
-    if (t < imgFadeInStart) return 0;
-    return (t - imgFadeInStart) / (1 - imgFadeInStart);
-  }
-
-  const ROTATION_BUFFER_MS = 50; // rotation settles at least this long before the whole animation (including the fade) is considered done
+  const ROTATION_MS = 1500;       // how long the spin itself takes
+  const PAUSE_MS = 50;            // rotation holds fully settled before any fade starts
+  const CROSSFADE_MS = 150;       // 3D -> 2D smooth crossfade, after the pause
+  const INITIAL_FADE_MS = 120;    // 2D -> 3D fade-in at hover start, overlapping the start of rotation
+  const FADE_OUT_START_MS = ROTATION_MS + PAUSE_MS;
+  const TOTAL_MS = FADE_OUT_START_MS + CROSSFADE_MS;
 
   function frame(now) {
-    const t = Math.min((now - startTime) / DURATION_MS, 1);
-    const rotationT = Math.min((now - startTime) / (DURATION_MS - ROTATION_BUFFER_MS), 1);
+    const elapsed = now - startTime;
+
+    // Rotation runs for its own fixed window, then stays pinned at
+    // exactly 360deg/0deg for the remainder of the sequence - it
+    // never resumes or continues once settled.
+    const rotationT = Math.min(elapsed / ROTATION_MS, 1);
     pivot.rotation[upAxis] = startAngle - easeOutCubic(rotationT) * Math.PI * 2;
-    const opacity = layerOpacity(t);
-    canvas.style.opacity = opacity;
-    img.style.opacity = imgOpacity(t);
+
+    // Single opacity value drives both elements as exact inverses of
+    // each other, so they can never desync the way two independently
+    // timed curves could: fades in quickly at hover start (2D->3D),
+    // stays fully opaque through the rotation AND the pause after it,
+    // then - only once the pause has genuinely elapsed - crossfades
+    // smoothly back out (3D->2D).
+    let canvasOpacity;
+    if (elapsed < INITIAL_FADE_MS) {
+      canvasOpacity = elapsed / INITIAL_FADE_MS;
+    } else if (elapsed < FADE_OUT_START_MS) {
+      canvasOpacity = 1;
+    } else {
+      canvasOpacity = Math.max(0, 1 - (elapsed - FADE_OUT_START_MS) / CROSSFADE_MS);
+    }
+    canvas.style.opacity = canvasOpacity;
+    img.style.opacity = 1 - canvasOpacity;
+
     renderer.render(scene, camera);
-    if (t < 1) {
+    if (elapsed < TOTAL_MS) {
       requestAnimationFrame(frame);
     } else {
       spinning = false;
