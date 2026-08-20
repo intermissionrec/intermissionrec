@@ -180,7 +180,19 @@ async function setupHeaderLogo3D() {
 
   let spinning = false;
   let startAngle = 0;
-  let startTime = 0;
+  let animElapsed = 0;
+  let lastFrameTime = 0;
+  // Caps how far any single frame can advance the animation. Verified
+  // via direct testing that requestAnimationFrame itself can stall for
+  // multiple seconds between calls (independent of this code - even an
+  // unrelated rAF probe stalled the same way). Without this cap, a
+  // single delayed frame computes an elapsed time far past the whole
+  // fade window, jumping straight to the final state and skipping
+  // every intermediate opacity value - which is what made the
+  // crossfade look instantaneous no matter how long CROSSFADE_MS was
+  // set to. With the cap, a stall instead makes the animation catch
+  // up gradually over several frames once rendering resumes.
+  const MAX_FRAME_DELTA_MS = 50;
 
   const ROTATION_MS = 1500;       // how long the spin itself takes
   // easeOutQuad's deceleration means the last ~112ms of rotation is
@@ -197,7 +209,10 @@ async function setupHeaderLogo3D() {
   const TOTAL_MS = Math.max(ROTATION_MS, FADE_OUT_START_MS + CROSSFADE_MS);
 
   function frame(now) {
-    const elapsed = now - startTime;
+    const delta = Math.min(now - lastFrameTime, MAX_FRAME_DELTA_MS);
+    lastFrameTime = now;
+    animElapsed += delta;
+    const elapsed = animElapsed;
 
     // Rotation runs for its own fixed window, then stays pinned at
     // exactly 360deg/0deg for the remainder of the sequence - it
@@ -243,7 +258,8 @@ async function setupHeaderLogo3D() {
     if (spinning) return;
     spinning = true;
     startAngle = pivot.rotation[upAxis];
-    startTime = performance.now();
+    animElapsed = 0;
+    lastFrameTime = performance.now();
     requestAnimationFrame(frame);
   });
 }
