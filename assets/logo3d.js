@@ -252,7 +252,7 @@ async function setupHeaderLogo3D() {
     // stays visible a bit longer, overlapping with the 3D content as
     // it appears rather than seeming to disappear before the 3D logo
     // has actually shown up.
-    const IMG_FADE_OUT_MS = INITIAL_FADE_MS + 52;
+    const IMG_FADE_OUT_MS = INITIAL_FADE_MS + 110;
     let imgOpacity;
     if (elapsed < IMG_FADE_OUT_MS) {
       imgOpacity = Math.max(0, 1 - elapsed / IMG_FADE_OUT_MS);
