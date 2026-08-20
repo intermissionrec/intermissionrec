@@ -202,7 +202,7 @@ async function setupHeaderLogo3D() {
   // fade-out still happens exactly this many ms before rotation's own
   // completion, which is what actually defines its feel; it just now
   // completes later in absolute time since rotation itself starts later.
-  const ROTATION_START_DELAY_MS = 180; // matches INITIAL_FADE_MS below
+  const ROTATION_START_DELAY_MS = 5; // rotation begins almost immediately after hover
   // easeOutQuad's deceleration means the last ~112ms of rotation is
   // already visually imperceptible before it mathematically reaches
   // 360deg. Starting the fade during that already-invisible window
