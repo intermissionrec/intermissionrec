@@ -164,6 +164,13 @@ async function setupHeaderLogo3D() {
   if (!link || !canvas || !img) return;
 
   const { scene, camera, renderer } = createScene(canvas);
+  // Opaque WebGL background matching the page (--bg: #0a0a0a), set
+  // directly on the renderer rather than relying on the CSS
+  // background property showing through the transparent (alpha:true)
+  // canvas content - this guarantees the canvas is a genuinely solid
+  // rectangle whenever visible, regardless of any CSS layering
+  // behavior, fully covering the img underneath.
+  renderer.setClearColor(0x0a0a0a, 1);
   const sourceScene = await loadModel();
   const { pivot, depthAxis, upAxis } = createCenteredInstance(sourceScene);
   scene.add(pivot);
