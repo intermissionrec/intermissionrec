@@ -184,7 +184,7 @@ async function setupHeaderLogo3D() {
 
   const ROTATION_MS = 1500;       // how long the spin itself takes
   const PAUSE_MS = 50;            // rotation holds fully settled before any fade starts
-  const CROSSFADE_MS = 150;       // 3D -> 2D smooth crossfade, after the pause
+  const CROSSFADE_MS = 100;       // 3D -> 2D smooth crossfade, after the pause
   const INITIAL_FADE_MS = 120;    // 2D -> 3D fade-in at hover start, overlapping the start of rotation
   const FADE_OUT_START_MS = ROTATION_MS + PAUSE_MS;
   const TOTAL_MS = FADE_OUT_START_MS + CROSSFADE_MS;
