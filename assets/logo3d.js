@@ -109,24 +109,52 @@ function startDiagnosticPolling(canvas, img, link, renderer) {
     ['.hero', document.querySelector('.hero')],
     ['.nav-wrap', document.querySelector('.nav-wrap')],
   ];
-  const intervalId = setInterval(() => {
-    const t = (performance.now() - startTs).toFixed(0);
+  let lastKey = null;
+  let frameCount = 0;
+  const MAX_FRAMES = 220; // ~3.6s at 60fps, comfortably covers the whole sequence
+
+  // Small offscreen canvas for sampling the WebGL canvas's actual
+  // rendered pixel brightness directly - checks for a possible gap
+  // between what CSS opacity reports and what's actually in the pixel
+  // buffer, which the opacity-only check above can't reveal on its own.
+  const sampleCanvas = document.createElement('canvas');
+  sampleCanvas.width = 16;
+  sampleCanvas.height = 16;
+  const sampleCtx = sampleCanvas.getContext('2d');
+  function samplePixelBrightness() {
+    try {
+      sampleCtx.drawImage(canvas, 0, 0, 16, 16);
+      const data = sampleCtx.getImageData(0, 0, 16, 16).data;
+      let sum = 0;
+      for (let i = 0; i < data.length; i += 4) sum += (data[i] + data[i + 1] + data[i + 2]) / 3;
+      return (sum / (data.length / 4)).toFixed(1);
+    } catch (e) {
+      return 'sample-error: ' + e.message;
+    }
+  }
+
+  function poll() {
+    const t = (performance.now() - startTs).toFixed(1);
     const canvasComputed = getComputedStyle(canvas);
     const imgComputed = getComputedStyle(img);
-    console.log(
-      `[DIAG t=${t}ms] canvas: inline_opacity=${canvas.style.opacity} computed_opacity=${canvasComputed.opacity} bg=${canvasComputed.backgroundColor} vis=${canvasComputed.visibility} display=${canvasComputed.display}` +
-      ` | img: inline_opacity=${img.style.opacity} computed_opacity=${imgComputed.opacity} vis=${imgComputed.visibility}` +
-      ` | contextLost=${gl ? gl.isContextLost() : 'no-gl-ref'}`
-    );
+    const key = canvasComputed.opacity + '|' + imgComputed.opacity;
+    if (key !== lastKey) {
+      console.log(
+        `[DIAG f=${frameCount} t=${t}ms] canvas: inline=${canvas.style.opacity} computed=${canvasComputed.opacity} pixelBrightness=${samplePixelBrightness()} | img: inline=${img.style.opacity} computed=${imgComputed.opacity} | contextLost=${gl ? gl.isContextLost() : 'no-gl-ref'}`
+      );
+      lastKey = key;
+    }
     ancestors.forEach(([name, el]) => {
       if (!el) return;
       const s = getComputedStyle(el);
       if (parseFloat(s.opacity) < 0.99 || s.visibility !== 'visible' || s.display === 'none') {
-        console.warn(`[DIAG t=${t}ms] ANCESTOR ${name} is NOT fully visible: opacity=${s.opacity} visibility=${s.visibility} display=${s.display}`);
+        console.warn(`[DIAG f=${frameCount} t=${t}ms] ANCESTOR ${name} is NOT fully visible: opacity=${s.opacity} visibility=${s.visibility} display=${s.display}`);
       }
     });
-  }, 100);
-  setTimeout(() => clearInterval(intervalId), 3000);
+    frameCount++;
+    if (frameCount < MAX_FRAMES) requestAnimationFrame(poll);
+  }
+  requestAnimationFrame(poll);
 }
 
 // Called once the model's depth axis is known (detected from its
