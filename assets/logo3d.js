@@ -133,8 +133,8 @@ function resizeRendererToCanvas(renderer, camera, canvasEl) {
   camera.updateProjectionMatrix();
 }
 
-function easeOutCubic(t) {
-  return 1 - Math.pow(1 - t, 3);
+function easeOutQuad(t) {
+  return 1 - Math.pow(1 - t, 2);
 }
 
 // --- Header logo: hover-triggered, one-shot 360deg rotation ---
@@ -196,7 +196,7 @@ async function setupHeaderLogo3D() {
     // exactly 360deg/0deg for the remainder of the sequence - it
     // never resumes or continues once settled.
     const rotationT = Math.min(elapsed / ROTATION_MS, 1);
-    pivot.rotation[upAxis] = startAngle - easeOutCubic(rotationT) * Math.PI * 2;
+    pivot.rotation[upAxis] = startAngle - easeOutQuad(rotationT) * Math.PI * 2;
 
     // Single opacity value drives both elements as exact inverses of
     // each other, so they can never desync the way two independently
