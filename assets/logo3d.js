@@ -180,11 +180,18 @@ async function setupHeaderLogo3D() {
   let spinning = false;
   let startAngle = 0;
   let startTime = 0;
-  const DURATION_MS = 1200;
+  const DURATION_MS = 1500;
+
+  function layerOpacity(t) {
+    if (t < 0.08) return t / 0.08;
+    if (t < 0.92) return 1;
+    return Math.max(0, 1 - (t - 0.92) / 0.08);
+  }
 
   function frame(now) {
     const t = Math.min((now - startTime) / DURATION_MS, 1);
     pivot.rotation[upAxis] = startAngle - easeOutCubic(t) * Math.PI * 2;
+    canvas.style.opacity = layerOpacity(t);
     renderer.render(scene, camera);
     if (t < 1) {
       requestAnimationFrame(frame);
@@ -263,8 +270,4 @@ async function setupTransitionLogo3D() {
 }
 
 setupTransitionLogo3D().catch((e) => console.error('[logo3d] Transition logo setup failed:', e));
-setupHeaderLogo3D().catch((e) => {
-  console.error('[logo3d] Header logo setup failed:', e);
-  const canvas = document.querySelector('.hero-logo-canvas');
-  if (canvas) canvas.classList.add('webgl-fallback');
-});
+setupHeaderLogo3D().catch((e) => console.error('[logo3d] Header logo setup failed:', e));

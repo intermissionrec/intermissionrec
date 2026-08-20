@@ -76,17 +76,18 @@ body.nav-open .page {
   display: inline-flex;
 }
 
-.hero-logo-canvas {
-  display: block;
+.hero-logo-wrap {
+  position: relative;
+  display: inline-flex;
 }
 
-/* Fallback only applied by logo3d.js if the 3D setup genuinely fails
-   (WebGL unsupported, model failed to load, etc.) - deliberately NOT
-   a default/unconditional background, since the canvas renders with a
-   transparent background and that would show through in the gaps
-   around the model's silhouette even on a fully successful render. */
-.hero-logo-canvas.webgl-fallback {
-  background: url('images/logo/intermission-logo.png') center / contain no-repeat;
+.hero-logo-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
 }
 
 .nav-wrap {
