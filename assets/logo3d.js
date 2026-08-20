@@ -196,8 +196,12 @@ async function setupHeaderLogo3D() {
   // (rather than waiting for it to finish, then pausing, then fading)
   // lets the transition complete before the viewer would ever notice
   // anything was still moving.
-  const FADE_LEAD_MS = 166;       // fade starts this many ms before rotation's mathematical end
-  const CROSSFADE_MS = 400;       // TEMP: bumped way up to test whether the fade mechanism itself works at all, separate from whether the duration is long enough to perceive
+  // Precisely calculated (not a rough guess) so the fade starts right
+  // when exactly 5 degrees of rotation remain, derived from
+  // easeOutQuad's curve: remaining_fraction = (1-t)^2, solved for
+  // t at 5/360 degrees remaining.
+  const FADE_LEAD_MS = 177;       // fade starts this many ms before rotation's mathematical end
+  const CROSSFADE_MS = 150;       // confirmed the CSS transition mechanism itself works via the 400ms test - settling here as a duration that should still read as a genuine, visible fade without feeling slow
   const INITIAL_FADE_MS = 120;    // 2D -> 3D fade-in duration at hover start
   const FADE_OUT_START_MS = ROTATION_MS - FADE_LEAD_MS;
 
@@ -213,8 +217,11 @@ async function setupHeaderLogo3D() {
   // the interpolation continues correctly even if the JS thread is
   // busy or rAF is delayed.
   function setOpacity(canvasTarget, durationMs) {
+    const canvasFadingIn = canvasTarget > 0.5;
     canvas.style.transitionDuration = `${durationMs}ms`;
+    canvas.style.transitionTimingFunction = canvasFadingIn ? 'ease-out' : 'ease-in';
     img.style.transitionDuration = `${durationMs}ms`;
+    img.style.transitionTimingFunction = canvasFadingIn ? 'ease-in' : 'ease-out';
     canvas.style.opacity = canvasTarget;
     img.style.opacity = 1 - canvasTarget;
   }
