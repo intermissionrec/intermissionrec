@@ -77,6 +77,17 @@ function createScene(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+  // Diagnostic: WebGL context loss makes the canvas go fully black
+  // independent of any opacity or CSS logic entirely - logging this
+  // gives a definitive way to confirm or rule this out, since it's a
+  // structurally different cause than anything opacity-related.
+  canvas.addEventListener('webglcontextlost', (e) => {
+    console.error('[logo3d] WebGL context lost at', performance.now(), e);
+  });
+  canvas.addEventListener('webglcontextrestored', () => {
+    console.warn('[logo3d] WebGL context restored at', performance.now());
+  });
+
   return { scene, camera, renderer };
 }
 
