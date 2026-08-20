@@ -77,84 +77,7 @@ function createScene(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-  // Diagnostic: WebGL context loss makes the canvas go fully black
-  // independent of any opacity or CSS logic entirely - logging this
-  // gives a definitive way to confirm or rule this out, since it's a
-  // structurally different cause than anything opacity-related.
-  canvas.addEventListener('webglcontextlost', (e) => {
-    console.error('[logo3d] WebGL context lost at', performance.now(), e);
-  });
-  canvas.addEventListener('webglcontextrestored', () => {
-    console.warn('[logo3d] WebGL context restored at', performance.now());
-  });
-
   return { scene, camera, renderer };
-}
-
-// Comprehensive diagnostic snapshot, logged repeatedly during and
-// after a hover - captures every element and property that could
-// plausibly explain the logo going dark, plus a direct poll of
-// isContextLost() (not just relying on the event, in case a loss and
-// near-instant restore happened too fast for that to be observed).
-// Every hypothesis tried so far (img's opacity, canvas's own
-// transparency, WebGL context loss via the event) has been ruled out
-// directly - this is meant to surface whatever the real cause
-// actually is from real browser state, rather than guessing further.
-function startDiagnosticPolling(canvas, img, link, renderer) {
-  const startTs = performance.now();
-  const gl = renderer.getContext();
-  const ancestors = [
-    ['.hero-logo-wrap', document.querySelector('.hero-logo-wrap')],
-    ['.hero-logo-link', link],
-    ['.hero', document.querySelector('.hero')],
-    ['.nav-wrap', document.querySelector('.nav-wrap')],
-  ];
-  let lastKey = null;
-  let frameCount = 0;
-  const MAX_FRAMES = 220; // ~3.6s at 60fps, comfortably covers the whole sequence
-
-  // Small offscreen canvas for sampling the WebGL canvas's actual
-  // rendered pixel brightness directly - checks for a possible gap
-  // between what CSS opacity reports and what's actually in the pixel
-  // buffer, which the opacity-only check above can't reveal on its own.
-  const sampleCanvas = document.createElement('canvas');
-  sampleCanvas.width = 16;
-  sampleCanvas.height = 16;
-  const sampleCtx = sampleCanvas.getContext('2d');
-  function samplePixelBrightness() {
-    try {
-      sampleCtx.drawImage(canvas, 0, 0, 16, 16);
-      const data = sampleCtx.getImageData(0, 0, 16, 16).data;
-      let sum = 0;
-      for (let i = 0; i < data.length; i += 4) sum += (data[i] + data[i + 1] + data[i + 2]) / 3;
-      return (sum / (data.length / 4)).toFixed(1);
-    } catch (e) {
-      return 'sample-error: ' + e.message;
-    }
-  }
-
-  function poll() {
-    const t = (performance.now() - startTs).toFixed(1);
-    const canvasComputed = getComputedStyle(canvas);
-    const imgComputed = getComputedStyle(img);
-    const key = canvasComputed.opacity + '|' + imgComputed.opacity;
-    if (key !== lastKey) {
-      console.log(
-        `[DIAG f=${frameCount} t=${t}ms] canvas: inline=${canvas.style.opacity} computed=${canvasComputed.opacity} pixelBrightness=${samplePixelBrightness()} | img: inline=${img.style.opacity} computed=${imgComputed.opacity} | contextLost=${gl ? gl.isContextLost() : 'no-gl-ref'}`
-      );
-      lastKey = key;
-    }
-    ancestors.forEach(([name, el]) => {
-      if (!el) return;
-      const s = getComputedStyle(el);
-      if (parseFloat(s.opacity) < 0.99 || s.visibility !== 'visible' || s.display === 'none') {
-        console.warn(`[DIAG f=${frameCount} t=${t}ms] ANCESTOR ${name} is NOT fully visible: opacity=${s.opacity} visibility=${s.visibility} display=${s.display}`);
-      }
-    });
-    frameCount++;
-    if (frameCount < MAX_FRAMES) requestAnimationFrame(poll);
-  }
-  requestAnimationFrame(poll);
 }
 
 // Called once the model's depth axis is known (detected from its
@@ -237,17 +160,10 @@ async function setupHeaderLogo3D() {
 
   const link = document.querySelector('.hero-logo-link');
   const canvas = document.querySelector('.hero-logo-canvas');
-  const img = document.querySelector('.hero-logo-2d');
+  const img = document.querySelector('.hero-logo-wrap .hero-logo');
   if (!link || !canvas || !img) return;
 
   const { scene, camera, renderer } = createScene(canvas);
-  // Opaque WebGL background matching the page (--bg: #0a0a0a), set
-  // directly on the renderer rather than relying on the CSS
-  // background property showing through the transparent (alpha:true)
-  // canvas content - this guarantees the canvas is a genuinely solid
-  // rectangle whenever visible, regardless of any CSS layering
-  // behavior, fully covering the img underneath.
-  renderer.setClearColor(0x0a0a0a, 1);
   const sourceScene = await loadModel();
   const { pivot, depthAxis, upAxis } = createCenteredInstance(sourceScene);
   scene.add(pivot);
@@ -266,54 +182,29 @@ async function setupHeaderLogo3D() {
   let startAngle = 0;
   let animElapsed = 0;
   let lastFrameTime = 0;
-  // Caps how far any single frame can advance the rotation. Verified
+  // Caps how far any single frame can advance the animation. Verified
   // via direct testing that requestAnimationFrame itself can stall for
   // multiple seconds between calls. Without this cap, a single delayed
-  // frame would jump the rotation straight to its final angle,
-  // skipping every intermediate frame in between.
+  // frame computes an elapsed time far past the whole fade window,
+  // jumping straight to the final state and skipping every
+  // intermediate opacity value. With the cap, a stall instead makes
+  // the animation catch up gradually over several frames once
+  // rendering resumes.
   const MAX_FRAME_DELTA_MS = 50;
 
   const ROTATION_MS = 1500;       // how long the spin itself takes
   // easeOutQuad's deceleration means the last ~112ms of rotation is
   // already visually imperceptible before it mathematically reaches
   // 360deg. Starting the fade during that already-invisible window
-  // (rather than waiting for it to finish, then pausing, then fading)
   // lets the transition complete before the viewer would ever notice
-  // anything was still moving.
-  // Precisely calculated (not a rough guess) so the fade starts right
-  // when exactly 5 degrees of rotation remain, derived from
-  // easeOutQuad's curve: remaining_fraction = (1-t)^2, solved for
-  // t at 5/360 degrees remaining.
+  // anything was still moving. Precisely calculated (not a rough
+  // guess) so the fade starts right when exactly 5 degrees of
+  // rotation remain, derived from easeOutQuad's curve:
+  // remaining_fraction = (1-t)^2, solved for t at 5/360 remaining.
   const FADE_LEAD_MS = 177;       // fade starts this many ms before rotation's mathematical end
-  const CROSSFADE_MS = 150;       // confirmed the CSS transition mechanism itself works via the 400ms test - settling here as a duration that should still read as a genuine, visible fade without feeling slow
+  const CROSSFADE_MS = 50;        // 3D -> 2D fade duration
   const INITIAL_FADE_MS = 120;    // 2D -> 3D fade-in duration at hover start
   const FADE_OUT_START_MS = ROTATION_MS - FADE_LEAD_MS;
-
-  // The opacity crossfade is handled entirely by the CSS transition
-  // declared on these elements, not by per-frame JS - this is the key
-  // fix over the previous approach. Setting per-frame opacity values
-  // in the rAF loop made the fade entirely dependent on
-  // requestAnimationFrame firing reliably and often; we verified rAF
-  // itself can stall for multiple seconds, which made the fade skip
-  // straight to its end state regardless of CROSSFADE_MS. A CSS
-  // transition is handled natively by the browser's own compositor
-  // once triggered - JS only needs to set the target value once, and
-  // the interpolation continues correctly even if the JS thread is
-  // busy or rAF is delayed.
-  // canvas stays in normal flow, permanently at its default full
-  // opacity, never animated at all - this sidesteps a possible
-  // browser/GPU compositing quirk specific to animating CSS opacity
-  // on a <canvas> element with live WebGL content, which wouldn't
-  // show up in any JS-queryable state (confirmed via direct frame-by-
-  // frame instrumentation that the opacity values themselves were
-  // always correct). img is now the element that actually animates -
-  // it's a plain image, not a WebGL surface, so it shouldn't be
-  // subject to the same class of issue.
-  function setImgOpacity(target, durationMs, easing) {
-    img.style.transitionDuration = `${durationMs}ms`;
-    img.style.transitionTimingFunction = easing;
-    img.style.opacity = target;
-  }
 
   function frame(now) {
     const delta = Math.min(now - lastFrameTime, MAX_FRAME_DELTA_MS);
@@ -326,33 +217,37 @@ async function setupHeaderLogo3D() {
     // never resumes or continues once settled.
     const rotationT = Math.min(elapsed / ROTATION_MS, 1);
     pivot.rotation[upAxis] = startAngle - easeOutQuad(rotationT) * Math.PI * 2;
-    renderer.render(scene, camera);
 
+    // Single opacity value drives both elements as exact inverses of
+    // each other, so they can never desync the way two independently
+    // timed curves could: fades in quickly at hover start (2D->3D),
+    // stays fully opaque through most of the rotation, then - once
+    // rotation is already visually settled - crossfades smoothly back
+    // out (3D->2D).
+    let canvasOpacity;
+    if (elapsed < INITIAL_FADE_MS) {
+      canvasOpacity = elapsed / INITIAL_FADE_MS;
+    } else if (elapsed < FADE_OUT_START_MS) {
+      canvasOpacity = 1;
+    } else {
+      canvasOpacity = Math.max(0, 1 - (elapsed - FADE_OUT_START_MS) / CROSSFADE_MS);
+    }
+    // Equal-power crossfade (same technique used for audio crossfades
+    // to avoid a perceived volume dip) rather than linear - a linear
+    // fade puts both layers at only 50% opacity simultaneously at the
+    // midpoint, which visibly dims/half-disappears the logo since
+    // neither one is close to solid at that moment. sin/cos keeps
+    // both layers around 71% at the midpoint instead.
+    canvas.style.opacity = Math.sin(canvasOpacity * Math.PI / 2);
+    img.style.opacity = Math.sin((1 - canvasOpacity) * Math.PI / 2);
+
+    renderer.render(scene, camera);
     if (elapsed < ROTATION_MS) {
       requestAnimationFrame(frame);
     } else {
-      rotationDone = true;
-      maybeFinishSpin();
+      spinning = false;
     }
   }
-
-  let rotationDone = false;
-  let fadeDone = false;
-  function maybeFinishSpin() {
-    if (rotationDone && fadeDone) spinning = false;
-  }
-
-  img.addEventListener('transitionend', (e) => {
-    if (e.propertyName !== 'opacity') return;
-    // img animates twice per hover (fades out to reveal the 3D
-    // content, then fades back in later to cover it again) - only the
-    // second one (settled back at 1) means the sequence has actually
-    // finished; the first (settled at 0) just means the initial
-    // reveal completed, with the spin still in progress.
-    if (parseFloat(img.style.opacity) !== 1) return;
-    fadeDone = true;
-    maybeFinishSpin();
-  });
 
   // Deliberately no mouseleave handler at all - once started, the
   // spin always plays out in full via requestAnimationFrame,
@@ -360,17 +255,9 @@ async function setupHeaderLogo3D() {
   link.addEventListener('mouseenter', () => {
     if (spinning) return;
     spinning = true;
-    rotationDone = false;
-    fadeDone = false;
     startAngle = pivot.rotation[upAxis];
     animElapsed = 0;
     lastFrameTime = performance.now();
-
-    startDiagnosticPolling(canvas, img, link, renderer);
-
-    setImgOpacity(0, INITIAL_FADE_MS, 'ease');
-    setTimeout(() => setImgOpacity(1, CROSSFADE_MS, 'ease'), FADE_OUT_START_MS);
-
     requestAnimationFrame(frame);
   });
 }
