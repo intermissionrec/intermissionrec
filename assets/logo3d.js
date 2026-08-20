@@ -200,9 +200,12 @@ async function setupHeaderLogo3D() {
     return (t - imgFadeInStart) / (1 - imgFadeInStart);
   }
 
+  const ROTATION_BUFFER_MS = 50; // rotation settles at least this long before the whole animation (including the fade) is considered done
+
   function frame(now) {
     const t = Math.min((now - startTime) / DURATION_MS, 1);
-    pivot.rotation[upAxis] = startAngle - easeOutCubic(t) * Math.PI * 2;
+    const rotationT = Math.min((now - startTime) / (DURATION_MS - ROTATION_BUFFER_MS), 1);
+    pivot.rotation[upAxis] = startAngle - easeOutCubic(rotationT) * Math.PI * 2;
     const opacity = layerOpacity(t);
     canvas.style.opacity = opacity;
     img.style.opacity = imgOpacity(t);
