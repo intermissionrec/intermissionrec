@@ -237,7 +237,7 @@ async function setupHeaderLogo3D() {
 
   const link = document.querySelector('.hero-logo-link');
   const canvas = document.querySelector('.hero-logo-canvas');
-  const img = document.querySelector('.hero-logo-wrap .hero-logo');
+  const img = document.querySelector('.hero-logo-2d');
   if (!link || !canvas || !img) return;
 
   const { scene, camera, renderer } = createScene(canvas);
@@ -300,19 +300,19 @@ async function setupHeaderLogo3D() {
   // once triggered - JS only needs to set the target value once, and
   // the interpolation continues correctly even if the JS thread is
   // busy or rAF is delayed.
-  // img stays permanently opaque, never animated at all - since
-  // canvas sits directly on top of it (position: absolute; inset: 0),
-  // the logo is always either the fully-visible 2D image showing
-  // through, or covered by canvas at whatever opacity it currently
-  // has. This makes a simultaneous-dip (both elements translucent at
-  // once) structurally impossible, rather than just less likely with
-  // careful easing curves.
-  img.style.opacity = '1';
-
-  function setOpacity(canvasTarget, durationMs, easing) {
-    canvas.style.transitionDuration = `${durationMs}ms`;
-    canvas.style.transitionTimingFunction = easing;
-    canvas.style.opacity = canvasTarget;
+  // canvas stays in normal flow, permanently at its default full
+  // opacity, never animated at all - this sidesteps a possible
+  // browser/GPU compositing quirk specific to animating CSS opacity
+  // on a <canvas> element with live WebGL content, which wouldn't
+  // show up in any JS-queryable state (confirmed via direct frame-by-
+  // frame instrumentation that the opacity values themselves were
+  // always correct). img is now the element that actually animates -
+  // it's a plain image, not a WebGL surface, so it shouldn't be
+  // subject to the same class of issue.
+  function setImgOpacity(target, durationMs, easing) {
+    img.style.transitionDuration = `${durationMs}ms`;
+    img.style.transitionTimingFunction = easing;
+    img.style.opacity = target;
   }
 
   function frame(now) {
@@ -342,13 +342,14 @@ async function setupHeaderLogo3D() {
     if (rotationDone && fadeDone) spinning = false;
   }
 
-  canvas.addEventListener('transitionend', (e) => {
+  img.addEventListener('transitionend', (e) => {
     if (e.propertyName !== 'opacity') return;
-    // Canvas animates twice per hover (fade in, then fade out later) -
-    // only the second one (settled back at 0) means the sequence has
-    // actually finished; the first (settled at 1) just means the
-    // initial reveal completed, with the spin still in progress.
-    if (parseFloat(canvas.style.opacity) !== 0) return;
+    // img animates twice per hover (fades out to reveal the 3D
+    // content, then fades back in later to cover it again) - only the
+    // second one (settled back at 1) means the sequence has actually
+    // finished; the first (settled at 0) just means the initial
+    // reveal completed, with the spin still in progress.
+    if (parseFloat(img.style.opacity) !== 1) return;
     fadeDone = true;
     maybeFinishSpin();
   });
@@ -367,8 +368,8 @@ async function setupHeaderLogo3D() {
 
     startDiagnosticPolling(canvas, img, link, renderer);
 
-    setOpacity(1, INITIAL_FADE_MS, 'ease');
-    setTimeout(() => setOpacity(0, CROSSFADE_MS, 'ease'), FADE_OUT_START_MS);
+    setImgOpacity(0, INITIAL_FADE_MS, 'ease');
+    setTimeout(() => setImgOpacity(1, CROSSFADE_MS, 'ease'), FADE_OUT_START_MS);
 
     requestAnimationFrame(frame);
   });
