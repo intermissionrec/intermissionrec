@@ -189,12 +189,23 @@ async function setupHeaderLogo3D() {
     return Math.max(0, 1 - (t - 0.92) / 0.08);
   }
 
+  // Independent from the canvas's curve - fades out 150ms slower
+  // (0.08 + 150/DURATION_MS) and fades in starting 100ms earlier
+  // (0.92 - 100/DURATION_MS) than the canvas's own timing.
+  const imgFadeOutEnd = 0.08 + 150 / DURATION_MS;
+  const imgFadeInStart = 0.92 - 100 / DURATION_MS;
+  function imgOpacity(t) {
+    if (t < imgFadeOutEnd) return 1 - t / imgFadeOutEnd;
+    if (t < imgFadeInStart) return 0;
+    return (t - imgFadeInStart) / (1 - imgFadeInStart);
+  }
+
   function frame(now) {
     const t = Math.min((now - startTime) / DURATION_MS, 1);
     pivot.rotation[upAxis] = startAngle - easeOutCubic(t) * Math.PI * 2;
     const opacity = layerOpacity(t);
     canvas.style.opacity = opacity;
-    img.style.opacity = 1 - opacity;
+    img.style.opacity = imgOpacity(t);
     renderer.render(scene, camera);
     if (t < 1) {
       requestAnimationFrame(frame);
