@@ -219,8 +219,14 @@ async function setupHeaderLogo3D() {
     } else {
       canvasOpacity = Math.max(0, 1 - (elapsed - FADE_OUT_START_MS) / CROSSFADE_MS);
     }
-    canvas.style.opacity = canvasOpacity;
-    img.style.opacity = 1 - canvasOpacity;
+    // Equal-power crossfade (same technique used for audio crossfades
+    // to avoid a perceived volume dip) rather than linear - a linear
+    // fade puts both layers at only 50% opacity simultaneously at the
+    // midpoint, which visibly dims/half-disappears the logo since
+    // neither one is close to solid at that moment. sin/cos keeps
+    // both layers around 71% at the midpoint instead.
+    canvas.style.opacity = Math.sin(canvasOpacity * Math.PI / 2);
+    img.style.opacity = Math.sin((1 - canvasOpacity) * Math.PI / 2);
 
     renderer.render(scene, camera);
     if (elapsed < TOTAL_MS) {
