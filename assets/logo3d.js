@@ -182,16 +182,11 @@ async function setupHeaderLogo3D() {
   let startAngle = 0;
   let animElapsed = 0;
   let lastFrameTime = 0;
-  // Caps how far any single frame can advance the animation. Verified
+  // Caps how far any single frame can advance the rotation. Verified
   // via direct testing that requestAnimationFrame itself can stall for
-  // multiple seconds between calls (independent of this code - even an
-  // unrelated rAF probe stalled the same way). Without this cap, a
-  // single delayed frame computes an elapsed time far past the whole
-  // fade window, jumping straight to the final state and skipping
-  // every intermediate opacity value - which is what made the
-  // crossfade look instantaneous no matter how long CROSSFADE_MS was
-  // set to. With the cap, a stall instead makes the animation catch
-  // up gradually over several frames once rendering resumes.
+  // multiple seconds between calls. Without this cap, a single delayed
+  // frame would jump the rotation straight to its final angle,
+  // skipping every intermediate frame in between.
   const MAX_FRAME_DELTA_MS = 50;
 
   const ROTATION_MS = 1500;       // how long the spin itself takes
@@ -200,13 +195,29 @@ async function setupHeaderLogo3D() {
   // 360deg. Starting the fade during that already-invisible window
   // (rather than waiting for it to finish, then pausing, then fading)
   // lets the transition complete before the viewer would ever notice
-  // anything was still moving, rather than adding a separate,
-  // perceivable delay on top of it.
-  const FADE_LEAD_MS = 166;       // fade starts this many ms before rotation's mathematical end (2 more frames earlier, at 60fps)
-  const CROSSFADE_MS = 50;        // ~3 frames at 60fps - slightly longer than a literal 2 frames, since the equal-power curve compresses most of the visible change toward the end of the window
-  const INITIAL_FADE_MS = 120;    // 2D -> 3D fade-in at hover start, overlapping the start of rotation
+  // anything was still moving.
+  const FADE_LEAD_MS = 166;       // fade starts this many ms before rotation's mathematical end
+  const CROSSFADE_MS = 50;        // 3D -> 2D fade duration
+  const INITIAL_FADE_MS = 120;    // 2D -> 3D fade-in duration at hover start
   const FADE_OUT_START_MS = ROTATION_MS - FADE_LEAD_MS;
-  const TOTAL_MS = Math.max(ROTATION_MS, FADE_OUT_START_MS + CROSSFADE_MS);
+
+  // The opacity crossfade is handled entirely by the CSS transition
+  // declared on these elements, not by per-frame JS - this is the key
+  // fix over the previous approach. Setting per-frame opacity values
+  // in the rAF loop made the fade entirely dependent on
+  // requestAnimationFrame firing reliably and often; we verified rAF
+  // itself can stall for multiple seconds, which made the fade skip
+  // straight to its end state regardless of CROSSFADE_MS. A CSS
+  // transition is handled natively by the browser's own compositor
+  // once triggered - JS only needs to set the target value once, and
+  // the interpolation continues correctly even if the JS thread is
+  // busy or rAF is delayed.
+  function setOpacity(canvasTarget, durationMs) {
+    canvas.style.transitionDuration = `${durationMs}ms`;
+    img.style.transitionDuration = `${durationMs}ms`;
+    canvas.style.opacity = canvasTarget;
+    img.style.opacity = 1 - canvasTarget;
+  }
 
   function frame(now) {
     const delta = Math.min(now - lastFrameTime, MAX_FRAME_DELTA_MS);
@@ -219,37 +230,27 @@ async function setupHeaderLogo3D() {
     // never resumes or continues once settled.
     const rotationT = Math.min(elapsed / ROTATION_MS, 1);
     pivot.rotation[upAxis] = startAngle - easeOutQuad(rotationT) * Math.PI * 2;
-
-    // Single opacity value drives both elements as exact inverses of
-    // each other, so they can never desync the way two independently
-    // timed curves could: fades in quickly at hover start (2D->3D),
-    // stays fully opaque through most of the rotation, then - once
-    // rotation is already visually settled - crossfades smoothly back
-    // out (3D->2D).
-    let canvasOpacity;
-    if (elapsed < INITIAL_FADE_MS) {
-      canvasOpacity = elapsed / INITIAL_FADE_MS;
-    } else if (elapsed < FADE_OUT_START_MS) {
-      canvasOpacity = 1;
-    } else {
-      canvasOpacity = Math.max(0, 1 - (elapsed - FADE_OUT_START_MS) / CROSSFADE_MS);
-    }
-    // Equal-power crossfade (same technique used for audio crossfades
-    // to avoid a perceived volume dip) rather than linear - a linear
-    // fade puts both layers at only 50% opacity simultaneously at the
-    // midpoint, which visibly dims/half-disappears the logo since
-    // neither one is close to solid at that moment. sin/cos keeps
-    // both layers around 71% at the midpoint instead.
-    canvas.style.opacity = Math.sin(canvasOpacity * Math.PI / 2);
-    img.style.opacity = Math.sin((1 - canvasOpacity) * Math.PI / 2);
-
     renderer.render(scene, camera);
-    if (elapsed < TOTAL_MS) {
+
+    if (elapsed < ROTATION_MS) {
       requestAnimationFrame(frame);
     } else {
-      spinning = false;
+      rotationDone = true;
+      maybeFinishSpin();
     }
   }
+
+  let rotationDone = false;
+  let fadeDone = false;
+  function maybeFinishSpin() {
+    if (rotationDone && fadeDone) spinning = false;
+  }
+
+  img.addEventListener('transitionend', (e) => {
+    if (e.propertyName !== 'opacity') return;
+    fadeDone = true;
+    maybeFinishSpin();
+  });
 
   // Deliberately no mouseleave handler at all - once started, the
   // spin always plays out in full via requestAnimationFrame,
@@ -257,9 +258,15 @@ async function setupHeaderLogo3D() {
   link.addEventListener('mouseenter', () => {
     if (spinning) return;
     spinning = true;
+    rotationDone = false;
+    fadeDone = false;
     startAngle = pivot.rotation[upAxis];
     animElapsed = 0;
     lastFrameTime = performance.now();
+
+    setOpacity(1, INITIAL_FADE_MS);
+    setTimeout(() => setOpacity(0, CROSSFADE_MS), FADE_OUT_START_MS);
+
     requestAnimationFrame(frame);
   });
 }
