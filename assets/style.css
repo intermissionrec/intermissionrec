@@ -864,7 +864,7 @@ html, body { height: 100%; }
   background: #060606;
   display: flex;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 100px 20px;
   overflow-x: hidden;
 }
 
@@ -894,7 +894,7 @@ html, body { height: 100%; }
      container's width - matching that cap here so the wrapper isn't
      reserving/showing empty space wider than the embed will ever
      actually use. */
-  max-width: 658px;
+  max-width: 480px;
   background: #060606;
   display: flex;
   justify-content: center;
