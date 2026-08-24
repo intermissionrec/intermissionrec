@@ -258,10 +258,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const first3 = Array.from(sourceCards).slice(0, 3);
 
     // Each release's own page shares the same .cover-card img / .copy
-    // h1 / .copy p structure the Smart Link modal already parses
-    // elsewhere on the site - reusing that here for the full-size
-    // cover and description text, neither of which exist in
-    // music.html's own (thumbnail-only) card markup.
+    // h1 structure the Smart Link modal already parses elsewhere on
+    // the site - reusing that here for the full-size cover and title.
+    // Note: .copy p on a release page is the ARTIST name (confirmed
+    // by the Smart Link modal's own parsing elsewhere in this file,
+    // and by the app's Parse-SmartLinkPage function) - NOT a
+    // description, so it's deliberately not used here. The carousel's
+    // description instead comes from a distinct, dedicated
+    // .feature-description element, managed by the app's Homepage
+    // Release tab. A release with none simply shows its title alone.
     const slides = (await Promise.all(first3.map(async (card) => {
       const href = card.getAttribute('href');
       const fallbackTitle = card.querySelector('.music-title')?.textContent || '';
@@ -272,7 +277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const doc = new DOMParser().parseFromString(html, 'text/html');
         const img = doc.querySelector('.cover-card img');
         const h1 = doc.querySelector('.copy h1');
-        const p = doc.querySelector('.copy p');
+        const descEl = doc.querySelector('.feature-description');
         if (!img) return null;
         // Resolve the image path against the release page's own
         // absolute URL, not this page's - handles any relative path
@@ -282,7 +287,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           href,
           image,
           title: h1 ? h1.textContent : fallbackTitle,
-          description: p ? p.textContent : ''
+          description: descEl ? descEl.textContent : ''
         };
       } catch (err) {
         console.warn('Could not load release page for carousel slide:', href, err);
