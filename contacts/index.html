@@ -28,6 +28,7 @@
     }
   }
   </script>
+  <link rel="stylesheet" href="https://unpkg.com/lenis@1.3.26/dist/lenis.css">
 </head>
 <body class="contacts">
   <div id="pageTransitionOverlay" class="page-transition-overlay"></div>
@@ -122,6 +123,19 @@
 
   <script type="module" src="../assets/logo3d.js"></script>
   <script src="../assets/script.js" defer></script>
+
+  <!-- Lenis smooth scroll (site-wide) -->
+  <script src="https://unpkg.com/lenis@1.3.26/dist/lenis.min.js"></script>
+  <script>
+    new Lenis({
+      autoRaf: true,
+      autoToggle: true,
+      anchors: true,
+      allowNestedScroll: true,
+      naiveDimensions: true,
+      stopInertiaOnNavigate: true
+    });
+  </script>
   <script>
     document.getElementById('startTime').value = Date.now();
 

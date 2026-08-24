@@ -28,6 +28,7 @@
     }
   }
   </script>
+  <link rel="stylesheet" href="https://unpkg.com/lenis@1.3.26/dist/lenis.css">
 </head>
 <body class="artists">
   <div id="pageTransitionOverlay" class="page-transition-overlay"></div>
@@ -36,43 +37,21 @@
 
     <main>
       <section class="artists-band">
-                                                                                                                                                                                                                        <div class="artists-roster-grid" style="--artist-cols: 3;">
+                                                                                                <div class="artists-roster-grid" style="--artist-cols: 2;">
           <a class="artist-tile"
             href="#"
-            aria-label="Vidrata" data-instagram="https://instagram.com/vidrata" data-youtube="https://youtube.com/@Vidrata" data-photo-zoom="100" data-photo-x="34" data-photo-y="32" data-photo-zoom-m="100" data-photo-x-m="50" data-photo-y-m="35"
-            style="--artist-image: url('../assets/images/artists/20260816231038-vidrata.jpg'); --logo-max-width: 160px; --logo-max-width-m: 96px;">
+            aria-label="Vidrata" data-instagram="https://instagram.com/vidrata" data-youtube="https://youtube.com/@Vidrata" data-facebook="https://facebook.com/RealVidrata" data-soundcloud="https://soundcloud.com/alexvidrata" data-photo-zoom="100" data-photo-x="34" data-photo-y="32" data-photo-zoom-m="100" data-photo-x-m="50" data-photo-y-m="35"
+            style="--artist-image: url('../assets/images/artists/20260816231038-vidrata.jpg');">
             <img class="artist-tile-logo" src="../assets/images/artists/20260727045753-vidrata-logo.png" alt="Vidrata">
           </a>
 
           <a class="artist-tile"
             href="#"
-            aria-label="игра на думи" data-instagram="https://instagram.com/igranadumimoika" data-youtube="https://youtube.com/@igranadumi" data-photo-zoom="100" data-photo-x="50" data-photo-y="19" data-photo-zoom-m="100" data-photo-x-m="50" data-photo-y-m="23"
-            style="--artist-image: url('../assets/images/artists/20260820101030-igra-na-dumi.jpg'); --logo-max-width: 280px; --logo-max-height: 64px; --logo-max-width-m: 160px;">
+            aria-label="игра на думи" data-instagram="https://instagram.com/igranadumimoika" data-youtube="https://youtube.com/@igranadumi" data-photo-zoom="100" data-photo-x="50" data-photo-y="20" data-photo-zoom-m="100" data-photo-x-m="50" data-photo-y-m="23"
+            style="--artist-image: url('../assets/images/artists/20260816231755-igra-na-dumi.jpg'); --logo-max-width: 280px; --logo-max-height: 64px;">
             <img class="artist-tile-logo" src="../assets/images/artists/20260728003409-igra-na-dumi-logo.png" alt="игра на думи">
           </a>
-
-          <a class="artist-tile"
-            href="#"
-            aria-label="Leta Siren" data-instagram="https://instagram.com/letasiren" data-youtube="https://youtube.com/@letasiren" data-photo-zoom="100" data-photo-x="50" data-photo-y="18" data-photo-zoom-m="100" data-photo-x-m="50" data-photo-y-m="24"
-            style="--artist-image: url('../assets/images/artists/20260823230620-leta-siren.jpg'); --logo-max-width: 220px; --logo-max-width-m: 144px;">
-            <img class="artist-tile-logo" src="../assets/images/artists/20260823230622-leta-siren-logo.png" alt="Leta Siren">
-          </a>
         </div>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       
       
       
@@ -92,6 +71,19 @@
 
   <script type="module" src="../assets/logo3d.js"></script>
   <script src="../assets/script.js" defer></script>
+
+  <!-- Lenis smooth scroll (site-wide) -->
+  <script src="https://unpkg.com/lenis@1.3.26/dist/lenis.min.js"></script>
+  <script>
+    new Lenis({
+      autoRaf: true,
+      autoToggle: true,
+      anchors: true,
+      allowNestedScroll: true,
+      naiveDimensions: true,
+      stopInertiaOnNavigate: true
+    });
+  </script>
 
   <!-- Artist quick-view modal -->
   <div id="artistModal" class="artist-modal">

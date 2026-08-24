@@ -133,6 +133,7 @@ main {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
+  flex-direction: column;
 }
 
 .feature-band {
@@ -486,19 +487,20 @@ html, body { height: 100%; }
   }
 
   body.home .page {
-    height: 100vh;
-    overflow: hidden;
+    /* Intentionally no fixed height/overflow lock here (unlike
+       smartlink/artists/etc.) - the homepage now has content below
+       the fold (latest releases + Instagram embed) and needs to grow
+       and scroll naturally rather than clip at one viewport. */
   }
 
   body.home main {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    overflow: hidden;
+    /* Fully covered by the base `main` rule now (flex:1 1 auto,
+       min-height:0, display:flex, flex-direction:column) - no
+       homepage-specific override needed here anymore. */
   }
 
   body.home .feature-band {
-    height: 100%;
+    min-height: calc(100vh - 160px);
     padding: clamp(12px, 5vh, 128px) 20px;
   }
 
@@ -736,6 +738,14 @@ html, body { height: 100%; }
   transition: opacity .3s ease;
 }
 
+/* ── Homepage: header scrolls with the page instead of staying
+   pinned - a deliberate departure from every other page's sticky
+   nav, now that the homepage has real scrollable length below the
+   fold. */
+body.home .nav-wrap {
+  position: static;
+}
+
 /* ── Homepage: single-row scrolling latest-releases band ────────
    Reuses .music-card/.music-title as-is for visual consistency with
    the Music page. The card list is duplicated in the HTML so the
@@ -745,7 +755,18 @@ html, body { height: 100%; }
 .home-latest-band {
   width: 100%;
   padding: 32px 0;
-  background: var(--bg);
+  background: #0F0F0F;
+}
+
+.home-latest-heading {
+  width: 100%;
+  margin: 0 0 20px;
+  padding: 0 20px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  line-height: 1.05;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .home-latest-viewport {
@@ -767,7 +788,7 @@ html, body { height: 100%; }
   position: relative;
   overflow: hidden;
   flex: 0 0 auto;
-  width: 260px;
+  width: clamp(280px, 27vw, 460px);
   aspect-ratio: 1;
   border-right: 1px solid var(--line);
 }
@@ -818,6 +839,34 @@ html, body { height: 100%; }
 
   .home-latest-scroller .music-card[aria-hidden="true"] {
     display: none;
+  }
+}
+
+/* ── Homepage: Instagram profile embed ───────────────────────────
+   Uses Instagram's own native embed (instagram.com/embed.js), not a
+   third-party widget service - requires the account to be public
+   with "Allow people to embed your posts or profile" turned on
+   (Settings -> Privacy and Security -> Embeds). */
+.home-instagram-band {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 48px 20px 80px;
+  background: var(--bg);
+}
+
+.home-instagram-embed-wrap {
+  width: 100%;
+  max-width: 540px;
+  /* Reserves space before Instagram's async embed.js has finished
+     loading and resizing the iframe, so the page doesn't visibly
+     jump once it renders. */
+  min-height: 400px;
+}
+
+@media (max-width: 919.98px) {
+  .home-instagram-band {
+    padding: 32px 20px 60px;
   }
 }
 

@@ -28,6 +28,7 @@
     }
   }
   </script>
+  <link rel="stylesheet" href="https://unpkg.com/lenis@1.3.26/dist/lenis.css">
 </head>
 <body class="home">
   <div id="pageTransitionOverlay" class="page-transition-overlay"></div>
@@ -48,7 +49,8 @@
         </div>
       </section>
 
-      <section class="home-latest-band" aria-label="Скорошни издания">
+      <section class="home-latest-band">
+        <h2 class="home-latest-heading">Последни издания</h2>
         <div class="home-latest-viewport">
           <div class="home-latest-scroller">
             <a class="music-card" href="https://intermissionrec.com/cold-summer/" rel="noopener noreferrer" aria-label="cold summer" style="--track-image: url('../assets/images/covers/20260731000930-cold-summer.jpg')">
@@ -118,11 +120,42 @@
           </div>
         </div>
       </section>
+
+      <section class="home-instagram-band">
+        <div class="home-instagram-embed-wrap">
+          <blockquote
+            class="instagram-media"
+            data-instgrm-permalink="https://www.instagram.com/intermissionrecords/"
+            data-instgrm-version="14"
+            style="width:100%;">
+          </blockquote>
+        </div>
+      </section>
     </main>
 
     <div data-include="./components/footer.html"></div>
   </div>
   <script type="module" src="./assets/logo3d.js"></script>
   <script src="./assets/script.js" defer></script>
+
+  <!-- Lenis smooth scroll - scoped to the homepage only for now,
+       not yet rolled out site-wide. autoRaf handles the animation
+       loop internally; reduced-motion is respected automatically. -->
+  <script src="https://unpkg.com/lenis@1.3.26/dist/lenis.min.js"></script>
+  <script>
+    new Lenis({
+      autoRaf: true,
+      autoToggle: true,
+      anchors: true,
+      allowNestedScroll: true,
+      naiveDimensions: true,
+      stopInertiaOnNavigate: true
+    });
+  </script>
+
+  <!-- Instagram profile embed (native Instagram embed, not a
+       third-party widget) - requires the account to be public with
+       embedding allowed (Settings -> Privacy and Security -> Embeds). -->
+  <script async src="//www.instagram.com/embed.js"></script>
 </body>
 </html>
