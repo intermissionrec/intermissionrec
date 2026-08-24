@@ -251,6 +251,74 @@ document.addEventListener('DOMContentLoaded', async () => {
     scroller.replaceChildren(fragment);
   }
 
+  // Mirrors artists.html's own applyPhotoFraming exactly (same
+  // cover-scale + zoom + background-position math) - reused here so
+  // feature-slide images support the same manual zoom/position
+  // adjustment as artist photos, set via the app's "Adjust Photo"
+  // button per slide. A slide with no custom framing data attributes
+  // just keeps the plain CSS cover/center default untouched.
+  function applyFeatureSlideFraming(slide) {
+    const style = slide.getAttribute('style') || '';
+    const imgMatch = style.match(/--feature-image:\s*url\('([^']*)'\)/);
+    const coverUrl = imgMatch ? imgMatch[1] : '';
+    if (!coverUrl) return;
+
+    const isDesktop = window.matchMedia('(min-width: 920px)').matches;
+    const zoomAttr = isDesktop ? 'data-photo-zoom' : 'data-photo-zoom-m';
+    const xAttr = isDesktop ? 'data-photo-x' : 'data-photo-x-m';
+    const yAttr = isDesktop ? 'data-photo-y' : 'data-photo-y-m';
+
+    const zoomPercent = parseFloat(slide.getAttribute(zoomAttr)) || 100;
+    let xPercent = parseFloat(slide.getAttribute(xAttr));
+    let yPercent = parseFloat(slide.getAttribute(yAttr));
+    if (isNaN(xPercent)) xPercent = 50;
+    if (isNaN(yPercent)) yPercent = 50;
+
+    // No custom framing on this slide at all - leave the plain CSS
+    // background-size:cover; background-position:center default alone.
+    if (zoomPercent === 100 && xPercent === 50 && yPercent === 50) {
+      slide.style.backgroundSize = '';
+      slide.style.backgroundPosition = '';
+      return;
+    }
+
+    const loader = new Image();
+    loader.onload = function () {
+      const contW = slide.offsetWidth;
+      const contH = slide.offsetHeight;
+      const imgW = loader.naturalWidth;
+      const imgH = loader.naturalHeight;
+      if (!imgW || !imgH || !contW || !contH) return;
+
+      const coverScale = Math.max(contW / imgW, contH / imgH);
+      const totalScale = coverScale * (zoomPercent / 100);
+      const sizeWidthPercent = (imgW * totalScale / contW) * 100;
+      const sizeHeightPercent = (imgH * totalScale / contH) * 100;
+
+      slide.style.backgroundSize = sizeWidthPercent + '% ' + sizeHeightPercent + '%';
+      slide.style.backgroundPosition = xPercent + '% ' + yPercent + '%';
+    };
+    loader.src = coverUrl;
+  }
+
+  function initFeatureSlideFraming() {
+    const slides = Array.from(document.querySelectorAll('.feature-slide'));
+    if (!slides.length) return;
+    slides.forEach(applyFeatureSlideFraming);
+
+    // Re-applies on resize since this carousel is always visible
+    // (unlike the artist modal, which only opens briefly) - a resize
+    // across the 920px breakpoint switches between desktop/mobile
+    // framing values, and even a same-side resize can shift the
+    // cover-scale math enough to matter.
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => slides.forEach(applyFeatureSlideFraming), 150);
+    }, { passive: true });
+  }
+  initFeatureSlideFraming();
+
   function initFeatureCarousel() {
     const slides = Array.from(document.querySelectorAll('.feature-slide'));
     if (slides.length <= 1) return; // nothing to navigate to - arrows stay hidden
