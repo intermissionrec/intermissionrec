@@ -121,13 +121,6 @@ body.scrolled .nav-wrap {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
-/* Homepage: header scrolls away with the page instead of staying
-   pinned - explicitly requested, takes priority over the sticky+
-   popup behavior above which still applies to every other page. */
-body.home .nav-wrap {
-  position: static;
-}
-
 .nav {
   width: min(100%, var(--content));
   display: flex;
