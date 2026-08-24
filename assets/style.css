@@ -736,6 +736,91 @@ html, body { height: 100%; }
   transition: opacity .3s ease;
 }
 
+/* ── Homepage: single-row scrolling latest-releases band ────────
+   Reuses .music-card/.music-title as-is for visual consistency with
+   the Music page. The card list is duplicated in the HTML so the
+   translateX(-50%) loop point lands exactly on an identical second
+   copy - this is what makes the right-to-left scroll read as
+   seamless/infinite rather than snapping back to the start. */
+.home-latest-band {
+  width: 100%;
+  padding: 32px 0;
+  background: var(--bg);
+}
+
+.home-latest-viewport {
+  width: 100%;
+  overflow: hidden;
+}
+
+.home-latest-scroller {
+  display: flex;
+  width: max-content;
+  animation: home-latest-scroll 60s linear infinite;
+}
+
+.home-latest-scroller:hover {
+  animation-play-state: paused;
+}
+
+.home-latest-scroller .music-card {
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  width: 260px;
+  aspect-ratio: 1;
+  border-right: 1px solid var(--line);
+}
+
+.home-latest-scroller .music-card:hover::before,
+.home-latest-scroller .music-card:focus-visible::before {
+  opacity: .3;
+}
+
+.home-latest-scroller .music-card:hover .music-title,
+.home-latest-scroller .music-card:focus-visible .music-title {
+  opacity: 1;
+}
+
+@keyframes home-latest-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-latest-scroller {
+    animation: none;
+  }
+}
+
+/* Mobile: auto-scroll fights against the user's own swipe gestures on
+   a touch screen, so it's turned off in favor of a manually swipeable
+   row instead - snap scrolling for a cleaner feel per-card. */
+@media (max-width: 919.98px) {
+  .home-latest-band {
+    padding: 24px 0;
+  }
+
+  .home-latest-viewport {
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .home-latest-scroller {
+    animation: none;
+  }
+
+  .home-latest-scroller .music-card {
+    width: 180px;
+    scroll-snap-align: start;
+  }
+
+  .home-latest-scroller .music-card[aria-hidden="true"] {
+    display: none;
+  }
+}
+
 /* ── Smart Link quick-view modal (Music Grid) ─────────────────── */
 .sl-modal {
   position: fixed;
