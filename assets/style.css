@@ -63,6 +63,19 @@ body.nav-open .page {
   width: 100%;
 }
 
+/* The header's own data-include wrapper is only as tall as its own
+   content (~185px) - since position:sticky on .nav-wrap can only
+   stick within its parent's own bounding box, that short wrapper was
+   cutting the sticky behavior off almost immediately (confirmed via
+   testing: it never even fully reached top:0 before un-sticking).
+   display:contents removes this wrapper from the layout tree for
+   sizing purposes, so .nav-wrap effectively becomes a direct child of
+   the full-height .page instead, letting it stick for the entire
+   page's scroll length. */
+div[data-include*="header.html"] {
+  display: contents;
+}
+
 .hero {
   position: relative;
   width: 100%;
