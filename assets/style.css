@@ -64,16 +64,16 @@ body.nav-open .page {
 }
 
 /* The header's own data-include wrapper is only as tall as its own
-   content (~185px) - since position:sticky on .nav-wrap can only
-   stick within its parent's own bounding box, that short wrapper was
-   cutting the sticky behavior off almost immediately (confirmed via
-   testing: it never even fully reached top:0 before un-sticking).
-   display:contents removes this wrapper from the layout tree for
-   sizing purposes, so .nav-wrap effectively becomes a direct child of
-   the full-height .page instead, letting it stick for the entire
-   page's scroll length. */
+   content (~185px) - making it the sticky element itself (rather than
+   .nav-wrap individually) fixes two things at once: it's now
+   constrained by its parent .page (full page height) instead of its
+   own short self, so it can actually stay stuck for the whole page's
+   scroll length - and it groups .hero (logo) + .nav-wrap together as
+   one pinned unit, moving/sticking as a single piece. */
 div[data-include*="header.html"] {
-  display: contents;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .hero {
@@ -105,9 +105,6 @@ div[data-include*="header.html"] {
 }
 
 .nav-wrap {
-  position: sticky;
-  top: 0;
-  z-index: 10;
   width: 100%;
   background: rgba(15, 15, 15, 0.92);
   backdrop-filter: blur(10px);
@@ -127,9 +124,8 @@ div[data-include*="header.html"] {
    rounded, shadowed card once you've scrolled. Toggled via a
    body.scrolled class added/removed in script.js. */
 body.scrolled .nav-wrap {
-  width: min(calc(100% - 40px), 1100px);
+  width: calc(100% - 40px);
   margin-top: 12px;
-  border-radius: var(--radius);
   background: rgba(15, 15, 15, 0.97);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
