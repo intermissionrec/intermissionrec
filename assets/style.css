@@ -754,7 +754,6 @@ body.home .nav-wrap {
    seamless/infinite rather than snapping back to the start. */
 .home-latest-band {
   width: 100%;
-  padding: 32px 0;
   background: #0F0F0F;
 }
 
@@ -818,10 +817,6 @@ body.home .nav-wrap {
    a touch screen, so it's turned off in favor of a manually swipeable
    row instead - snap scrolling for a cleaner feel per-card. */
 @media (max-width: 919.98px) {
-  .home-latest-band {
-    padding: 24px 0;
-  }
-
   .home-latest-viewport {
     overflow-x: auto;
     scroll-snap-type: x proximity;
@@ -851,23 +846,15 @@ body.home .nav-wrap {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: 48px 20px 80px;
   background: var(--bg);
 }
 
 .home-instagram-embed-wrap {
   width: 100%;
-  max-width: 540px;
   /* Reserves space before Instagram's async embed.js has finished
      loading and resizing the iframe, so the page doesn't visibly
      jump once it renders. */
   min-height: 400px;
-}
-
-@media (max-width: 919.98px) {
-  .home-instagram-band {
-    padding: 32px 20px 60px;
-  }
 }
 
 /* ── Smart Link quick-view modal (Music Grid) ─────────────────── */
