@@ -124,8 +124,8 @@ div[data-include*="header.html"] {
    rounded, shadowed card once you've scrolled. Toggled via a
    body.scrolled class added/removed in script.js. */
 body.scrolled div[data-include*="header.html"] {
-  width: calc(100% - 30px);
-  top: 15px;
+  width: calc(100% - 20px);
+  top: 10px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
@@ -268,7 +268,7 @@ main {
 .feature-slide-text {
   position: absolute;
   left: 30px;
-  bottom: 30px;
+  bottom: 60px;
   z-index: 1;
   max-width: min(calc(100% - 60px), 480px);
   display: flex;
