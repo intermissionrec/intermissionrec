@@ -838,20 +838,30 @@ body.home .nav-wrap {
    Uses Instagram's own native embed (instagram.com/embed.js), not a
    third-party widget service - requires the account to be public
    with "Allow people to embed your posts or profile" turned on
-   (Settings -> Privacy and Security -> Embeds). */
+   (Settings -> Privacy and Security -> Embeds).
+   Layout deliberately mirrors .feature-band/.feature (the featured
+   release above it) - a centered group with a max-width, not spread
+   edge-to-edge - just mirrored left/right and using a heading instead
+   of a cover image. */
 .home-instagram-band {
   width: 100%;
+  background: #060606;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.home-instagram-group {
+  width: min(100%, 1100px);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 40px;
-  background: var(--bg);
 }
 
 .home-instagram-heading {
   flex: 0 0 auto;
   margin: 0;
-  padding: 0 20px;
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(2rem, 4vw, 2.6rem);
   line-height: 1.05;
@@ -868,6 +878,8 @@ body.home .nav-wrap {
      actually use. */
   max-width: 658px;
   background: #060606;
+  display: flex;
+  justify-content: center;
   /* Reserves space before Instagram's async embed.js has finished
      loading and resizing the iframe, so the page doesn't visibly
      jump once it renders. */
@@ -875,10 +887,15 @@ body.home .nav-wrap {
 }
 
 @media (max-width: 919.98px) {
-  .home-instagram-band {
+  .home-instagram-group {
     flex-direction: column;
     align-items: flex-start;
     gap: 20px;
+  }
+
+  .home-instagram-embed-wrap {
+    flex: 0 0 auto;
+    width: 100%;
   }
 }
 
