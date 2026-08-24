@@ -206,7 +206,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupMobileNav();
   setActiveLink();
 
+  // Toggles the "floating popup" header state once scrolled past the
+  // very top - see .nav-wrap / body.scrolled in style.css.
+  function updateScrolledState() {
+    document.body.classList.toggle('scrolled', window.scrollY > 20);
+  }
+  updateScrolledState();
+
   window.addEventListener('scroll', setActiveLink, { passive: true });
+  window.addEventListener('scroll', updateScrolledState, { passive: true });
   window.addEventListener('resize', setActiveLink);
   window.addEventListener('load', setActiveLink);
 

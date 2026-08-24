@@ -101,6 +101,24 @@ body.nav-open .page {
   display: flex;
   justify-content: center;
   padding: 0px 20px;
+  margin: 0 auto;
+  border-radius: 0;
+  box-shadow: none;
+  transition: width .3s ease, margin .3s ease, border-radius .3s ease,
+              box-shadow .3s ease, background .3s ease;
+}
+
+/* Floating "popup window" state once scrolled past the very top -
+   same idea as republicrecords.com's .header__wrapper/body.scrolled:
+   full-bleed bar at the top of the page, then insets into a distinct,
+   rounded, shadowed card once you've scrolled. Toggled via a
+   body.scrolled class added/removed in script.js. */
+body.scrolled .nav-wrap {
+  width: min(calc(100% - 40px), 1100px);
+  margin-top: 12px;
+  border-radius: var(--radius);
+  background: rgba(15, 15, 15, 0.97);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
 .nav {
@@ -739,14 +757,6 @@ html, body { height: 100%; }
   font-weight: 700;
   opacity: 0;
   transition: opacity .3s ease;
-}
-
-/* ── Homepage: header scrolls with the page instead of staying
-   pinned - a deliberate departure from every other page's sticky
-   nav, now that the homepage has real scrollable length below the
-   fold. */
-body.home .nav-wrap {
-  position: static;
 }
 
 /* ── Homepage: single-row scrolling latest-releases band ────────
