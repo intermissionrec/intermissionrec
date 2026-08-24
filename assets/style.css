@@ -127,8 +127,8 @@ div[data-include*="header.html"] {
    body.scrolled class added/removed in script.js. */
 body.scrolled div[data-include*="header.html"] {
   width: calc(100% - 40px);
-  margin-top: 12px;
-  background: rgba(15, 15, 15, 0.97);
+  margin-top: 20px;
+  background: #0f0f0f;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
