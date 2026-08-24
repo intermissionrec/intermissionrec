@@ -901,8 +901,14 @@ html, body { height: 100%; }
   /* Locks the box's own width regardless of what embed.js does while
      loading/processing the blockquote - the box itself never resizes
      or overflows the page; only the embed's height is free to grow
-     inside it as content loads. */
+     inside it as content loads. contain:layout is a stronger measure
+     than overflow-x:hidden alone - isolates this element's internal
+     layout entirely from the rest of the page, specifically built for
+     unpredictable third-party embed content like this. Safe here
+     since it's scoped only to this sibling section, not touching
+     anything upstream of the sticky header. */
   overflow-x: hidden;
+  contain: layout;
   /* Reserves space before Instagram's async embed.js has finished
      loading and resizing the iframe, so the page doesn't visibly
      jump once it renders. */
