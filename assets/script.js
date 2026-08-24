@@ -326,16 +326,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     let current = slides.findIndex((s) => s.classList.contains('is-active'));
     if (current === -1) current = 0;
 
-    function goTo(index) {
-      slides[current].classList.remove('is-active');
-      current = (index + slides.length) % slides.length;
-      slides[current].classList.add('is-active');
+    // Every slide besides the starting active one begins parked
+    // off-screen to the right, ready to slide in from that side the
+    // first time it's navigated to.
+    slides.forEach((s, i) => {
+      if (i !== current) s.style.transform = 'translateX(100%)';
+    });
+
+    let isAnimating = false;
+
+    function goTo(targetIndex, direction) {
+      if (isAnimating) return; // ignore rapid double-clicks mid-transition
+      const newIndex = (targetIndex + slides.length) % slides.length;
+      if (newIndex === current) return;
+
+      const outgoing = slides[current];
+      const incoming = slides[newIndex];
+      isAnimating = true;
+
+      // Snap the incoming slide to its correct starting side instantly
+      // (no transition), then force a reflow so the browser registers
+      // that position before the transition is re-enabled - otherwise
+      // it would animate from wherever it was last parked instead.
+      incoming.style.transition = 'none';
+      incoming.style.transform = direction > 0 ? 'translateX(100%)' : 'translateX(-100%)';
+      incoming.classList.add('is-active');
+      void incoming.offsetWidth;
+      incoming.style.transition = '';
+
+      requestAnimationFrame(() => {
+        outgoing.style.transform = direction > 0 ? 'translateX(-100%)' : 'translateX(100%)';
+        incoming.style.transform = 'translateX(0%)';
+      });
+
+      function onTransitionEnd(e) {
+        if (e.target !== incoming || e.propertyName !== 'transform') return;
+        incoming.removeEventListener('transitionend', onTransitionEnd);
+        outgoing.classList.remove('is-active');
+        // Reset the now off-screen outgoing slide to a neutral parked
+        // position, silently (no transition), so it's ready to be an
+        // incoming slide again later regardless of which direction
+        // it's approached from next time.
+        outgoing.style.transition = 'none';
+        outgoing.style.transform = 'translateX(100%)';
+        void outgoing.offsetWidth;
+        outgoing.style.transition = '';
+        current = newIndex;
+        isAnimating = false;
+      }
+      incoming.addEventListener('transitionend', onTransitionEnd);
     }
 
     const prevBtn = document.querySelector('.feature-arrow-prev');
     const nextBtn = document.querySelector('.feature-arrow-next');
-    prevBtn.addEventListener('click', () => goTo(current - 1));
-    nextBtn.addEventListener('click', () => goTo(current + 1));
+    prevBtn.addEventListener('click', () => goTo(current - 1, -1));
+    nextBtn.addEventListener('click', () => goTo(current + 1, 1));
     prevBtn.hidden = false;
     nextBtn.hidden = false;
   }
