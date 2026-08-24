@@ -193,6 +193,164 @@ document.addEventListener('dragstart', (e) => {
   }
 });
 
+// ── Floating header: densifies slightly once the page has scrolled,
+// purely cosmetic (see body.header-scrolled in style.css). ──────────
+function setupHeaderScrollState() {
+  const update = () => {
+    document.body.classList.toggle('header-scrolled', window.scrollY > 40);
+  };
+  update();
+  window.addEventListener('scroll', update, { passive: true });
+}
+
+// ── Homepage releases marquee ─────────────────────────────────────
+// Single row that idle-drifts right-to-left on its own, can be
+// grabbed and dragged (mouse or touch) with a momentum "coast" after
+// release, and pauses entirely on hover or keyboard focus. The track
+// markup is duplicated once in the HTML so the loop can wrap
+// seamlessly at the halfway point with no visible jump.
+function setupReleasesMarquee() {
+  const viewport = document.getElementById('releasesMarquee');
+  const track = document.getElementById('releasesMarqueeTrack');
+  if (!viewport || !track) return;
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // The track's own children are duplicated once in the HTML - clone
+  // them again here so there's always at least a 3rd copy ahead,
+  // which keeps the wrap seamless even on very wide/short-catalog
+  // viewports where two copies alone might not fill the screen.
+  const originalChildren = [...track.children];
+  originalChildren.forEach(child => track.appendChild(child.cloneNode(true)));
+
+  let x = 0;
+  const idleSpeed = 0.55;
+  let velocity = 0;
+  let isDragging = false;
+  let isHovering = false;
+  let startClientX = 0;
+  let startTranslate = 0;
+  let lastClientX = 0;
+  let lastTime = 0;
+  let totalMoved = 0;
+  let halfWidth = 0;
+
+  function measure() {
+    halfWidth = track.scrollWidth / 2;
+  }
+  measure();
+  window.addEventListener('resize', measure);
+
+  function wrap() {
+    if (halfWidth <= 0) return;
+    if (x <= -halfWidth) x += halfWidth;
+    if (x > 0) x -= halfWidth;
+  }
+
+  function render() {
+    track.style.transform = `translate3d(${x}px, 0, 0)`;
+  }
+
+  function frame() {
+    if (!isDragging) {
+      if (Math.abs(velocity) > 0.02) {
+        x += velocity;
+        velocity *= 0.945;
+      } else {
+        velocity = 0;
+        if (!isHovering && !prefersReducedMotion) {
+          x -= idleSpeed;
+        }
+      }
+      wrap();
+      render();
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  function pointerDown(e) {
+    isDragging = true;
+    velocity = 0;
+    totalMoved = 0;
+    viewport.classList.add('is-dragging');
+    startClientX = e.clientX;
+    startTranslate = x;
+    lastClientX = startClientX;
+    lastTime = performance.now();
+    window.addEventListener('pointermove', pointerMove);
+    window.addEventListener('pointerup', pointerUp);
+    window.addEventListener('pointercancel', pointerUp);
+  }
+
+  function pointerMove(e) {
+    if (!isDragging) return;
+    const dx = e.clientX - startClientX;
+    x = startTranslate + dx;
+
+    const now = performance.now();
+    const dt = Math.max(now - lastTime, 1);
+    velocity = ((e.clientX - lastClientX) / dt) * 16;
+    totalMoved += Math.abs(e.clientX - lastClientX);
+    lastClientX = e.clientX;
+    lastTime = now;
+
+    wrap();
+    render();
+  }
+
+  function pointerUp() {
+    isDragging = false;
+    viewport.classList.remove('is-dragging');
+    window.removeEventListener('pointermove', pointerMove);
+    window.removeEventListener('pointerup', pointerUp);
+    window.removeEventListener('pointercancel', pointerUp);
+
+    // A real drag shouldn't also fire the card's link navigation -
+    // swallow the very next click on the track if the pointer moved
+    // more than a few px, then get out of the way for normal taps.
+    if (totalMoved > 6) {
+      const suppressClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      };
+      track.addEventListener('click', suppressClick, { capture: true, once: true });
+    }
+  }
+
+  viewport.addEventListener('pointerdown', pointerDown);
+  viewport.addEventListener('mouseenter', () => { isHovering = true; });
+  viewport.addEventListener('mouseleave', () => { isHovering = false; });
+  viewport.addEventListener('focusin', () => { isHovering = true; });
+  viewport.addEventListener('focusout', () => { isHovering = false; });
+}
+
+// ── Homepage Instagram feed ───────────────────────────────────────
+// Reads a static JSON snapshot the release publisher tool bakes into
+// the repo at publish time using its existing Graph API credentials -
+// the access token itself never ships to the browser.
+async function setupInstagramFeed() {
+  const grid = document.getElementById('igFeedGrid');
+  if (!grid) return;
+
+  try {
+    const res = await fetch('./assets/data/instagram-feed.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Failed to load Instagram feed: ${res.status}`);
+    const posts = await res.json();
+
+    grid.innerHTML = posts.slice(0, 12).map(post => {
+      const label = (post.caption || 'Instagram post').replace(/"/g, '&quot;');
+      return `
+        <a class="ig-feed-item" href="${post.permalink}" target="_blank" rel="noopener noreferrer" aria-label="${label}">
+          <img src="${post.thumbnail}" alt="" loading="lazy">
+        </a>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // 2. Load header/footer partials
   await includeHtmlFragments();
@@ -205,10 +363,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   computeNavAndSections();
   setupMobileNav();
   setActiveLink();
+  setupHeaderScrollState();
 
   window.addEventListener('scroll', setActiveLink, { passive: true });
   window.addEventListener('resize', setActiveLink);
   window.addEventListener('load', setActiveLink);
+
+  // 3b. Homepage-only widgets - both are no-ops if their markup isn't
+  // present on the current page.
+  setupReleasesMarquee();
+  setupInstagramFeed();
 
   const currentYear = new Date().getFullYear();
   document.querySelectorAll(".year").forEach(el => {
@@ -250,6 +414,7 @@ function isPageTransitionLink(link) {
   if (link.classList.contains('hero-logo-link')) return true;
   if (link.closest('.nav')) return true;
   if (link.classList.contains('cover-card')) return true;
+  if (link.classList.contains('release-marquee-card')) return true;
   return false;
 }
 
