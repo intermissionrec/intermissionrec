@@ -77,8 +77,7 @@ div[data-include*="header.html"] {
   display: block;
   margin: 0 auto;
   box-shadow: none;
-  transition: width .3s ease, margin .3s ease, box-shadow .3s ease,
-              background .3s ease;
+  transition: width .3s ease, top .3s ease, box-shadow .3s ease;
 }
 
 .hero {
@@ -87,8 +86,8 @@ div[data-include*="header.html"] {
   display: grid;
   place-items: center;
   padding: 20px 20px 19px;
-  background: var(--bg);
-  transition: background .3s ease;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(10px);
 }
 
 .hero-logo-link {
@@ -117,7 +116,6 @@ div[data-include*="header.html"] {
   display: flex;
   justify-content: center;
   padding: 0px 20px;
-  transition: background .3s ease;
 }
 
 /* Floating "popup window" state once scrolled past the very top -
@@ -127,14 +125,8 @@ div[data-include*="header.html"] {
    body.scrolled class added/removed in script.js. */
 body.scrolled div[data-include*="header.html"] {
   width: calc(100% - 30px);
-  margin-top: 20px;
-  background: #0f0f0f;
+  top: 15px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-}
-
-body.scrolled .hero,
-body.scrolled .nav-wrap {
-  background: transparent;
 }
 
 .nav {
