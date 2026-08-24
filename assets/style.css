@@ -486,18 +486,15 @@ html, body { height: 100%; }
     width: clamp(110px, 26vh, 320px);
   }
 
-  body.home .page {
-    /* Intentionally no fixed height/overflow lock here (unlike
-       smartlink/artists/etc.) - the homepage now has content below
-       the fold (latest releases + Instagram embed) and needs to grow
-       and scroll naturally rather than clip at one viewport. */
-  }
+  /* body.home .page: intentionally no fixed height/overflow lock
+     here (unlike smartlink/artists/etc.) - the homepage now has
+     content below the fold (latest releases + Instagram embed) and
+     needs to grow and scroll naturally rather than clip at one
+     viewport. */
 
-  body.home main {
-    /* Fully covered by the base `main` rule now (flex:1 1 auto,
-       min-height:0, display:flex, flex-direction:column) - no
-       homepage-specific override needed here anymore. */
-  }
+  /* body.home main: fully covered by the base `main` rule now
+     (flex:1 1 auto, min-height:0, display:flex, flex-direction:
+     column) - no homepage-specific override needed here anymore. */
 
   body.home .feature-band {
     min-height: calc(100vh - 160px);
