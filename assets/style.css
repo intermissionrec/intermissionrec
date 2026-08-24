@@ -853,6 +853,7 @@ html, body { height: 100%; }
   display: flex;
   justify-content: center;
   padding: 40px 20px;
+  overflow-x: hidden;
 }
 
 .home-instagram-group {
@@ -885,6 +886,11 @@ html, body { height: 100%; }
   background: #060606;
   display: flex;
   justify-content: center;
+  /* Locks the box's own width regardless of what embed.js does while
+     loading/processing the blockquote - the box itself never resizes
+     or overflows the page; only the embed's height is free to grow
+     inside it as content loads. */
+  overflow-x: hidden;
   /* Reserves space before Instagram's async embed.js has finished
      loading and resizing the iframe, so the page doesn't visibly
      jump once it renders. */
