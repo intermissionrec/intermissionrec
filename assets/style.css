@@ -74,6 +74,11 @@ div[data-include*="header.html"] {
   position: sticky;
   top: 0;
   z-index: 10;
+  display: block;
+  margin: 0 auto;
+  box-shadow: none;
+  transition: width .3s ease, margin .3s ease, box-shadow .3s ease,
+              background .3s ease;
 }
 
 .hero {
@@ -83,6 +88,7 @@ div[data-include*="header.html"] {
   place-items: center;
   padding: 20px 20px 19px;
   background: var(--bg);
+  transition: background .3s ease;
 }
 
 .hero-logo-link {
@@ -111,11 +117,7 @@ div[data-include*="header.html"] {
   display: flex;
   justify-content: center;
   padding: 0px 20px;
-  margin: 0 auto;
-  border-radius: 0;
-  box-shadow: none;
-  transition: width .3s ease, margin .3s ease, border-radius .3s ease,
-              box-shadow .3s ease, background .3s ease;
+  transition: background .3s ease;
 }
 
 /* Floating "popup window" state once scrolled past the very top -
@@ -123,11 +125,16 @@ div[data-include*="header.html"] {
    full-bleed bar at the top of the page, then insets into a distinct,
    rounded, shadowed card once you've scrolled. Toggled via a
    body.scrolled class added/removed in script.js. */
-body.scrolled .nav-wrap {
+body.scrolled div[data-include*="header.html"] {
   width: calc(100% - 40px);
   margin-top: 12px;
   background: rgba(15, 15, 15, 0.97);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+body.scrolled .hero,
+body.scrolled .nav-wrap {
+  background: transparent;
 }
 
 .nav {
