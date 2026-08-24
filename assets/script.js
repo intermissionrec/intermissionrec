@@ -194,6 +194,69 @@ document.addEventListener('dragstart', (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Single source of truth for the homepage's "latest releases" row:
+  // fetches music.html's own grid and rebuilds this page's scroller
+  // from it, so adding a release only ever means editing music.html.
+  // The scroller's existing hardcoded cards stay in the HTML as a
+  // fallback (shown briefly on load, and permanently if this fetch
+  // ever fails) rather than leaving the section empty.
+  async function syncHomeLatestReleasesFromMusicPage() {
+    const scroller = document.querySelector('.home-latest-scroller');
+    if (!scroller) return; // only relevant on the homepage
+
+    try {
+      const res = await fetch('./music/');
+      if (!res.ok) throw new Error('Failed to load music page: ' + res.status);
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const sourceCards = doc.querySelectorAll('.music-grid .music-card');
+      if (!sourceCards.length) throw new Error('No releases found on music page');
+
+      function buildCard(card, hidden) {
+        const href = card.getAttribute('href') || '';
+        const label = card.getAttribute('aria-label') || '';
+        // Read directly from the inline style attribute - resolves
+        // correctly here too since --track-image's url() is resolved
+        // relative to the shared stylesheet, not the HTML page, so
+        // the raw path string can be reused verbatim.
+        const trackImage = card.style.getPropertyValue('--track-image');
+        const titleEl = card.querySelector('.music-title');
+        const titleText = titleEl ? titleEl.textContent : label;
+
+        const a = document.createElement('a');
+        a.className = 'music-card';
+        a.href = href;
+        a.rel = 'noopener noreferrer';
+        if (hidden) {
+          a.setAttribute('aria-hidden', 'true');
+          a.tabIndex = -1;
+        } else {
+          a.setAttribute('aria-label', label);
+        }
+        a.style.setProperty('--track-image', trackImage);
+
+        const span = document.createElement('span');
+        span.className = 'music-title';
+        span.textContent = titleText;
+        a.appendChild(span);
+        return a;
+      }
+
+      const fragment = document.createDocumentFragment();
+      sourceCards.forEach((card) => fragment.appendChild(buildCard(card, false)));
+      // Duplicate set, hidden from assistive tech/keyboard nav - exists
+      // only so the scroll animation can loop seamlessly.
+      sourceCards.forEach((card) => fragment.appendChild(buildCard(card, true)));
+
+      scroller.replaceChildren(fragment);
+    } catch (err) {
+      // Leave the existing hardcoded fallback cards in place rather
+      // than clearing the section.
+      console.warn('Could not sync latest releases from music page, showing fallback:', err);
+    }
+  }
+  syncHomeLatestReleasesFromMusicPage();
+
   // 2. Load header/footer partials
   await includeHtmlFragments();
   // Signals that .hero-logo-link etc. now actually exist in the DOM -
