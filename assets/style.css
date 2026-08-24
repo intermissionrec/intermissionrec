@@ -227,6 +227,105 @@ main {
   text-wrap: balance;
 }
 
+/* ── Homepage: featured-release "news" carousel ──────────────────
+   Entirely new class names, isolated from .feature/.cover-card/.copy
+   above (those stay untouched - shared with every individual release
+   page). Populated by script.js from the first 3 releases on
+   music.html, each release's own page fetched in turn for its full
+   cover image, title, and description. */
+.feature-carousel {
+  position: absolute;
+  inset: 0;
+}
+
+.feature-slide {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background-color: var(--bg-alt);
+  background-image: var(--feature-image);
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .5s ease;
+}
+
+.feature-slide.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.feature-slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Dark gradient so the bottom-left text stays legible regardless
+     of what's in the underlying cover art at that spot. */
+  background: linear-gradient(to top, rgba(0, 0, 0, .75) 0%, rgba(0, 0, 0, 0) 45%);
+  pointer-events: none;
+}
+
+.feature-slide-text {
+  position: absolute;
+  left: 30px;
+  bottom: 30px;
+  z-index: 1;
+  max-width: min(calc(100% - 60px), 480px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.feature-slide-text h1 {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  line-height: 1.05;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, .6);
+}
+
+.feature-slide-text p {
+  margin: 0;
+  color: rgba(255, 255, 255, .88);
+  font-size: 18px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+}
+
+.feature-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(15, 15, 15, .55);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  cursor: pointer;
+  transition: background .2s ease;
+}
+
+.feature-arrow:hover {
+  background: rgba(15, 15, 15, .8);
+}
+
+.feature-arrow[hidden] {
+  display: none;
+}
+
+.feature-arrow-prev { left: 20px; }
+.feature-arrow-next { right: 20px; }
+
 .content-section {
   width: 100%;
   display: flex;
@@ -532,8 +631,11 @@ html, body { height: 100%; }
      column) - no homepage-specific override needed here anymore. */
 
   body.home .feature-band {
+    position: relative;
+    overflow: hidden;
     min-height: calc(100vh - 160px);
-    padding: clamp(12px, 5vh, 128px) 20px;
+    padding: 0;
+    display: block;
   }
 
   body.home .hero-logo {
@@ -682,6 +784,13 @@ html, body { height: 100%; }
     min-height: auto;
   }
   .feature-band { padding: 48px 20px; }
+  body.home .feature-band {
+    position: relative;
+    overflow: hidden;
+    min-height: 80vh;
+    padding: 0;
+    display: block;
+  }
   .feature { flex-direction: column; }
   .cover-card { width: 280px; }
   .copy { width: 281px; }

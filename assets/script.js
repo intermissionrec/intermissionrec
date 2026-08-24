@@ -194,68 +194,161 @@ document.addEventListener('dragstart', (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Single source of truth for the homepage's "latest releases" row:
-  // fetches music.html's own grid and rebuilds this page's scroller
-  // from it, so adding a release only ever means editing music.html.
-  // The scroller's existing hardcoded cards stay in the HTML as a
-  // fallback (shown briefly on load, and permanently if this fetch
-  // ever fails) rather than leaving the section empty.
-  async function syncHomeLatestReleasesFromMusicPage() {
+  // Single source of truth for both the homepage's "latest releases"
+  // row and its featured-release carousel: fetches music.html's own
+  // grid once and shares the result between both, so adding a
+  // release only ever means editing music.html.
+  async function fetchMusicPageCards() {
+    const res = await fetch('./music/');
+    if (!res.ok) throw new Error('Failed to load music page: ' + res.status);
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const cards = doc.querySelectorAll('.music-grid .music-card');
+    if (!cards.length) throw new Error('No releases found on music page');
+    return cards;
+  }
+
+  function syncHomeLatestReleases(sourceCards) {
     const scroller = document.querySelector('.home-latest-scroller');
     if (!scroller) return; // only relevant on the homepage
 
-    try {
-      const res = await fetch('./music/');
-      if (!res.ok) throw new Error('Failed to load music page: ' + res.status);
-      const html = await res.text();
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      const sourceCards = doc.querySelectorAll('.music-grid .music-card');
-      if (!sourceCards.length) throw new Error('No releases found on music page');
+    function buildCard(card, hidden) {
+      const href = card.getAttribute('href') || '';
+      const label = card.getAttribute('aria-label') || '';
+      // Read directly from the inline style attribute - resolves
+      // correctly here too since --track-image's url() is resolved
+      // relative to the shared stylesheet, not the HTML page, so
+      // the raw path string can be reused verbatim.
+      const trackImage = card.style.getPropertyValue('--track-image');
+      const titleEl = card.querySelector('.music-title');
+      const titleText = titleEl ? titleEl.textContent : label;
 
-      function buildCard(card, hidden) {
-        const href = card.getAttribute('href') || '';
-        const label = card.getAttribute('aria-label') || '';
-        // Read directly from the inline style attribute - resolves
-        // correctly here too since --track-image's url() is resolved
-        // relative to the shared stylesheet, not the HTML page, so
-        // the raw path string can be reused verbatim.
-        const trackImage = card.style.getPropertyValue('--track-image');
-        const titleEl = card.querySelector('.music-title');
-        const titleText = titleEl ? titleEl.textContent : label;
+      const a = document.createElement('a');
+      a.className = 'music-card';
+      a.href = href;
+      a.rel = 'noopener noreferrer';
+      if (hidden) {
+        a.setAttribute('aria-hidden', 'true');
+        a.tabIndex = -1;
+      } else {
+        a.setAttribute('aria-label', label);
+      }
+      a.style.setProperty('--track-image', trackImage);
 
-        const a = document.createElement('a');
-        a.className = 'music-card';
-        a.href = href;
-        a.rel = 'noopener noreferrer';
-        if (hidden) {
-          a.setAttribute('aria-hidden', 'true');
-          a.tabIndex = -1;
-        } else {
-          a.setAttribute('aria-label', label);
-        }
-        a.style.setProperty('--track-image', trackImage);
+      const span = document.createElement('span');
+      span.className = 'music-title';
+      span.textContent = titleText;
+      a.appendChild(span);
+      return a;
+    }
 
-        const span = document.createElement('span');
-        span.className = 'music-title';
-        span.textContent = titleText;
-        a.appendChild(span);
-        return a;
+    const fragment = document.createDocumentFragment();
+    sourceCards.forEach((card) => fragment.appendChild(buildCard(card, false)));
+    // Duplicate set, hidden from assistive tech/keyboard nav - exists
+    // only so the scroll animation can loop seamlessly.
+    sourceCards.forEach((card) => fragment.appendChild(buildCard(card, true)));
+
+    scroller.replaceChildren(fragment);
+  }
+
+  async function buildFeatureCarousel(sourceCards) {
+    const carousel = document.querySelector('.feature-carousel');
+    if (!carousel) return; // only relevant on the homepage
+
+    const first3 = Array.from(sourceCards).slice(0, 3);
+
+    // Each release's own page shares the same .cover-card img / .copy
+    // h1 / .copy p structure the Smart Link modal already parses
+    // elsewhere on the site - reusing that here for the full-size
+    // cover and description text, neither of which exist in
+    // music.html's own (thumbnail-only) card markup.
+    const slides = (await Promise.all(first3.map(async (card) => {
+      const href = card.getAttribute('href');
+      const fallbackTitle = card.querySelector('.music-title')?.textContent || '';
+      try {
+        const res = await fetch(href);
+        if (!res.ok) throw new Error('release page fetch failed: ' + res.status);
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const img = doc.querySelector('.cover-card img');
+        const h1 = doc.querySelector('.copy h1');
+        const p = doc.querySelector('.copy p');
+        if (!img) return null;
+        // Resolve the image path against the release page's own
+        // absolute URL, not this page's - handles any relative path
+        // format the release page happens to use.
+        const image = new URL(img.getAttribute('src'), href).href;
+        return {
+          href,
+          image,
+          title: h1 ? h1.textContent : fallbackTitle,
+          description: p ? p.textContent : ''
+        };
+      } catch (err) {
+        console.warn('Could not load release page for carousel slide:', href, err);
+        return null;
+      }
+    }))).filter(Boolean);
+
+    if (!slides.length) return; // leave the existing fallback slide in place
+
+    function buildSlide(slide, active) {
+      const a = document.createElement('a');
+      a.className = 'feature-slide' + (active ? ' is-active' : '');
+      a.href = slide.href;
+      a.rel = 'noopener noreferrer';
+      a.style.setProperty('--feature-image', `url('${slide.image}')`);
+
+      const text = document.createElement('div');
+      text.className = 'feature-slide-text';
+
+      const h1 = document.createElement('h1');
+      h1.textContent = slide.title;
+      text.appendChild(h1);
+
+      if (slide.description) {
+        const p = document.createElement('p');
+        p.textContent = slide.description;
+        text.appendChild(p);
       }
 
-      const fragment = document.createDocumentFragment();
-      sourceCards.forEach((card) => fragment.appendChild(buildCard(card, false)));
-      // Duplicate set, hidden from assistive tech/keyboard nav - exists
-      // only so the scroll animation can loop seamlessly.
-      sourceCards.forEach((card) => fragment.appendChild(buildCard(card, true)));
-
-      scroller.replaceChildren(fragment);
-    } catch (err) {
-      // Leave the existing hardcoded fallback cards in place rather
-      // than clearing the section.
-      console.warn('Could not sync latest releases from music page, showing fallback:', err);
+      a.appendChild(text);
+      return a;
     }
+
+    const slideEls = slides.map((slide, i) => buildSlide(slide, i === 0));
+    carousel.replaceChildren(...slideEls);
+
+    const prevBtn = document.querySelector('.feature-arrow-prev');
+    const nextBtn = document.querySelector('.feature-arrow-next');
+
+    if (slides.length > 1) {
+      let current = 0;
+      function goTo(index) {
+        slideEls[current].classList.remove('is-active');
+        current = (index + slideEls.length) % slideEls.length;
+        slideEls[current].classList.add('is-active');
+      }
+      prevBtn.addEventListener('click', () => goTo(current - 1));
+      nextBtn.addEventListener('click', () => goTo(current + 1));
+      prevBtn.hidden = false;
+      nextBtn.hidden = false;
+    }
+    // Only one valid slide - arrows stay hidden (nothing to navigate to).
   }
-  syncHomeLatestReleasesFromMusicPage();
+
+  (async () => {
+    try {
+      const sourceCards = await fetchMusicPageCards();
+      syncHomeLatestReleases(sourceCards);
+      await buildFeatureCarousel(sourceCards);
+    } catch (err) {
+      // Leave whatever fallback content is already in the HTML in
+      // place (both the scroller's hardcoded cards and the single
+      // fallback carousel slide) rather than clearing anything.
+      console.warn('Could not sync homepage releases from music page, showing fallback:', err);
+    }
+  })();
 
   // 2. Load header/footer partials
   await includeHtmlFragments();
