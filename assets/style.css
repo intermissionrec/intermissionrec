@@ -524,10 +524,13 @@ html, body { height: 100%; }
      (unlike smartlink/artists/etc.) - the homepage now has content
      below the fold (latest releases + Instagram embed) and needs to
      grow and scroll naturally rather than clip at one viewport.
-     overflow is also set to visible - the base .page rule's
-     overflow:hidden would otherwise silently clip any content that
-     overflows its container horizontally, which is exactly what was
-     happening to the Instagram section's heading. */
+     overflow stays fully visible - confirmed empirically that any
+     non-visible overflow value here (even just on one axis) breaks
+     position:sticky on the header entirely, since .page is the
+     sticky header wrapper's own containing block. Horizontal overflow
+     containment is instead handled locally within the Instagram
+     section itself (.home-instagram-band / .home-instagram-embed-wrap),
+     which doesn't touch anything upstream of the sticky element. */
   body.home .page {
     overflow: visible;
   }
