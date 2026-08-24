@@ -251,107 +251,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     scroller.replaceChildren(fragment);
   }
 
-  async function buildFeatureCarousel(sourceCards) {
-    const carousel = document.querySelector('.feature-carousel');
-    if (!carousel) return; // only relevant on the homepage
+  function initFeatureCarousel() {
+    const slides = Array.from(document.querySelectorAll('.feature-slide'));
+    if (slides.length <= 1) return; // nothing to navigate to - arrows stay hidden
 
-    const first3 = Array.from(sourceCards).slice(0, 3);
+    let current = slides.findIndex((s) => s.classList.contains('is-active'));
+    if (current === -1) current = 0;
 
-    // Each release's own page shares the same .cover-card img / .copy
-    // h1 structure the Smart Link modal already parses elsewhere on
-    // the site - reusing that here for the full-size cover and title.
-    // Note: .copy p on a release page is the ARTIST name (confirmed
-    // by the Smart Link modal's own parsing elsewhere in this file,
-    // and by the app's Parse-SmartLinkPage function) - NOT a
-    // description, so it's deliberately not used here. The carousel's
-    // description instead comes from a distinct, dedicated
-    // .feature-description element, managed by the app's Homepage
-    // Release tab. A release with none simply shows its title alone.
-    const slides = (await Promise.all(first3.map(async (card) => {
-      const href = card.getAttribute('href');
-      const fallbackTitle = card.querySelector('.music-title')?.textContent || '';
-      try {
-        const res = await fetch(href);
-        if (!res.ok) throw new Error('release page fetch failed: ' + res.status);
-        const html = await res.text();
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        const img = doc.querySelector('.cover-card img');
-        const h1 = doc.querySelector('.copy h1');
-        const descEl = doc.querySelector('.feature-description');
-        if (!img) return null;
-        // Resolve the image path against the release page's own
-        // absolute URL, not this page's - handles any relative path
-        // format the release page happens to use.
-        const image = new URL(img.getAttribute('src'), href).href;
-        return {
-          href,
-          image,
-          title: h1 ? h1.textContent : fallbackTitle,
-          description: descEl ? descEl.textContent : ''
-        };
-      } catch (err) {
-        console.warn('Could not load release page for carousel slide:', href, err);
-        return null;
-      }
-    }))).filter(Boolean);
-
-    if (!slides.length) return; // leave the existing fallback slide in place
-
-    function buildSlide(slide, active) {
-      const a = document.createElement('a');
-      a.className = 'feature-slide' + (active ? ' is-active' : '');
-      a.href = slide.href;
-      a.rel = 'noopener noreferrer';
-      a.style.setProperty('--feature-image', `url('${slide.image}')`);
-
-      const text = document.createElement('div');
-      text.className = 'feature-slide-text';
-
-      const h1 = document.createElement('h1');
-      h1.textContent = slide.title;
-      text.appendChild(h1);
-
-      if (slide.description) {
-        const p = document.createElement('p');
-        p.textContent = slide.description;
-        text.appendChild(p);
-      }
-
-      a.appendChild(text);
-      return a;
+    function goTo(index) {
+      slides[current].classList.remove('is-active');
+      current = (index + slides.length) % slides.length;
+      slides[current].classList.add('is-active');
     }
-
-    const slideEls = slides.map((slide, i) => buildSlide(slide, i === 0));
-    carousel.replaceChildren(...slideEls);
 
     const prevBtn = document.querySelector('.feature-arrow-prev');
     const nextBtn = document.querySelector('.feature-arrow-next');
-
-    if (slides.length > 1) {
-      let current = 0;
-      function goTo(index) {
-        slideEls[current].classList.remove('is-active');
-        current = (index + slideEls.length) % slideEls.length;
-        slideEls[current].classList.add('is-active');
-      }
-      prevBtn.addEventListener('click', () => goTo(current - 1));
-      nextBtn.addEventListener('click', () => goTo(current + 1));
-      prevBtn.hidden = false;
-      nextBtn.hidden = false;
-    }
-    // Only one valid slide - arrows stay hidden (nothing to navigate to).
+    prevBtn.addEventListener('click', () => goTo(current - 1));
+    nextBtn.addEventListener('click', () => goTo(current + 1));
+    prevBtn.hidden = false;
+    nextBtn.hidden = false;
   }
+  initFeatureCarousel();
 
   (async () => {
     try {
       const sourceCards = await fetchMusicPageCards();
       syncHomeLatestReleases(sourceCards);
-      await buildFeatureCarousel(sourceCards);
     } catch (err) {
-      // Leave whatever fallback content is already in the HTML in
-      // place (both the scroller's hardcoded cards and the single
-      // fallback carousel slide) rather than clearing anything.
-      console.warn('Could not sync homepage releases from music page, showing fallback:', err);
+      // Leave the scroller's existing hardcoded fallback cards in
+      // place rather than clearing anything.
+      console.warn('Could not sync latest releases from music page, showing fallback:', err);
     }
   })();
 
