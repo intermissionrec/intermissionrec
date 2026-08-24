@@ -63,68 +63,22 @@ body.nav-open .page {
   width: 100%;
 }
 
-/* ── Floating overlay header ──────────────────────────────────────
-   .site-header-wrap is a full-width, pointer-events-none strip pinned
-   to the viewport top; .site-header is the actual "pill" centered
-   inside it, with pointer-events restored so it stays clickable while
-   the empty margins on either side let clicks fall through to the
-   page underneath - the standard floating-nav trick. It never scrolls
-   out of view, and content below is padded to clear it (see `main`). */
-.site-header-wrap {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  display: flex;
-  justify-content: center;
-  padding: 16px 20px 0;
-  pointer-events: none;
-}
-
-.site-header {
+.hero {
   position: relative;
-  pointer-events: auto;
-  width: min(100%, 1100px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 8px 16px 8px 20px;
-  border-radius: 999px;
-  background: rgba(12, 12, 13, 0.6);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-  transition: background .35s ease, box-shadow .35s ease, padding .35s ease;
-}
-
-/* Toggled by script.js once the page has scrolled a bit, so the pill
-   settles into a slightly denser, more opaque state instead of always
-   looking exactly the same regardless of scroll position. */
-body.header-scrolled .site-header {
-  background: rgba(9, 9, 10, 0.85);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-  padding-top: 6px;
-  padding-bottom: 6px;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 20px 20px 19px;
+  background: var(--bg);
 }
 
 .hero-logo-link {
   display: inline-flex;
-  flex-shrink: 0;
 }
 
 .hero-logo-wrap {
   position: relative;
   display: inline-flex;
-}
-
-.hero-logo,
-.hero-logo-wrap,
-.hero-logo-canvas {
-  width: 40px;
-  height: 40px;
 }
 
 .hero-logo-canvas {
@@ -138,8 +92,15 @@ body.header-scrolled .site-header {
 }
 
 .nav-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  background: rgba(15, 15, 15, 0.92);
+  backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
+  padding: 0px 20px;
 }
 
 .nav {
@@ -148,7 +109,7 @@ body.header-scrolled .site-header {
   justify-content: center;
   align-items: center;
   gap: 20px;
-  min-height: 36px;
+  min-height: 50px;
 }
 
 .nav a {
@@ -172,11 +133,6 @@ main {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
-  flex-direction: column;
-  /* Compensates for .site-header now being position: fixed and out of
-     flow - roughly its own height (40px logo + 16px vertical padding)
-     plus the 16px top offset and a little breathing room. */
-  padding-top: 88px;
 }
 
 .feature-band {
@@ -512,6 +468,11 @@ html, body { height: 100%; }
     overflow: hidden;
   }
 
+  body.smartlink .hero-logo {
+    width: clamp(60px, 10vh, 112px);
+    height: clamp(60px, 10vh, 112px);
+  }
+
   body.smartlink .feature-band {
     height: 100%;
     padding: clamp(12px, 3vh, 64px) 20px;
@@ -524,17 +485,26 @@ html, body { height: 100%; }
     width: clamp(110px, 26vh, 320px);
   }
 
-  /* Home no longer locks to a single 100vh, non-scrolling screen -
-     the releases marquee and Instagram feed sections live below the
-     hero release, so the page needs to actually scroll now. The hero
-     release band still fills essentially a full screen on first load
-     (min-height below), it just doesn't trap you there anymore. */
-  body.home .feature-band {
-    min-height: calc(100vh - 88px);
-    padding: clamp(12px, 5vh, 128px) 20px;
+  body.home .page {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  body.home main {
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
+  }
+
+  body.home .feature-band {
+    height: 100%;
+    padding: clamp(12px, 5vh, 128px) 20px;
+  }
+
+  body.home .hero-logo {
+    width: 96px;
+    height: 96px;
   }
 
   body.home .cover-card {
@@ -557,6 +527,11 @@ html, body { height: 100%; }
     overflow: hidden;
   }
 
+  body.artists .hero-logo {
+    width: clamp(60px, 10vh, 112px);
+    height: clamp(60px, 10vh, 112px);
+  }
+
   body.artists .artists-band {
     height: 100%;
     min-height: 0;
@@ -576,6 +551,11 @@ html, body { height: 100%; }
     min-height: 0;
     display: flex;
     overflow: hidden;
+  }
+
+  body.music .hero-logo {
+    width: clamp(60px, 10vh, 112px);
+    height: clamp(60px, 10vh, 112px);
   }
 
   body.music .music-band {
@@ -622,6 +602,11 @@ html, body { height: 100%; }
     overflow: hidden;
   }
 
+  body.contacts .hero-logo {
+    width: clamp(60px, 10vh, 96px);
+    height: clamp(60px, 10vh, 96px);
+  }
+
   body.contacts .content-section {
     height: 100%;
     display: flex;
@@ -631,6 +616,11 @@ html, body { height: 100%; }
 @media (max-width: 919.98px) {
   .page {
     overflow: visible;
+  }
+
+  .hero-logo {
+    width: 96px;
+    height: 96px;
   }
 
   .contacts-columns {
@@ -649,6 +639,8 @@ html, body { height: 100%; }
     text-align: center;
   }
 
+  .hero { padding: 35px 20px 30px; }
+  .nav-wrap { padding: 10px 20px 10px; }
   .nav {
     flex-direction: column;
     align-items: center;
@@ -1667,190 +1659,4 @@ img {
   display: block;
   width: 150px;
   height: 150px;
-}
-/* ── Homepage: new releases marquee ───────────────────────────────
-   Single-row, auto-drifting right-to-left, draggable with momentum,
-   pauses on hover/focus. See script.js `setupReleasesMarquee`. Class
-   names deliberately avoid "cover-card"/"copy" so the release
-   publisher tool's homepage regex never touches this section. */
-.releases-marquee-band {
-  width: 100%;
-  background: var(--bg-alt);
-  border-top: 1px solid var(--line);
-  padding: 96px 0;
-}
-
-.releases-marquee-head {
-  width: min(100%, var(--content));
-  margin: 0 auto 40px;
-  padding: 0 20px;
-}
-
-.releases-marquee-head h2 {
-  margin: 0;
-  font-family: 'Montserrat', sans-serif;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  letter-spacing: -0.02em;
-}
-
-.releases-marquee-viewport {
-  width: 100%;
-  overflow: hidden;
-  cursor: grab;
-  touch-action: pan-y;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 60px, #000 calc(100% - 60px), transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 60px, #000 calc(100% - 60px), transparent 100%);
-}
-
-.releases-marquee-viewport.is-dragging {
-  cursor: grabbing;
-}
-
-.releases-marquee-track {
-  display: flex;
-  width: max-content;
-  will-change: transform;
-}
-
-.release-marquee-card {
-  position: relative;
-  flex: 0 0 auto;
-  width: 240px;
-  aspect-ratio: 1;
-  margin-right: 20px;
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--panel);
-  transition: transform .3s ease;
-}
-
-.release-marquee-cover {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: inherit;
-  -webkit-user-drag: none;
-}
-
-.release-marquee-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, .85) 100%);
-  opacity: 0;
-  transition: opacity .25s ease;
-  pointer-events: none;
-}
-
-.release-marquee-title {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 14px;
-  font-weight: 600;
-  font-size: 15px;
-  letter-spacing: -0.01em;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity .25s ease, transform .25s ease;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.release-marquee-card:hover,
-.release-marquee-card:focus-visible {
-  transform: translateY(-4px);
-}
-
-.release-marquee-card:hover::after,
-.release-marquee-card:focus-visible::after {
-  opacity: 1;
-}
-
-.release-marquee-card:hover .release-marquee-title,
-.release-marquee-card:focus-visible .release-marquee-title {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-@media (max-width: 919.98px) {
-  .releases-marquee-band { padding: 56px 0; }
-  .release-marquee-card { width: 168px; }
-}
-
-/* ── Homepage: Instagram feed ──────────────────────────────────────
-   Populated client-side from a static JSON snapshot the release
-   publisher tool bakes in at publish time - the access token never
-   ships to the browser. See script.js `setupInstagramFeed`. */
-.ig-feed-band {
-  width: 100%;
-  background: var(--bg);
-  border-top: 1px solid var(--line);
-  padding: 96px 20px 128px;
-  display: flex;
-  justify-content: center;
-}
-
-.ig-feed-inner {
-  width: min(100%, var(--content));
-}
-
-.ig-feed-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 20px;
-  margin: 0 0 32px;
-}
-
-.ig-feed-head h2 {
-  margin: 0;
-  font-family: 'Montserrat', sans-serif;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  letter-spacing: -0.02em;
-}
-
-.ig-feed-handle {
-  color: var(--muted);
-  font-size: 15px;
-  transition: color .2s ease;
-}
-
-.ig-feed-handle:hover,
-.ig-feed-handle:focus-visible {
-  color: var(--text);
-}
-
-.ig-feed-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 4px;
-}
-
-.ig-feed-item {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-  background: var(--panel);
-  display: block;
-}
-
-.ig-feed-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform .35s ease;
-}
-
-.ig-feed-item:hover img,
-.ig-feed-item:focus-visible img {
-  transform: scale(1.06);
-}
-
-@media (max-width: 919.98px) {
-  .ig-feed-band { padding: 56px 20px 72px; }
-  .ig-feed-head { flex-direction: column; align-items: flex-start; gap: 6px; }
-  .ig-feed-grid { grid-template-columns: repeat(3, 1fr); gap: 3px; }
 }
