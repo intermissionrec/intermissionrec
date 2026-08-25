@@ -101,7 +101,7 @@ div[data-include*="header.html"] {
      solid-ish at the very top of the screen and fading out completely
      by the bottom of .hero - the existing blur/transparency below is
      left entirely untouched, this only adds on top of it near the top. */
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%), rgba(10, 10, 10, 0.92);
+  background: linear-gradient(to bottom, rgba(10, 10, 10, 0.7) 0%, rgba(10, 10, 10, 0) 100%), rgba(10, 10, 10, 0.92);
   backdrop-filter: blur(10px);
 }
 
