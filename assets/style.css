@@ -1224,6 +1224,10 @@ html, body { height: 100%; }
 }
 
 @media (max-width: 768px) {
+  .home-newsletter-band {
+    min-height: 360px;
+  }
+
   .home-newsletter-inner {
     flex-direction: column;
     align-items: flex-start;
