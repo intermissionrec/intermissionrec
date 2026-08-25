@@ -263,14 +263,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const coverUrl = imgMatch ? imgMatch[1] : '';
     if (!coverUrl) return;
 
+    // The crop control is desktop-only - mobile always stays at the
+    // plain default (cover/center), regardless of what's set for
+    // desktop, by design preference.
     const isDesktop = window.matchMedia('(min-width: 920px)').matches;
-    const zoomAttr = isDesktop ? 'data-photo-zoom' : 'data-photo-zoom-m';
-    const xAttr = isDesktop ? 'data-photo-x' : 'data-photo-x-m';
-    const yAttr = isDesktop ? 'data-photo-y' : 'data-photo-y-m';
+    if (!isDesktop) {
+      slide.style.backgroundSize = '';
+      slide.style.backgroundPosition = '';
+      return;
+    }
 
-    const zoomPercent = parseFloat(slide.getAttribute(zoomAttr)) || 100;
-    let xPercent = parseFloat(slide.getAttribute(xAttr));
-    let yPercent = parseFloat(slide.getAttribute(yAttr));
+    const zoomPercent = parseFloat(slide.getAttribute('data-photo-zoom')) || 100;
+    let xPercent = parseFloat(slide.getAttribute('data-photo-x'));
+    let yPercent = parseFloat(slide.getAttribute('data-photo-y'));
     if (isNaN(xPercent)) xPercent = 50;
     if (isNaN(yPercent)) yPercent = 50;
 
