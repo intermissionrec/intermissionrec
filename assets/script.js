@@ -128,13 +128,14 @@ function setupNewsletterModal() {
   });
 }
 
-function setupNewsletterForm() {
-  const form = document.getElementById('newsletterForm');
+function setupNewsletterForm(config) {
+  const form = document.getElementById(config.formId);
   if (!form) return;
 
-  const startTimeField = document.getElementById('newsletterStartTime');
-  const submitBtn = document.getElementById('newsletterSubmitBtn');
-  const status = document.getElementById('newsletterStatus');
+  const startTimeField = document.getElementById(config.startTimeId);
+  const submitBtn = document.getElementById(config.submitBtnId);
+  const status = document.getElementById(config.statusId);
+  const iframe = document.getElementById(config.iframeId);
   const originalBtnText = submitBtn.textContent;
   let resetTimer = null;
 
@@ -170,6 +171,11 @@ function setupNewsletterForm() {
 
   window.addEventListener('message', (event) => {
     if (!event.data || event.data.type !== 'newsletterSubscribeResult') return;
+    // Only react if this message actually came from THIS form's own
+    // hidden iframe - with two independent newsletter forms possibly
+    // present on the same page (footer modal + homepage section),
+    // submitting one shouldn't reset/show status on the other.
+    if (event.source !== iframe.contentWindow) return;
 
     resetButton();
 
@@ -516,7 +522,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupMobileNav();
   setActiveLink();
   setupNewsletterModal();
-  setupNewsletterForm();
+  setupNewsletterForm({
+    formId: 'newsletterForm',
+    startTimeId: 'newsletterStartTime',
+    submitBtnId: 'newsletterSubmitBtn',
+    statusId: 'newsletterStatus',
+    iframeId: 'newsletter_hidden_iframe'
+  });
+  setupNewsletterForm({
+    formId: 'homeNewsletterForm',
+    startTimeId: 'homeNewsletterStartTime',
+    submitBtnId: 'homeNewsletterSubmitBtn',
+    statusId: 'homeNewsletterStatus',
+    iframeId: 'home_newsletter_hidden_iframe'
+  });
 
   // Toggles the "floating popup" header state once scrolled past the
   // very top - see .nav-wrap / body.scrolled in style.css.

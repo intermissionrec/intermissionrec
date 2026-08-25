@@ -1131,6 +1131,109 @@ html, body { height: 100%; }
   }
 }
 
+/* ── Homepage: newsletter band (bottom of main content) ──────────
+   Subject+description stacked vertically on the left, email input
+   and submit button side by side on the right - a horizontal CTA
+   band rather than the centered, stacked layout used in the footer's
+   own modal popup. */
+.home-newsletter-band {
+  width: 100%;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  background: #060606;
+}
+
+.home-newsletter-inner {
+  width: min(100%, 1100px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 32px;
+}
+
+.home-newsletter-text {
+  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-newsletter-text h2 {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.home-newsletter-text p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.home-newsletter-form {
+  flex: 1 1 420px;
+  max-width: 480px;
+  display: flex;
+  gap: 12px;
+}
+
+.home-newsletter-form input[type="email"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 14px 16px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'Rubik', sans-serif;
+  font-size: 16px;
+}
+
+.home-newsletter-form input[type="email"]::placeholder {
+  color: var(--muted);
+}
+
+.home-newsletter-form input[type="email"]:focus {
+  outline: none;
+  border-color: rgba(255,255,255,.3);
+}
+
+.home-newsletter-form .platform-link {
+  flex: 0 0 auto;
+  border: none;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .home-newsletter-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .home-newsletter-text {
+    flex: 0 0 auto;
+  }
+
+  .home-newsletter-form {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    flex-direction: column;
+  }
+
+  .home-newsletter-form input[type="email"] {
+    flex: 0 0 auto;
+  }
+}
+
 /* ── Smart Link quick-view modal (Music Grid) ─────────────────── */
 .sl-modal {
   position: fixed;

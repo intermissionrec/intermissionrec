@@ -98,10 +98,6 @@
             <a class="music-card" href="https://intermissionrec.com/instagram-modeli/" rel="noopener noreferrer" aria-label="INSTAGRAM МОДЕЛИ" style="--track-image: url('../assets/images/covers/20260724031619-instagram.jpg')">
               <span class="music-title">INSTAGRAM МОДЕЛИ</span>
             </a>
-            <!-- Duplicate set, hidden from assistive tech / keyboard nav -
-                 exists only so the scroll animation can loop seamlessly
-                 (translateX(-50%) lands exactly on the start of this
-                 identical second copy). -->
             <a class="music-card" href="https://intermissionrec.com/cold-summer/" rel="noopener noreferrer" aria-hidden="true" tabindex="-1" style="--track-image: url('../assets/images/covers/20260731000930-cold-summer.jpg')">
               <span class="music-title">cold summer</span>
             </a>
@@ -142,6 +138,30 @@
           <p>Последвай ни за най-новата информация, свързана с проектите на INTER(MISSION).</p>
         </div>
       </a>
+
+      <section class="home-newsletter-band" aria-label="Абонамент за бюлетин">
+        <div class="home-newsletter-inner">
+          <div class="home-newsletter-text">
+            <h2>Бюлетин</h2>
+            <p>Получавай известия за нова музика и новини от INTER(MISSION).</p>
+          </div>
+          <form id="homeNewsletterForm"
+                action="https://mail.intermissionrec.com/newsletter/subscribe"
+                method="POST"
+                target="home_newsletter_hidden_iframe"
+                class="home-newsletter-form">
+            <input type="email" name="email" placeholder="Твоят имейл" required>
+
+            <!-- Honeypot field - hidden from real users, bots usually fill it anyway -->
+            <input type="text" name="website" style="position:absolute; left:-9999px;" tabindex="-1" autocomplete="off">
+            <input type="hidden" name="startTime" id="homeNewsletterStartTime" value="">
+
+            <button type="submit" class="platform-link" id="homeNewsletterSubmitBtn">Абонирай се</button>
+          </form>
+          <iframe name="home_newsletter_hidden_iframe" id="home_newsletter_hidden_iframe" style="display:none;"></iframe>
+          <p id="homeNewsletterStatus" class="newsletter-status" style="display:none;"></p>
+        </div>
+      </section>
     </main>
 
     <div data-include="./components/footer.html"></div>
