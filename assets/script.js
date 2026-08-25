@@ -89,6 +89,36 @@ function computeNavAndSections() {
 // mirrors the contact form's own hidden-iframe + postMessage pattern
 // in contacts.html, generalized here since this one is site-wide
 // rather than page-specific.
+function setupNewsletterModal() {
+  const overlay = document.getElementById('newsletterModalOverlay');
+  const closeBtn = document.getElementById('newsletterModalCloseBtn');
+  if (!overlay || !closeBtn) return;
+
+  function openModal() {
+    overlay.style.display = 'flex';
+  }
+  function closeModal() {
+    overlay.style.display = 'none';
+  }
+
+  // Both footer variants (desktop/mobile) have their own trigger button -
+  // only one is ever visible at a time via CSS, but both share this class.
+  document.querySelectorAll('.newsletter-trigger-btn').forEach((btn) => {
+    btn.addEventListener('click', openModal);
+  });
+
+  closeBtn.addEventListener('click', closeModal);
+
+  // Clicking the dark backdrop (not the modal card itself) closes it too.
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.style.display === 'flex') closeModal();
+  });
+}
+
 function setupNewsletterForm() {
   const form = document.getElementById('newsletterForm');
   if (!form) return;
@@ -476,6 +506,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   computeNavAndSections();
   setupMobileNav();
   setActiveLink();
+  setupNewsletterModal();
   setupNewsletterForm();
 
   // Toggles the "floating popup" header state once scrolled past the

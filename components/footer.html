@@ -1,5 +1,9 @@
-<section class="newsletter-band" aria-label="Абонамент за бюлетин">
-  <div class="newsletter-inner">
+<!-- Newsletter modal - opened via the small "Абонирай се" link next to
+     the copyright in either footer variant below. Only one modal exists
+     in the DOM regardless of which footer variant is currently visible. -->
+<div id="newsletterModalOverlay" class="newsletter-modal-overlay" style="display:none;">
+  <div class="newsletter-modal">
+    <button type="button" class="newsletter-modal-close" id="newsletterModalCloseBtn" aria-label="Затвори">&times;</button>
     <p class="newsletter-label">Получавай известия за нови издания и артисти:</p>
     <form id="newsletterForm"
           action="https://mail.intermissionrec.com/newsletter/subscribe"
@@ -17,7 +21,7 @@
     <iframe name="newsletter_hidden_iframe" id="newsletter_hidden_iframe" style="display:none;"></iframe>
     <p id="newsletterStatus" class="newsletter-status" style="display:none;"></p>
   </div>
-</section>
+</div>
 
 <footer class="footer-top" aria-label="Desktop footer">
   <div class="footer-top-inner">
@@ -48,7 +52,10 @@
         </svg>
       </a>
     </div>
-    <div class="copyright-right"><span class="year"></span></div>
+    <div class="copyright-right">
+      <button type="button" class="newsletter-trigger-btn">Абонирай се</button>
+      <span class="year"></span>
+    </div>
   </div>
 </footer>
 
@@ -81,6 +88,9 @@
         </svg>
       </a>
     </div>
-    <div class="copyright-right"><span class="year"></span></div>
+    <div class="copyright-right">
+      <button type="button" class="newsletter-trigger-btn">Абонирай се</button>
+      <span class="year"></span>
+    </div>
   </div>
 </footer>
