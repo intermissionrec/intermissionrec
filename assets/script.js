@@ -442,8 +442,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 // artist tiles, and contact links are deliberately left alone.
 const pageTransitionOverlay = document.getElementById('pageTransitionOverlay');
 
+// Locks the page's own vertical scrollbar for as long as the overlay
+// is covering the screen (including its fade transition) - without
+// this, navigating between pages of very different heights (e.g. the
+// tall homepage) can make the scrollbar appear/disappear WHILE the
+// overlay is visible, shifting its centered logo sideways by the
+// scrollbar's own width.
+function lockScrollForTransition() {
+  document.documentElement.style.overflowY = 'hidden';
+}
+function unlockScrollAfterTransition() {
+  document.documentElement.style.overflowY = '';
+}
+
+// The overlay is already visible per its own default CSS the instant
+// this script runs, so lock immediately, before the browser has a
+// chance to settle on whether this page needs a scrollbar.
+lockScrollForTransition();
+
 function playEntranceTransition() {
-  if (!pageTransitionOverlay) return;
+  if (!pageTransitionOverlay) {
+    unlockScrollAfterTransition();
+    return;
+  }
   // Waits for both the original minimum delay and the 3D model being
   // ready (exposed globally by logo3d.js) - unlike the old static PNG,
   // the model loads over the network, so without this the overlay
@@ -458,6 +479,17 @@ function playEntranceTransition() {
     maxWait,
   ]).then(() => {
     pageTransitionOverlay.classList.add('is-hidden');
+    // Waits for the fade-out's own CSS transition to actually finish
+    // before unlocking - tied to the real transitionend event rather
+    // than a guessed timeout, so it's exact regardless of the CSS
+    // transition's own duration, and the scrollbar can't appear until
+    // the overlay has genuinely stopped covering the screen.
+    function onFadeOutDone(e) {
+      if (e.target !== pageTransitionOverlay || e.propertyName !== 'opacity') return;
+      pageTransitionOverlay.removeEventListener('transitionend', onFadeOutDone);
+      unlockScrollAfterTransition();
+    }
+    pageTransitionOverlay.addEventListener('transitionend', onFadeOutDone);
   });
 }
 
@@ -505,6 +537,7 @@ function setupPageTransitionLinks() {
     e.preventDefault();
 
     pageTransitionOverlay.classList.remove('is-hidden');
+    lockScrollForTransition();
 
     setTimeout(() => {
       window.location.href = href;
@@ -519,5 +552,6 @@ playEntranceTransition();
 window.addEventListener('pageshow', (event) => {
   if (event.persisted && pageTransitionOverlay) {
     pageTransitionOverlay.classList.add('is-hidden');
+    unlockScrollAfterTransition();
   }
 });
