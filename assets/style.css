@@ -124,8 +124,8 @@ div[data-include*="header.html"] {
    rounded, shadowed card once you've scrolled. Toggled via a
    body.scrolled class added/removed in script.js. */
 body.scrolled div[data-include*="header.html"] {
-  width: calc(100% - 20px);
-  top: 10px;
+  width: calc(100% - 30px);
+  top: 15px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
@@ -268,7 +268,7 @@ main {
 .feature-slide-text {
   position: absolute;
   left: 30px;
-  bottom: 60px;
+  bottom: 30px;
   z-index: 1;
   max-width: min(calc(100% - 60px), 480px);
   display: flex;
@@ -410,6 +410,75 @@ main {
 .platform-link[aria-disabled="true"] {
   opacity: .45;
   pointer-events: none;
+}
+
+/* ── Sitewide newsletter signup (above the footer) ─────────────── */
+.newsletter-band {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--bg-alt);
+}
+
+.newsletter-inner {
+  width: min(100%, 560px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.newsletter-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.newsletter-form {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+}
+
+.newsletter-form input[type="email"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 14px 16px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'Rubik', sans-serif;
+  font-size: 16px;
+}
+
+.newsletter-form input[type="email"]::placeholder {
+  color: var(--muted);
+}
+
+.newsletter-form input[type="email"]:focus {
+  outline: none;
+  border-color: rgba(255,255,255,.3);
+}
+
+.newsletter-form .platform-link {
+  flex: 0 0 auto;
+  border: none;
+  cursor: pointer;
+}
+
+.newsletter-status {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+@media (max-width: 480px) {
+  .newsletter-form {
+    flex-direction: column;
+  }
 }
 
 .footer-top {

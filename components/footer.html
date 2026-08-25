@@ -1,3 +1,24 @@
+<section class="newsletter-band" aria-label="Абонамент за бюлетин">
+  <div class="newsletter-inner">
+    <p class="newsletter-label">Получавай новини свързани с INTER(MISSION):</p>
+    <form id="newsletterForm"
+          action="https://contact-form-mailer.alexvidrata.workers.dev/newsletter/subscribe"
+          method="POST"
+          target="newsletter_hidden_iframe"
+          class="newsletter-form">
+      <input type="email" name="email" placeholder="Твоят имейл" required>
+
+      <!-- Honeypot field - hidden from real users, bots usually fill it anyway -->
+      <input type="text" name="website" style="position:absolute; left:-9999px;" tabindex="-1" autocomplete="off">
+      <input type="hidden" name="startTime" id="newsletterStartTime" value="">
+
+      <button type="submit" class="platform-link" id="newsletterSubmitBtn">Абонирай се</button>
+    </form>
+    <iframe name="newsletter_hidden_iframe" id="newsletter_hidden_iframe" style="display:none;"></iframe>
+    <p id="newsletterStatus" class="newsletter-status" style="display:none;"></p>
+  </div>
+</section>
+
 <footer class="footer-top" aria-label="Desktop footer">
   <div class="footer-top-inner">
     <div class="social-left">

@@ -85,6 +85,69 @@ function computeNavAndSections() {
 // Mobile nav: floating toggle button opens/closes a centered overlay
 // menu with a dimmed backdrop. No-op on desktop since the toggle
 // button and backdrop stay hidden via CSS above the mobile breakpoint.
+// Newsletter signup form (in the footer, present on every page) -
+// mirrors the contact form's own hidden-iframe + postMessage pattern
+// in contacts.html, generalized here since this one is site-wide
+// rather than page-specific.
+function setupNewsletterForm() {
+  const form = document.getElementById('newsletterForm');
+  if (!form) return;
+
+  const startTimeField = document.getElementById('newsletterStartTime');
+  const submitBtn = document.getElementById('newsletterSubmitBtn');
+  const status = document.getElementById('newsletterStatus');
+  const originalBtnText = submitBtn.textContent;
+  let resetTimer = null;
+
+  startTimeField.value = Date.now();
+
+  function resetButton() {
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+    submitBtn.style.cursor = 'pointer';
+    submitBtn.textContent = originalBtnText;
+    if (resetTimer) {
+      clearTimeout(resetTimer);
+      resetTimer = null;
+    }
+  }
+
+  form.addEventListener('submit', () => {
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.6';
+    submitBtn.style.cursor = 'default';
+    submitBtn.textContent = '...';
+    status.style.display = 'none';
+
+    // Safety net: force a reset after 12 seconds no matter what, in
+    // case the Worker's response never arrives at all.
+    resetTimer = setTimeout(() => {
+      resetButton();
+      status.textContent = 'Нещо се обърка - опитай отново.';
+      status.style.color = '#e05a4e';
+      status.style.display = 'block';
+    }, 12000);
+  });
+
+  window.addEventListener('message', (event) => {
+    if (!event.data || event.data.type !== 'newsletterSubscribeResult') return;
+
+    resetButton();
+
+    if (event.data.success) {
+      form.reset();
+      startTimeField.value = Date.now();
+      status.textContent = 'Провери имейла си, за да потвърдиш абонамента!';
+      status.style.color = '';
+      status.style.display = 'block';
+    } else {
+      status.textContent = 'Нещо се обърка: ' + (event.data.error || 'моля опитай отново');
+      status.style.color = '#e05a4e';
+      status.style.display = 'block';
+    }
+  });
+}
+
 function setupMobileNav() {
   const toggle = document.querySelector('.mobile-nav-toggle');
   const navWrap = document.querySelector('.nav-wrap');
@@ -413,6 +476,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   computeNavAndSections();
   setupMobileNav();
   setActiveLink();
+  setupNewsletterForm();
 
   // Toggles the "floating popup" header state once scrolled past the
   // very top - see .nav-wrap / body.scrolled in style.css.
