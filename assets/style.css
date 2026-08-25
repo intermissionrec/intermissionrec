@@ -130,7 +130,6 @@ div[data-include*="header.html"] {
 }
 
 /* Floating "popup window" state once scrolled past the very top -
-   same idea as republicrecords.com's .header__wrapper/body.scrolled:
    full-bleed bar at the top of the page, then insets into a distinct,
    rounded, shadowed card once you've scrolled. Toggled via a
    body.scrolled class added/removed in script.js. */
@@ -1054,11 +1053,9 @@ html, body { height: 100%; }
   }
 }
 
-/* Mobile now matches desktop exactly for this section - bigger cards
-   via the same responsive clamp() sizing, and the same auto-scrolling
-   animation, per explicit request. (Previously mobile had smaller,
-   manually-swipeable cards with the animation disabled - that's been
-   removed in favor of this.) */
+/* Mobile matches desktop exactly for this section - bigger cards via
+   the same responsive clamp() sizing, and the same auto-scrolling
+   animation. */
 /* ── Homepage: Instagram promo band ──────────────────────────────
    Full-bleed background image (a static screenshot, not a live
    embed) with centered heading + description overlaid on top -
