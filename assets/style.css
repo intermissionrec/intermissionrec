@@ -124,8 +124,6 @@ div[data-include*="header.html"] {
    rounded, shadowed card once you've scrolled. Toggled via a
    body.scrolled class added/removed in script.js. */
 body.scrolled div[data-include*="header.html"] {
-  width: calc(100% - 30px);
-  top: 15px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
