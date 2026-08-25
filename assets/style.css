@@ -36,6 +36,17 @@ textarea {
   -webkit-user-select: text;
 }
 
+/* Browsers apply their own default UI font to form controls (typically
+   Arial or a system font) regardless of what's set on body - without
+   this, any <button>/<input>/<select>/<textarea> silently falls back
+   to that instead of the site's own Rubik. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
 a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; height: auto; }
 
