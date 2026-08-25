@@ -94,6 +94,15 @@ function setupNewsletterModal() {
   const closeBtn = document.getElementById('newsletterModalCloseBtn');
   if (!overlay || !closeBtn) return;
 
+  // Moves the overlay to be a direct child of <body>, escaping the
+  // data-include wrapper it's currently nested in - if that wrapper or
+  // any ancestor has a CSS transform applied (from Lenis or otherwise),
+  // it creates a new containing block for position:fixed descendants,
+  // trapping the overlay relative to that ancestor's box instead of the
+  // true viewport. This is what caused the backdrop to show (the overlay
+  // itself still rendered) while the centered modal card landed off-screen.
+  document.body.appendChild(overlay);
+
   function openModal() {
     overlay.style.display = 'flex';
   }
