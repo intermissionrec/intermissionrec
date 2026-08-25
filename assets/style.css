@@ -1048,81 +1048,70 @@ html, body { height: 100%; }
    animation, per explicit request. (Previously mobile had smaller,
    manually-swipeable cards with the animation disabled - that's been
    removed in favor of this.) */
-/* ── Homepage: Instagram profile embed ───────────────────────────
-   Uses Instagram's own native embed (instagram.com/embed.js), not a
-   third-party widget service - requires the account to be public
-   with "Allow people to embed your posts or profile" turned on
-   (Settings -> Privacy and Security -> Embeds).
-   Layout deliberately mirrors .feature-band/.feature (the featured
-   release above it) - a centered group with a max-width, not spread
-   edge-to-edge - just mirrored left/right and using a heading instead
-   of a cover image. */
+/* ── Homepage: Instagram promo band ──────────────────────────────
+   Full-bleed background image (a static screenshot, not a live
+   embed) with centered heading + description overlaid on top -
+   mirrors .feature-band/.feature-slide's own image+text approach,
+   just centered instead of bottom-left. */
 .home-instagram-band {
-  width: 100%;
-  background: #060606;
+  position: relative;
   display: flex;
-  justify-content: center;
-  padding: 98px 20px;
-  overflow-x: hidden;
-}
-
-.home-instagram-group {
-  width: min(100%, 1300px);
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 40px;
+  width: 100%;
+  min-height: 480px;
+  padding: 60px 20px;
+  background-image: var(--instagram-bg);
+  background-size: cover;
+  background-position: center;
+  text-decoration: none;
 }
 
-.home-instagram-heading {
-  flex: 0 0 auto;
+.home-instagram-band::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Uniform dark tint (not a directional gradient like the news
+     carousel) since the text sits centered here, not in one corner. */
+  background: rgba(0, 0, 0, .55);
+  pointer-events: none;
+}
+
+.home-instagram-text {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.home-instagram-text h2 {
   margin: 0;
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(2rem, 4vw, 2.6rem);
   line-height: 1.05;
   font-weight: 700;
-  color: var(--text);
+  color: #fff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, .6);
 }
 
-.home-instagram-embed-wrap {
-  flex: 0 1 658px;
-  /* Instagram's own embed.js hardcodes max-width:658px as an inline
-     style once it processes the blockquote, regardless of this
-     container's width - matching that cap here so the wrapper isn't
-     reserving/showing empty space wider than the embed will ever
-     actually use. */
-  max-width: 480px;
-  background: #060606;
-  display: flex;
-  justify-content: center;
-  /* Locks the box's own width regardless of what embed.js does while
-     loading/processing the blockquote - the box itself never resizes
-     or overflows the page; only the embed's height is free to grow
-     inside it as content loads. contain:layout is a stronger measure
-     than overflow-x:hidden alone - isolates this element's internal
-     layout entirely from the rest of the page, specifically built for
-     unpredictable third-party embed content like this. Safe here
-     since it's scoped only to this sibling section, not touching
-     anything upstream of the sticky header. */
-  overflow-x: hidden;
-  contain: layout;
-  /* Reserves space before Instagram's async embed.js has finished
-     loading and resizing the iframe, so the page doesn't visibly
-     jump once it renders. */
-  min-height: 400px;
+.home-instagram-text p {
+  margin: 0;
+  color: rgba(255, 255, 255, .88);
+  font-size: 18px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
 }
 
 @media (max-width: 919.98px) {
-  .home-instagram-group {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-  }
-
-  .home-instagram-embed-wrap {
-    flex: 0 0 auto;
-    width: 100%;
+  .home-instagram-band {
+    min-height: 380px;
+    padding: 48px 20px;
   }
 }
 
