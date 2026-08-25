@@ -1059,12 +1059,25 @@ html, body { height: 100%; }
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 480px;
+  min-height: 900px;
   padding: 60px 20px;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.home-instagram-band::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   background-image: var(--instagram-bg);
   background-size: cover;
   background-position: center;
-  text-decoration: none;
+  /* Transform functions apply right-to-left to the element: scale()
+     runs first (uniformly, around center, preserving cover's
+     aspect-correct sizing), then translateY() shifts the already-
+     scaled image down by a literal, fixed 600px - not 600px scaled
+     up further, since it's applied after scale() completes. */
+  transform: translateY(600px) scale(1.5);
 }
 
 .home-instagram-band::after {
@@ -1110,7 +1123,7 @@ html, body { height: 100%; }
 
 @media (max-width: 919.98px) {
   .home-instagram-band {
-    min-height: 380px;
+    min-height: 900px;
     padding: 48px 20px;
   }
 }
