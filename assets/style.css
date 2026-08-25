@@ -266,7 +266,7 @@ main {
 .feature-slide-text {
   position: absolute;
   left: 30px;
-  bottom: 30px;
+  bottom: 60px;
   z-index: 1;
   max-width: min(calc(100% - 60px), 480px);
   display: flex;
