@@ -2183,6 +2183,10 @@ img {
   pointer-events: none;
 }
 
+html:has(#pageTransitionOverlay:not(.transition-done)) {
+  overflow-y: hidden;
+}
+
 .page-transition-logo-canvas {
   display: block;
   width: 150px;

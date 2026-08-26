@@ -570,18 +570,18 @@ const pageTransitionOverlay = document.getElementById('pageTransitionOverlay');
 // this, navigating between pages of very different heights (e.g. the
 // tall homepage) can make the scrollbar appear/disappear WHILE the
 // overlay is visible, shifting its centered logo sideways by the
-// scrollbar's own width.
+// scrollbar's own width. The actual lock lives in CSS (see
+// html:has(#pageTransitionOverlay:not(.transition-done))), applying
+// from the very first paint with no dependency on this deferred
+// script having run yet - these two helpers just toggle that class at
+// the right moments, matching the same timing the old inline-style
+// version used.
 function lockScrollForTransition() {
-  document.documentElement.style.overflowY = 'hidden';
+  if (pageTransitionOverlay) pageTransitionOverlay.classList.remove('transition-done');
 }
 function unlockScrollAfterTransition() {
-  document.documentElement.style.overflowY = '';
+  if (pageTransitionOverlay) pageTransitionOverlay.classList.add('transition-done');
 }
-
-// The overlay is already visible per its own default CSS the instant
-// this script runs, so lock immediately, before the browser has a
-// chance to settle on whether this page needs a scrollbar.
-lockScrollForTransition();
 
 function playEntranceTransition() {
   if (!pageTransitionOverlay) {
