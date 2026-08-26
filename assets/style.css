@@ -516,10 +516,16 @@ main {
 
 .newsletter-status {
   margin: 14px 0 0;
-  min-height: 40px;
   font-size: 14px;
   line-height: 1.4;
   color: var(--muted);
+}
+
+/* Only the homepage section reserves this space, since only it has
+   the layout-shift problem the reservation solves - the footer
+   modal's own status message doesn't need this. */
+#homeNewsletterStatus {
+  min-height: 40px;
 }
 
 .footer-top {
