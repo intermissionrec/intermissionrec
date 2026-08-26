@@ -139,20 +139,6 @@ function setupNewsletterForm(config) {
   const originalBtnText = submitBtn.textContent;
   let resetTimer = null;
 
-  // Homepage section reserves space for the status message at all
-  // times (visibility toggle) so it never shifts the field/button
-  // when it appears - the footer's modal popup doesn't have that
-  // layout problem, so it keeps the original display toggle instead.
-  const reserveSpace = !!config.reserveSpace;
-  function hideStatus() {
-    if (reserveSpace) status.style.visibility = 'hidden';
-    else status.style.display = 'none';
-  }
-  function showStatus() {
-    if (reserveSpace) status.style.visibility = 'visible';
-    else status.style.display = 'block';
-  }
-
   startTimeField.value = Date.now();
 
   function resetButton() {
@@ -171,7 +157,7 @@ function setupNewsletterForm(config) {
     submitBtn.style.opacity = '0.6';
     submitBtn.style.cursor = 'default';
     submitBtn.textContent = '...';
-    hideStatus();
+    status.style.display = 'none';
 
     // Safety net: force a reset after 12 seconds no matter what, in
     // case the Worker's response never arrives at all.
@@ -179,7 +165,7 @@ function setupNewsletterForm(config) {
       resetButton();
       status.textContent = 'Нещо се обърка - опитай отново.';
       status.style.color = '#e05a4e';
-      showStatus();
+      status.style.display = 'block';
     }, 12000);
   });
 
@@ -198,11 +184,11 @@ function setupNewsletterForm(config) {
       startTimeField.value = Date.now();
       status.textContent = 'Провери имейла си, за да потвърдиш абонамента!';
       status.style.color = '';
-      showStatus();
+      status.style.display = 'block';
     } else {
       status.textContent = 'Нещо се обърка: ' + (event.data.error || 'моля опитай отново');
       status.style.color = '#e05a4e';
-      showStatus();
+      status.style.display = 'block';
     }
   });
 }
@@ -548,8 +534,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     startTimeId: 'homeNewsletterStartTime',
     submitBtnId: 'homeNewsletterSubmitBtn',
     statusId: 'homeNewsletterStatus',
-    iframeId: 'home_newsletter_hidden_iframe',
-    reserveSpace: true
+    iframeId: 'home_newsletter_hidden_iframe'
   });
 
   // Toggles the "floating popup" header state once scrolled past the

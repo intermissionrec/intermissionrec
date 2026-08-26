@@ -525,7 +525,10 @@ main {
    the layout-shift problem the reservation solves - the footer
    modal's own status message doesn't need this. */
 #homeNewsletterStatus {
-  min-height: 40px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
 }
 
 .footer-top {
@@ -1197,10 +1200,7 @@ html, body { height: 100%; }
 .home-newsletter-form-wrap {
   flex: 1 1 420px;
   max-width: 480px;
-  align-self: flex-start;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  position: relative;
 }
 
 .home-newsletter-form {
