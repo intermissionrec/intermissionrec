@@ -145,21 +145,23 @@
             <h2>Бюлетин</h2>
             <p>Получавай известия за нова музика и новини от INTER(MISSION).</p>
           </div>
-          <form id="homeNewsletterForm"
-                action="https://mail.intermissionrec.com/newsletter/subscribe"
-                method="POST"
-                target="home_newsletter_hidden_iframe"
-                class="home-newsletter-form">
-            <input type="email" name="email" placeholder="Твоят имейл" required>
+          <div class="home-newsletter-form-wrap">
+            <form id="homeNewsletterForm"
+                  action="https://mail.intermissionrec.com/newsletter/subscribe"
+                  method="POST"
+                  target="home_newsletter_hidden_iframe"
+                  class="home-newsletter-form">
+              <input type="email" name="email" placeholder="Твоят имейл" required>
 
-            <!-- Honeypot field - hidden from real users, bots usually fill it anyway -->
-            <input type="text" name="website" style="position:absolute; left:-9999px;" tabindex="-1" autocomplete="off">
-            <input type="hidden" name="startTime" id="homeNewsletterStartTime" value="">
+              <!-- Honeypot field - hidden from real users, bots usually fill it anyway -->
+              <input type="text" name="website" style="position:absolute; left:-9999px;" tabindex="-1" autocomplete="off">
+              <input type="hidden" name="startTime" id="homeNewsletterStartTime" value="">
 
-            <button type="submit" class="platform-link" id="homeNewsletterSubmitBtn">Абонирай се</button>
-          </form>
-          <iframe name="home_newsletter_hidden_iframe" id="home_newsletter_hidden_iframe" style="display:none;"></iframe>
-          <p id="homeNewsletterStatus" class="newsletter-status" style="display:none;"></p>
+              <button type="submit" class="platform-link" id="homeNewsletterSubmitBtn">Абонирай се</button>
+            </form>
+            <iframe name="home_newsletter_hidden_iframe" id="home_newsletter_hidden_iframe" style="display:none;"></iframe>
+            <p id="homeNewsletterStatus" class="newsletter-status" style="visibility:hidden;"></p>
+          </div>
         </div>
       </section>
     </main>

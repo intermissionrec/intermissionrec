@@ -157,7 +157,7 @@ function setupNewsletterForm(config) {
     submitBtn.style.opacity = '0.6';
     submitBtn.style.cursor = 'default';
     submitBtn.textContent = '...';
-    status.style.display = 'none';
+    status.style.visibility = 'hidden';
 
     // Safety net: force a reset after 12 seconds no matter what, in
     // case the Worker's response never arrives at all.
@@ -165,7 +165,7 @@ function setupNewsletterForm(config) {
       resetButton();
       status.textContent = 'Нещо се обърка - опитай отново.';
       status.style.color = '#e05a4e';
-      status.style.display = 'block';
+      status.style.visibility = 'visible';
     }, 12000);
   });
 
@@ -184,11 +184,11 @@ function setupNewsletterForm(config) {
       startTimeField.value = Date.now();
       status.textContent = 'Провери имейла си, за да потвърдиш абонамента!';
       status.style.color = '';
-      status.style.display = 'block';
+      status.style.visibility = 'visible';
     } else {
       status.textContent = 'Нещо се обърка: ' + (event.data.error || 'моля опитай отново');
       status.style.color = '#e05a4e';
-      status.style.display = 'block';
+      status.style.visibility = 'visible';
     }
   });
 }
