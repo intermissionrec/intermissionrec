@@ -865,6 +865,14 @@ html, body { height: 100%; }
     height: 100%;
     display: flex;
   }
+
+  /* body.magazin .page: same reasoning as body.home above - the
+     store's product grid can grow past one viewport as items are
+     added, so (unlike the fixed-count artists/music/contacts grids)
+     it needs to scroll naturally rather than clip at 100vh. */
+  body.magazin .page {
+    overflow: visible;
+  }
 }
 
 @media (max-width: 919.98px) {
@@ -1261,6 +1269,91 @@ html, body { height: 100%; }
 
   .home-newsletter-form input[type="email"] {
     flex: 0 0 auto;
+  }
+}
+
+/* ── Magazin (store) page ─────────────────────────────────────
+   Product grid backed entirely by Payhip's own hosted checkout - each
+   card's buy button is Payhip's embed anchor (theme "none", so it
+   renders as a plain link and picks up .platform-link's own styling
+   like every other button on the site) rather than a custom cart.
+   No JS of ours is involved in the purchase flow at all. */
+.magazin-band {
+  width: 100%;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+  padding: 96px 20px 120px;
+}
+
+.magazin-inner {
+  width: min(100%, 1100px);
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.magazin-heading h1 {
+  margin: 0 0 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  line-height: 1.05;
+  font-weight: 700;
+}
+
+.magazin-heading p {
+  margin: 0;
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.magazin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.magazin-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.magazin-card-image {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background-color: var(--panel);
+  background-image: var(--product-image);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+.magazin-card-title {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.magazin-card-price {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+@media (max-width: 919.98px) {
+  .magazin-band {
+    padding: 64px 20px 80px;
   }
 }
 
