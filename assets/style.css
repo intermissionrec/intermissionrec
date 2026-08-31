@@ -1312,7 +1312,7 @@ button.platform-link {
 
 .magazin-band {
   width: 100%;
-  background: var(--bg);
+  background: var(--bg-alt);
   display: flex;
   justify-content: center;
   padding: 96px 20px 120px;
