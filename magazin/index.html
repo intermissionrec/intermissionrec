@@ -34,12 +34,12 @@
   <div id="pageTransitionOverlay" class="page-transition-overlay"></div>
   <div class="page">
     <div data-include="../components/header.html"></div>
-
+ 
     <main>
       <section class="magazin-band">
         <div class="magazin-inner">
           <div id="checkoutBanner" class="checkout-banner" style="display:none;"></div>
-
+ 
           <div class="magazin-heading">
             <div class="magazin-heading-text">
               <h1>Магазин</h1>
@@ -47,7 +47,7 @@
             </div>
             <button type="button" id="cartToggleBtn" class="magazin-cart-btn platform-link">Кошница (<span id="cartCount">0</span>)</button>
           </div>
-
+ 
           <!--
             SECTIONS + ITEMS ARE MANAGED FROM THE APP NOW
             ──────────────────────────────────────────────
@@ -57,7 +57,7 @@
             use the Sections/Items editors, then Publish Web Store
             Update. Don't hand-edit the structure in here; anything
             you type will just be overwritten on the next publish.
-
+ 
             Cart + checkout are Stripe-direct, no third-party cart
             platform involved. Each item below is a plain
             button.magazin-add-to-cart carrying data-item-id; the
@@ -76,7 +76,7 @@
             Coupons/Promotion Codes API directly - no HTML involved),
             and are entered by the shopper on Stripe's own hosted
             Checkout page.
-
+ 
             This page currently has NO link in the site nav (by
             design, for now) - it's only reachable at /magazin
             directly. Add <a href="../magazin">Магазин</a> to
@@ -86,7 +86,7 @@
           <div class="magazin-sections">
 <!-- MAGAZIN:SECTIONS:START -->
       <script type="application/json" id="magazin-catalog">{"items":{"leta-siren-do-kraq":{"name":"Leta Siren - До Края (сингъл)","price":1,"image":"../assets/images/magazin/20260831102849-leta-siren-do-kraya-singal.jpg","digital":false}}}</script>
-
+ 
       <section class="magazin-section" data-section-id="merch">
         <h2 class="magazin-section-title">Дигитална музика</h2>
         <div class="magazin-grid">
@@ -103,10 +103,10 @@
         </div>
       </section>
     </main>
-
+ 
     <div data-include="../components/footer.html"></div>
   </div>
-
+ 
   <!-- Cart drawer - hidden by default, toggled by #cartToggleBtn.
        Rendered entirely by the inline script below from the cart
        kept in localStorage + the embedded #magazin-catalog block
@@ -130,10 +130,10 @@
       </div>
     </div>
   </div>
-
+ 
   <script type="module" src="../assets/logo3d.js"></script>
   <script src="../assets/script.js" defer></script>
-
+ 
   <!-- Cart + checkout logic - Stripe-direct, no third-party cart
        platform. Reads the embedded #magazin-catalog JSON block for
        names/prices, keeps the cart itself in localStorage, and on
@@ -150,10 +150,10 @@
     } catch (e) {
       console.error('Magazin catalog parse failed', e);
     }
-
+ 
     var CHECKOUT_URL = 'https://mail.intermissionrec.com/shop/checkout';
     var CART_KEY = 'intermission_cart';
-
+ 
     function loadCart() {
       try {
         var raw = localStorage.getItem(CART_KEY);
@@ -163,7 +163,7 @@
         return {};
       }
     }
-
+ 
     function saveCart() {
       try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {}
       // Keeps the header nav's cart badge (present on every page,
@@ -172,33 +172,33 @@
       // for the tab/page that made the write itself, only others.
       if (window.updateNavCartCount) window.updateNavCartCount();
     }
-
+ 
     var cart = loadCart();
-
+ 
     function formatEur(amount) {
       var fixed = amount.toFixed(2);
       return (fixed.slice(-3) === '.00' ? fixed.slice(0, -3) : fixed) + ' €';
     }
-
+ 
     function cartIds() {
       return Object.keys(cart).filter(function (id) { return cart[id] > 0 && CATALOG[id]; });
     }
-
+ 
     function cartCount() {
       return cartIds().reduce(function (sum, id) { return sum + cart[id]; }, 0);
     }
-
+ 
     function cartTotal() {
       return cartIds().reduce(function (sum, id) { return sum + CATALOG[id].price * cart[id]; }, 0);
     }
-
+ 
     function renderCart() {
       var countEl = document.getElementById('cartCount');
       if (countEl) countEl.textContent = cartCount();
-
+ 
       var listEl = document.getElementById('cartItemsList');
       var ids = cartIds();
-
+ 
       if (listEl) {
         if (ids.length === 0) {
           listEl.innerHTML = '<p class="cart-empty">Кошницата е празна.</p>';
@@ -224,14 +224,14 @@
           });
         }
       }
-
+ 
       var totalEl = document.getElementById('cartTotal');
       if (totalEl) totalEl.textContent = formatEur(cartTotal());
-
+ 
       var checkoutBtn = document.getElementById('cartCheckoutBtn');
       if (checkoutBtn) checkoutBtn.disabled = ids.length === 0;
     }
-
+ 
     function addToCart(id) {
       if (!CATALOG[id]) return;
       cart[id] = (cart[id] || 0) + 1;
@@ -239,17 +239,22 @@
       renderCart();
       openCart();
     }
-
+ 
     function openCart() {
       var overlay = document.getElementById('cartOverlay');
       if (overlay) overlay.style.display = 'flex';
     }
-
+    // Exposed globally so the header nav's cart button (present on this
+    // page too, via header.html) can open this exact drawer directly
+    // when clicked while already here, instead of it being a dead
+    // same-page nav link with nothing to do.
+    window.openMagazinCart = openCart;
+ 
     function closeCart() {
       var overlay = document.getElementById('cartOverlay');
       if (overlay) overlay.style.display = 'none';
     }
-
+ 
     document.addEventListener('click', function (e) {
       var addBtn = e.target.closest('.magazin-add-to-cart');
       if (addBtn) {
@@ -257,7 +262,7 @@
         addToCart(addBtn.getAttribute('data-item-id'));
         return;
       }
-
+ 
       var qtyBtn = e.target.closest('.cart-qty-btn, .cart-remove-btn');
       if (qtyBtn) {
         var id = qtyBtn.getAttribute('data-id');
@@ -270,30 +275,30 @@
         renderCart();
         return;
       }
-
+ 
       if (e.target.closest('#cartToggleBtn')) {
         e.preventDefault();
         openCart();
         return;
       }
-
+ 
       if (e.target.id === 'cartCloseBtn' || e.target.id === 'cartOverlay') {
         closeCart();
         return;
       }
     });
-
+ 
     var checkoutBtn = document.getElementById('cartCheckoutBtn');
     if (checkoutBtn) {
       checkoutBtn.addEventListener('click', function () {
         var ids = cartIds();
         if (ids.length === 0) return;
-
+ 
         var statusEl = document.getElementById('cartStatus');
         checkoutBtn.disabled = true;
         checkoutBtn.textContent = 'Един момент...';
         if (statusEl) statusEl.style.display = 'none';
-
+ 
         fetch(CHECKOUT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -319,12 +324,18 @@
           });
       });
     }
-
+ 
     // Success/cancel banner after redirect back from Stripe - the
     // cart is only cleared on genuine success, and the query params
     // are stripped afterward so a page refresh doesn't re-show it.
     var params = new URLSearchParams(window.location.search);
     var checkoutState = params.get('checkout');
+    // Set by the header nav's cart button (../magazin?cart=open) on
+    // every other page, so landing here opens the drawer immediately
+    // instead of leaving the shopper to find the toggle button above.
+    var shouldOpenCart = params.get('cart') === 'open';
+    var paramsChanged = false;
+ 
     if (checkoutState === 'success' || checkoutState === 'canceled') {
       var bannerEl = document.getElementById('checkoutBanner');
       if (bannerEl) {
@@ -342,15 +353,25 @@
         saveCart();
       }
       params.delete('checkout');
+      paramsChanged = true;
+    }
+ 
+    if (shouldOpenCart) {
+      params.delete('cart');
+      paramsChanged = true;
+    }
+ 
+    if (paramsChanged) {
       var newQuery = params.toString();
       var newUrl = window.location.pathname + (newQuery ? '?' + newQuery : '') + window.location.hash;
       window.history.replaceState({}, '', newUrl);
     }
-
+ 
     renderCart();
+    if (shouldOpenCart) openCart();
   })();
   </script>
-
+ 
   <!-- Lenis smooth scroll - scoped to the homepage and shop page for
        now, not yet rolled out site-wide. autoRaf handles the animation
        loop internally; reduced-motion is respected automatically. -->

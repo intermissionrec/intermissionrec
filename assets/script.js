@@ -104,6 +104,29 @@ window.addEventListener('storage', (e) => {
   if (e.key === CART_STORAGE_KEY) updateNavCartCount();
 });
 
+// Everywhere else, the nav cart link just navigates to /magazin?cart=open
+// as a normal nav link (setupPageTransitionLinks handles the transition
+// animation for that on its own) - the shop page's own inline script
+// checks for that query param on load and opens its cart drawer. But
+// while already ON the shop page, that same-page navigation would
+// otherwise be a no-op (setupPageTransitionLinks deliberately swallows
+// nav clicks back to the current page), so the button would do nothing
+// at all - this opens the drawer directly instead, exactly like clicking
+// the shop page's own cart button would.
+function setupNavCartLink() {
+  const link = document.querySelector('.nav a.nav-cart');
+  if (!link) return;
+  link.addEventListener('click', (e) => {
+    if (!document.body.classList.contains('magazin')) return;
+    if (typeof window.openMagazinCart !== 'function') return;
+    // let ctrl/cmd/shift-click and middle-click open in a new tab
+    // normally, same exception setupPageTransitionLinks makes below
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    window.openMagazinCart();
+  });
+}
+
 // Nav + active section logic
 let navLinks = [];
 let sections = [];
@@ -571,6 +594,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupMobileNav();
   setActiveLink();
   updateNavCartCount();
+  setupNavCartLink();
   setupNewsletterModal();
   setupNewsletterForm({
     formId: 'newsletterForm',

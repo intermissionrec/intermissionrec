@@ -127,6 +127,10 @@ div[data-include*="header.html"] {
   display: flex;
   justify-content: center;
   padding: 0px 20px;
+  /* Positioned so .nav-cart (see below) can pin itself to this bar's
+     own right edge via position: absolute, regardless of where the
+     narrower, centered .nav content box happens to sit inside it. */
+  position: relative;
 }
 
 /* Floating "popup window" state once scrolled past the very top -
@@ -2406,25 +2410,30 @@ button.platform-link {
 }
 
 /* ── Cart nav icon - site-wide, present on every page (not just
-   /magazin) via header.html. `margin-left: auto` is what actually
-   pins it to the right edge of .nav: the container itself still has
-   justify-content: center, but an auto margin on the last item
-   consumes all the leftover space before it, which both pushes this
-   item flush right AND left-packs everything before it as a group -
-   this is the standard flex trick for "centered/grouped nav + one
-   item pinned to the far end" without changing .nav's own layout
-   rule. Reset back to a normal stacked link on mobile below, where
-   the nav becomes a vertical list and there's no "right edge" to pin
+   /magazin) via header.html. Deliberately NOT part of .nav's own
+   centered flex group - it's position: absolute, pinned to .nav-wrap's
+   own right edge (the actual full-width bar, not the narrower
+   min(100%, var(--content)) box .nav centers itself in), so it stays
+   put at the bar's true right end with a fixed 24px gap regardless of
+   viewport width, and the remaining links (Артисти..Discord) get
+   centered as their own group with no gap left behind for this one.
+   .nav itself is left position: static on purpose, so this reaches up
+   to .nav-wrap (the nearest positioned ancestor) instead of .nav.
+   Reset back to a normal in-flow stacked link on mobile below, where
+   the nav becomes a vertical list and there's no "bar edge" to pin
    to. The badge count itself is kept in sync from localStorage by
    updateNavCartCount() in script.js - same 'intermission_cart' key
    /magazin's own cart script reads and writes. */
 .nav a.nav-cart {
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
   gap: 6px;
   line-height: 1;
   height: 36px;
-  margin-left: auto;
 }
 
 .nav a.nav-cart svg {
@@ -2543,10 +2552,12 @@ img {
   }
 
   /* The mobile menu is a plain vertical stack (flex-direction: column),
-     with no "right edge" to pin the cart link to - undo the desktop-only
-     auto margin so it just sits in the list like every other link. */
+     with no "bar edge" to pin the cart link to - undo the desktop-only
+     absolute positioning so it just sits in the list like every other
+     link, in normal document flow. */
   .nav-wrap .nav a.nav-cart {
-    margin-left: 0;
+    position: static;
+    transform: none;
   }
 }
 
