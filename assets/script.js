@@ -69,7 +69,16 @@ async function includeHtmlFragments() {
 // time the drawer is actually opened, and cached in memory for the
 // rest of the page's lifetime so it's never fetched twice.
 const CART_STORAGE_KEY = 'intermission_cart';
-const CHECKOUT_URL = 'https://mail.intermissionrec.com/shop/checkout';
+// Both go through the Workers Route on the main domain now (see
+// worker.js's SHOP_BASE_URL comment) rather than mail.intermissionrec.com
+// directly - kept as two separate constants since they're genuinely
+// different endpoints/flows, not just a naming difference.
+const CHECKOUT_URL = 'https://intermissionrec.com/shop/checkout';
+// Cash-on-delivery ("наложен платеж") - a site-level alternative to
+// Stripe entirely, only ever offered when every item in the cart is
+// physical (see the allPhysical check in renderCartDrawer below) and
+// re-validated server-side regardless of what this page sends.
+const COD_CHECKOUT_URL = 'https://intermissionrec.com/shop/cod-checkout';
 const MAGAZIN_URL = '/magazin';
 
 let cart = loadCart();
@@ -255,8 +264,41 @@ function renderCartDrawer() {
 
     if (checkoutBtn) checkoutBtn.disabled = ids.length === 0;
     if (clearBtn) clearBtn.disabled = ids.length === 0;
+
+    // Cash-on-delivery is only ever offered when EVERY item in the
+    // cart is physical - never for a digital-only or mixed cart, per
+    // request. Whenever that stops being true (an item's added/removed
+    // and the cart is no longer all-physical), force the selection
+    // back to card and hide the COD fields so a half-filled form can't
+    // linger invisibly and get submitted later against a cart that no
+    // longer qualifies - the server re-checks this independently
+    // anyway (handleShopCodCheckout in worker.js), but there's no
+    // reason to let the UI dangle in an invalid state either.
+    const paymentSection = document.getElementById('cartPaymentMethod');
+    const codFields = document.getElementById('cartCodFields');
+    const allPhysical = ids.length > 0 && ids.every(id => !CATALOG[id].digital);
+    if (paymentSection) {
+      paymentSection.style.display = allPhysical ? 'flex' : 'none';
+      if (!allPhysical) {
+        const cardRadio = document.getElementById('cartPayCard');
+        const codRadio = document.getElementById('cartPayCod');
+        if (cardRadio) cardRadio.checked = true;
+        if (codRadio) codRadio.checked = false;
+        if (codFields) codFields.style.display = 'none';
+      }
+    }
   });
 }
+
+// Toggles the COD mini-form as soon as the shopper picks either radio -
+// delegated on document since the drawer markup (footer.html) can load
+// after this script runs, same reasoning as the click delegation below.
+document.addEventListener('change', (e) => {
+  if (e.target && e.target.name === 'cartPaymentMethod') {
+    const codFields = document.getElementById('cartCodFields');
+    if (codFields) codFields.style.display = e.target.value === 'cod' ? 'flex' : 'none';
+  }
+});
 
 function addToCart(id) {
   ensureCatalog((CATALOG) => {
@@ -352,14 +394,58 @@ function setupCartCheckout() {
       if (ids.length === 0) return;
 
       const statusEl = document.getElementById('cartStatus');
+      const showError = (msg) => {
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = 'Плащане';
+        if (statusEl) {
+          statusEl.textContent = msg;
+          statusEl.style.display = 'block';
+        }
+      };
+
+      // Only actually COD when the payment-method section is both
+      // present AND visible (renderCartDrawer hides it and resets the
+      // radio back to card the moment the cart isn't all-physical) -
+      // this mirrors the server's own check rather than trusting the
+      // radio's checked state in isolation.
+      const paymentSection = document.getElementById('cartPaymentMethod');
+      const codRadio = document.getElementById('cartPayCod');
+      const isCod = !!(paymentSection && paymentSection.style.display !== 'none' && codRadio && codRadio.checked);
+
+      let url = CHECKOUT_URL;
+      let payload = { items: ids.map(id => ({ id: id, qty: cart[id] })) };
+
+      if (isCod) {
+        const val = (elId) => ((document.getElementById(elId) || {}).value || '').trim();
+        const name = val('cartCodName');
+        const email = val('cartCodEmail');
+        const phone = val('cartCodPhone');
+        const line1 = val('cartCodLine1');
+        const line2 = val('cartCodLine2');
+        const city = val('cartCodCity');
+        const postalCode = val('cartCodPostal');
+
+        if (!name || !email || !phone || !line1 || !city || !postalCode) {
+          showError('Моля, попълни всички задължителни полета за наложен платеж (име, имейл, телефон, адрес, град, пощ. код).');
+          return;
+        }
+
+        url = COD_CHECKOUT_URL;
+        payload = {
+          items: ids.map(id => ({ id: id, qty: cart[id] })),
+          customer: { name: name, email: email, phone: phone },
+          shipping: { line1: line1, line2: line2, city: city, postalCode: postalCode }
+        };
+      }
+
       checkoutBtn.disabled = true;
       checkoutBtn.textContent = 'Един момент...';
       if (statusEl) statusEl.style.display = 'none';
 
-      fetch(CHECKOUT_URL, {
+      fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: ids.map(id => ({ id: id, qty: cart[id] })) })
+        body: JSON.stringify(payload)
       })
         .then(res => res.json().then(data => ({ ok: res.ok, data: data })))
         .then(result => {
@@ -370,12 +456,7 @@ function setupCartCheckout() {
           }
         })
         .catch(err => {
-          checkoutBtn.disabled = false;
-          checkoutBtn.textContent = 'Плащане';
-          if (statusEl) {
-            statusEl.textContent = 'Грешка: ' + err.message;
-            statusEl.style.display = 'block';
-          }
+          showError('Грешка: ' + err.message);
         });
     });
   });

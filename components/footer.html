@@ -33,7 +33,16 @@
      logic in script.js, which reads/writes the 'intermission_cart'
      localStorage key and sources item names/prices from the
      #magazin-catalog block embedded in /magazin's own page (fetched
-     on demand when needed from a page that isn't /magazin itself). -->
+     on demand when needed from a page that isn't /magazin itself).
+
+     #cartPaymentMethod / #cartCodFields: cash-on-delivery option.
+     Only ever shown when every item in the cart is physical (toggled
+     by renderCartDrawer in script.js - hidden by default here since
+     the cart starts empty on every page load); the radios' change
+     handler and the COD form's validation/submit branching also live
+     in script.js. The server (handleShopCodCheckout in worker.js)
+     re-checks the physical-only rule independently, so this markup
+     being hidden is a UX nicety, not the enforcement itself. -->
 <div id="cartOverlay" class="cart-overlay" style="display:none;">
   <div class="cart-drawer">
     <div class="cart-drawer-header">
@@ -47,6 +56,31 @@
         <span>Общо</span>
         <span id="cartTotal">0 €</span>
       </div>
+
+      <div id="cartPaymentMethod" class="cart-payment-method" style="display:none;">
+        <label class="cart-payment-option">
+          <input type="radio" name="cartPaymentMethod" id="cartPayCard" value="card" checked>
+          <span>Плащане с карта</span>
+        </label>
+        <label class="cart-payment-option">
+          <input type="radio" name="cartPaymentMethod" id="cartPayCod" value="cod">
+          <span>Наложен платеж</span>
+        </label>
+      </div>
+
+      <div id="cartCodFields" class="cart-cod-fields" style="display:none;">
+        <input type="text" id="cartCodName" class="cart-cod-input" placeholder="Три имена" autocomplete="name">
+        <input type="email" id="cartCodEmail" class="cart-cod-input" placeholder="Имейл" autocomplete="email">
+        <input type="tel" id="cartCodPhone" class="cart-cod-input" placeholder="Телефон" autocomplete="tel">
+        <input type="text" id="cartCodLine1" class="cart-cod-input" placeholder="Адрес (улица, номер)" autocomplete="address-line1">
+        <input type="text" id="cartCodLine2" class="cart-cod-input" placeholder="Адрес - продължение (по избор)" autocomplete="address-line2">
+        <div class="cart-cod-row">
+          <input type="text" id="cartCodCity" class="cart-cod-input" placeholder="Град" autocomplete="address-level2">
+          <input type="text" id="cartCodPostal" class="cart-cod-input" placeholder="Пощ. код" autocomplete="postal-code">
+        </div>
+        <p class="cart-cod-note">Само за България. Плащаш в брой на куриера при получаване на пратката.</p>
+      </div>
+
       <button type="button" id="cartCheckoutBtn" class="platform-link cart-checkout-btn">Плащане</button>
       <p id="cartStatus" class="cart-status" style="display:none;"></p>
     </div>

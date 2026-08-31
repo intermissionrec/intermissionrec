@@ -1721,6 +1721,75 @@ body.magazin-product .magazin-band {
   font-size: 17px;
 }
 
+/* Cash-on-delivery: payment-method choice + COD mini-form, both
+   hidden by default and only shown for an all-physical cart (toggled
+   in script.js's renderCartDrawer). Kept visually within the same
+   dark-panel/rounded-input language as .newsletter-form above. */
+.cart-payment-method {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cart-payment-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.cart-payment-option input[type="radio"] {
+  accent-color: var(--text);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.cart-cod-fields {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cart-cod-row {
+  display: flex;
+  gap: 10px;
+}
+
+.cart-cod-row .cart-cod-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-cod-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'Rubik', sans-serif;
+  font-size: 14px;
+}
+
+.cart-cod-input::placeholder {
+  color: var(--muted);
+}
+
+.cart-cod-input:focus {
+  outline: none;
+  border-color: rgba(255,255,255,.3);
+}
+
+.cart-cod-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .cart-checkout-btn {
   width: 100%;
   justify-content: center;
