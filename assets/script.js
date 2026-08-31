@@ -55,75 +55,338 @@ async function includeHtmlFragments() {
 
 }
 
-// ── Site-wide cart badge (nav) ──────────────────────────────────
-// The cart itself lives in localStorage under 'intermission_cart' -
-// the exact same key /magazin's own inline cart script reads and
-// writes. This just sums quantities across that raw object and
-// reflects the total in the nav badge, on every page (header.html is
-// included everywhere, not just on the shop page itself). It
-// deliberately doesn't validate ids against the live catalog, which
-// would mean fetching /magazin on every single page just for a
-// count - that reconciliation already happens for real on the shop
-// page itself when it builds the cart drawer.
+// ── Site-wide cart (nav badge + drawer) ─────────────────────────
+// Stripe-direct, no third-party cart platform. The cart itself lives
+// in localStorage under 'intermission_cart', and the drawer markup
+// (#cartOverlay, in footer.html) is present on every page via
+// data-include - not just /magazin - so the nav's cart icon can open
+// it in place wherever you're browsing, instead of navigating you to
+// the shop page first. Item names/prices come from the
+// #magazin-catalog JSON block that's embedded directly in /magazin's
+// own page (managed by the INTER(MISSION) Editor's Web Store tab);
+// on /magazin itself that block is already in the DOM, read
+// synchronously - everywhere else it's fetched on demand, the first
+// time the drawer is actually opened, and cached in memory for the
+// rest of the page's lifetime so it's never fetched twice.
 const CART_STORAGE_KEY = 'intermission_cart';
+const CHECKOUT_URL = 'https://mail.intermissionrec.com/shop/checkout';
+const MAGAZIN_URL = '../magazin';
 
-function readCartCount() {
+let cart = loadCart();
+let magazinCatalog = null; // {id: {name, price, image, digital}} once loaded - null until then
+
+function loadCart() {
   try {
     const raw = localStorage.getItem(CART_STORAGE_KEY);
-    const cart = raw ? JSON.parse(raw) : {};
-    if (!cart || typeof cart !== 'object') return 0;
-    return Object.values(cart).reduce((sum, qty) => {
-      const n = Number(qty);
-      return sum + (n > 0 ? n : 0);
-    }, 0);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return (parsed && typeof parsed === 'object') ? parsed : {};
   } catch (e) {
-    return 0;
+    return {};
   }
 }
 
-function updateNavCartCount() {
-  const badge = document.getElementById('navCartCount');
-  const link = document.querySelector('.nav a.nav-cart');
-  if (!badge) return;
-  const count = readCartCount();
-  badge.textContent = count;
-  if (link) link.classList.toggle('has-items', count > 0);
+function saveCart() {
+  try { localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart)); } catch (e) {}
+  updateCartBadges();
 }
-// Exposed globally so /magazin's own inline cart script can call it
-// directly after every localStorage write, keeping the header badge
-// in sync immediately on that same page - not just on the next full
-// page load elsewhere on the site.
-window.updateNavCartCount = updateNavCartCount;
+
+function formatEur(amount) {
+  const fixed = amount.toFixed(2);
+  return (fixed.slice(-3) === '.00' ? fixed.slice(0, -3) : fixed) + ' €';
+}
+
+// Raw quantity total, no catalog needed - safe to call on every page
+// on every load. Used for both the nav badge and /magazin's own
+// heading button, so they always agree with each other.
+function readCartCount() {
+  return Object.values(cart).reduce((sum, qty) => {
+    const n = Number(qty);
+    return sum + (n > 0 ? n : 0);
+  }, 0);
+}
+
+function updateCartBadges() {
+  const count = readCartCount();
+  const navBadge = document.getElementById('navCartCount');
+  const navLink = document.querySelector('.nav a.nav-cart');
+  if (navBadge) navBadge.textContent = count;
+  if (navLink) navLink.classList.toggle('has-items', count > 0);
+
+  // /magazin's own "Кошница (n)" button near the heading, if present
+  // on this page - kept in sync the same way, no separate script needed.
+  const pageBadge = document.getElementById('cartCount');
+  if (pageBadge) pageBadge.textContent = count;
+}
+// Exposed for the rare case something outside this file needs to
+// force a badge refresh (none currently, but cheap to keep public).
+window.updateNavCartCount = updateCartBadges;
 
 // Catches the cart changing in *another* tab/page of the site (the
 // 'storage' event never fires for the tab that made the write
-// itself, only other same-origin tabs/windows) - same-tab updates on
-// /magazin are handled directly via the window.updateNavCartCount()
-// call above instead.
+// itself, only other same-origin tabs/windows) - same-tab updates go
+// through saveCart() -> updateCartBadges() directly instead.
 window.addEventListener('storage', (e) => {
-  if (e.key === CART_STORAGE_KEY) updateNavCartCount();
+  if (e.key === CART_STORAGE_KEY) {
+    cart = loadCart();
+    updateCartBadges();
+    renderCartDrawer();
+  }
 });
 
-// Everywhere else, the nav cart link just navigates to /magazin?cart=open
-// as a normal nav link (setupPageTransitionLinks handles the transition
-// animation for that on its own) - the shop page's own inline script
-// checks for that query param on load and opens its cart drawer. But
-// while already ON the shop page, that same-page navigation would
-// otherwise be a no-op (setupPageTransitionLinks deliberately swallows
-// nav clicks back to the current page), so the button would do nothing
-// at all - this opens the drawer directly instead, exactly like clicking
-// the shop page's own cart button would.
+// Parses the #magazin-catalog block if it's present on THIS page
+// (only true on /magazin itself) - returns null everywhere else.
+function getInlineCatalog() {
+  const el = document.getElementById('magazin-catalog');
+  if (!el) return null;
+  try {
+    const parsed = JSON.parse(el.textContent);
+    return (parsed && parsed.items) || {};
+  } catch (e) {
+    console.error('Magazin catalog parse failed', e);
+    return {};
+  }
+}
+
+// Resolves the catalog, synchronously when possible (cached, or this
+// is /magazin itself) and via a background fetch of /magazin
+// otherwise - callback runs exactly once either way.
+function ensureCatalog(callback) {
+  if (magazinCatalog) { callback(magazinCatalog); return; }
+  const inline = getInlineCatalog();
+  if (inline) { magazinCatalog = inline; callback(magazinCatalog); return; }
+  fetch(MAGAZIN_URL, { cache: 'no-store' })
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to load shop catalog: ' + res.status);
+      return res.text();
+    })
+    .then(html => {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const el = doc.getElementById('magazin-catalog');
+      const parsed = el ? JSON.parse(el.textContent) : null;
+      magazinCatalog = (parsed && parsed.items) || {};
+      callback(magazinCatalog);
+    })
+    .catch(err => {
+      console.error('Could not load shop catalog for cart', err);
+      magazinCatalog = magazinCatalog || {};
+      callback(magazinCatalog);
+    });
+}
+
+function cartIdsFromCatalog(CATALOG) {
+  return Object.keys(cart).filter(id => cart[id] > 0 && CATALOG[id]);
+}
+
+function renderCartDrawer() {
+  const listEl = document.getElementById('cartItemsList');
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.getElementById('cartCheckoutBtn');
+  // None of the drawer's own elements exist on this page yet (footer
+  // hasn't loaded) or ever will (very early in page load) - nothing to do.
+  if (!listEl && !totalEl && !checkoutBtn) return;
+
+  ensureCatalog((CATALOG) => {
+    const ids = cartIdsFromCatalog(CATALOG);
+
+    if (listEl) {
+      if (ids.length === 0) {
+        listEl.innerHTML = '<p class="cart-empty">Кошницата е празна.</p>';
+      } else {
+        listEl.innerHTML = '';
+        ids.forEach(id => {
+          const product = CATALOG[id];
+          const qty = cart[id];
+          const row = document.createElement('div');
+          row.className = 'cart-item-row';
+          row.innerHTML =
+            '<div class="cart-item-info">' +
+              '<span class="cart-item-name">' + product.name + '</span>' +
+              '<span class="cart-item-price">' + formatEur(product.price) + '</span>' +
+            '</div>' +
+            '<div class="cart-item-qty">' +
+              '<button type="button" class="cart-qty-btn" data-action="dec" data-id="' + id + '" aria-label="Намали">&minus;</button>' +
+              '<span class="cart-qty-value">' + qty + '</span>' +
+              '<button type="button" class="cart-qty-btn" data-action="inc" data-id="' + id + '" aria-label="Увеличи">+</button>' +
+              '<button type="button" class="cart-remove-btn" data-action="remove" data-id="' + id + '">Премахни</button>' +
+            '</div>';
+          listEl.appendChild(row);
+        });
+      }
+    }
+
+    if (totalEl) {
+      const total = ids.reduce((sum, id) => sum + CATALOG[id].price * cart[id], 0);
+      totalEl.textContent = formatEur(total);
+    }
+
+    if (checkoutBtn) checkoutBtn.disabled = ids.length === 0;
+  });
+}
+
+function addToCart(id) {
+  ensureCatalog((CATALOG) => {
+    if (!CATALOG[id]) return;
+    cart[id] = (cart[id] || 0) + 1;
+    saveCart();
+    renderCartDrawer();
+    openCartDrawer();
+  });
+}
+
+function openCartDrawer() {
+  const overlay = document.getElementById('cartOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  renderCartDrawer();
+}
+
+function closeCartDrawer() {
+  const overlay = document.getElementById('cartOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// Delegated so it works regardless of which page's DOM currently has
+// the drawer/grid in it, and regardless of load order between the
+// static page content (e.g. /magazin's own product grid) and the
+// async header/footer fragments.
+document.addEventListener('click', (e) => {
+  const addBtn = e.target.closest('.magazin-add-to-cart');
+  if (addBtn) {
+    e.preventDefault();
+    addToCart(addBtn.getAttribute('data-item-id'));
+    return;
+  }
+
+  const qtyBtn = e.target.closest('.cart-qty-btn, .cart-remove-btn');
+  if (qtyBtn) {
+    const id = qtyBtn.getAttribute('data-id');
+    const action = qtyBtn.getAttribute('data-action');
+    if (action === 'inc') cart[id] = (cart[id] || 0) + 1;
+    if (action === 'dec') cart[id] = Math.max(0, (cart[id] || 0) - 1);
+    if (action === 'remove') cart[id] = 0;
+    if (!cart[id]) delete cart[id];
+    saveCart();
+    renderCartDrawer();
+    return;
+  }
+
+  // /magazin's own heading button - the nav's cart icon is handled
+  // separately below, since it also needs the same-tab-vs-navigate
+  // distinction setupPageTransitionLinks otherwise makes for it.
+  if (e.target.closest('#cartToggleBtn')) {
+    e.preventDefault();
+    openCartDrawer();
+    return;
+  }
+
+  if (e.target.id === 'cartCloseBtn' || e.target.id === 'cartOverlay') {
+    closeCartDrawer();
+    return;
+  }
+});
+
+function setupCartCheckout() {
+  const checkoutBtn = document.getElementById('cartCheckoutBtn');
+  if (!checkoutBtn) return;
+  // Delegated document click above already handles this element once
+  // it exists, but the checkout POST itself needs its own listener
+  // (not just open/close/qty toggling) - attached once footer.html
+  // has actually loaded, same timing as the rest of post-fragment setup.
+  checkoutBtn.addEventListener('click', () => {
+    ensureCatalog((CATALOG) => {
+      const ids = cartIdsFromCatalog(CATALOG);
+      if (ids.length === 0) return;
+
+      const statusEl = document.getElementById('cartStatus');
+      checkoutBtn.disabled = true;
+      checkoutBtn.textContent = 'Един момент...';
+      if (statusEl) statusEl.style.display = 'none';
+
+      fetch(CHECKOUT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: ids.map(id => ({ id: id, qty: cart[id] })) })
+      })
+        .then(res => res.json().then(data => ({ ok: res.ok, data: data })))
+        .then(result => {
+          if (result.ok && result.data && result.data.url) {
+            window.location.href = result.data.url;
+          } else {
+            throw new Error((result.data && result.data.error) || 'Плащането не можа да бъде стартирано.');
+          }
+        })
+        .catch(err => {
+          checkoutBtn.disabled = false;
+          checkoutBtn.textContent = 'Плащане';
+          if (statusEl) {
+            statusEl.textContent = 'Грешка: ' + err.message;
+            statusEl.style.display = 'block';
+          }
+        });
+    });
+  });
+}
+
+// Success/cancel banner after redirect back from Stripe - #checkoutBanner
+// only exists on /magazin, so this is a silent no-op everywhere else.
+// The cart is only cleared on genuine success, and the query param is
+// stripped afterward so a page refresh doesn't re-show it.
+function setupCheckoutBanner() {
+  const bannerEl = document.getElementById('checkoutBanner');
+  if (!bannerEl) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const checkoutState = params.get('checkout');
+  if (checkoutState !== 'success' && checkoutState !== 'canceled') return;
+
+  if (checkoutState === 'success') {
+    bannerEl.textContent = 'Благодарим за поръчката! Провери имейла си за потвърждение (и връзка за изтегляне, ако си купил/а дигитален продукт).';
+    bannerEl.className = 'checkout-banner checkout-banner-success';
+    cart = {};
+    saveCart();
+    renderCartDrawer();
+  } else {
+    bannerEl.textContent = 'Плащането беше отменено - количката ти е запазена.';
+    bannerEl.className = 'checkout-banner checkout-banner-canceled';
+  }
+  bannerEl.style.display = 'block';
+
+  params.delete('checkout');
+  const newQuery = params.toString();
+  const newUrl = window.location.pathname + (newQuery ? '?' + newQuery : '') + window.location.hash;
+  window.history.replaceState({}, '', newUrl);
+}
+
+// Relocates the drawer to a direct child of <body>, same as and for
+// the same reason as the newsletter modal below: escapes any
+// transformed ancestor (Lenis included) that would otherwise trap
+// this position:fixed overlay off-screen instead of covering the
+// real viewport.
+function setupCartDrawer() {
+  const overlay = document.getElementById('cartOverlay');
+  if (!overlay) return;
+  document.body.appendChild(overlay);
+  setupCartCheckout();
+  updateCartBadges();
+}
+
+// The nav's cart icon opens the drawer in place on WHATEVER page
+// you're currently on - never a navigation, even though its href
+// still points at /magazin as a plain-link fallback (no-JS, or a
+// deliberate ctrl/cmd/middle-click to open the shop page itself in a
+// new tab). stopPropagation keeps this same click from also reaching
+// setupPageTransitionLinks' document-level listener below, which
+// would otherwise still navigate away 550ms later even after
+// preventDefault() here already stopped the browser's own default
+// link behavior - preventDefault alone doesn't stop other listeners.
 function setupNavCartLink() {
   const link = document.querySelector('.nav a.nav-cart');
   if (!link) return;
   link.addEventListener('click', (e) => {
-    if (!document.body.classList.contains('magazin')) return;
-    if (typeof window.openMagazinCart !== 'function') return;
-    // let ctrl/cmd/shift-click and middle-click open in a new tab
-    // normally, same exception setupPageTransitionLinks makes below
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
-    window.openMagazinCart();
+    e.stopPropagation();
+    openCartDrawer();
   });
 }
 
@@ -593,8 +856,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   computeNavAndSections();
   setupMobileNav();
   setActiveLink();
-  updateNavCartCount();
+  setupCartDrawer();
   setupNavCartLink();
+  setupCheckoutBanner();
   setupNewsletterModal();
   setupNewsletterForm({
     formId: 'newsletterForm',

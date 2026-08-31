@@ -23,6 +23,35 @@
   </div>
 </div>
 
+<!-- Cart drawer - present on every page (not just /magazin) via this
+     shared footer, so the nav's cart icon can open it in place no
+     matter where you're browsing. Relocated to a direct child of
+     document.body at setup time in script.js, same as the newsletter
+     modal above and for the same reason - escapes any transformed
+     ancestor (Lenis included) that would otherwise trap this
+     position:fixed overlay off-screen. Rendered by the shared cart
+     logic in script.js, which reads/writes the 'intermission_cart'
+     localStorage key and sources item names/prices from the
+     #magazin-catalog block embedded in /magazin's own page (fetched
+     on demand when needed from a page that isn't /magazin itself). -->
+<div id="cartOverlay" class="cart-overlay" style="display:none;">
+  <div class="cart-drawer">
+    <div class="cart-drawer-header">
+      <h2>Кошница</h2>
+      <button type="button" id="cartCloseBtn" class="cart-close" aria-label="Затвори">&times;</button>
+    </div>
+    <div id="cartItemsList" class="cart-items"></div>
+    <div class="cart-drawer-footer">
+      <div class="cart-total-row">
+        <span>Общо</span>
+        <span id="cartTotal">0 €</span>
+      </div>
+      <button type="button" id="cartCheckoutBtn" class="platform-link cart-checkout-btn">Плащане</button>
+      <p id="cartStatus" class="cart-status" style="display:none;"></p>
+    </div>
+  </div>
+</div>
+
 <footer class="footer-top" aria-label="Desktop footer">
   <div class="footer-top-inner">
     <div class="social-left">
