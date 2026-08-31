@@ -30,24 +30,6 @@
   </script>
 </head>
 <body class="magazin">
-  <!-- Snipcart install snippet - must sit right after the opening
-       <body> tag per Snipcart's own docs. It injects its own
-       hidden #snipcart div, loader script and stylesheet the first
-       time the shopper interacts with the page (loadStrategy:
-       "on-user-interaction"), so it costs nothing on first paint.
-       publicApiKey below is a PLACEHOLDER - replace it once with the
-       real public key from your Snipcart dashboard (Account ->
-       API Keys -> Public API Key). The matching SECRET key goes in
-       the INTER(MISSION) Editor's Credentials dialog instead (used
-       only for the Discount Codes manager), never here. -->
-  <script>
-    window.SnipcartSettings = {
-      publicApiKey: "REPLACE_WITH_YOUR_SNIPCART_PUBLIC_API_KEY",
-      loadStrategy: "on-user-interaction",
-      currency: "eur",
-    };
-    (function(){var c,d;(d=(c=window.SnipcartSettings).version)!=null||(c.version="3.0");var s,S;(S=(s=window.SnipcartSettings).timeoutDuration)!=null||(s.timeoutDuration=2750);var l,p;(p=(l=window.SnipcartSettings).domain)!=null||(l.domain="cdn.snipcart.com");var w,u;(u=(w=window.SnipcartSettings).protocol)!=null||(w.protocol="https");var m,g;(g=(m=window.SnipcartSettings).loadCSS)!=null||(m.loadCSS=!0);var y=window.SnipcartSettings.version.includes("v3.0.0-ci")||window.SnipcartSettings.version!="3.0"&&window.SnipcartSettings.version.localeCompare("3.4.0",void 0,{numeric:!0,sensitivity:"base"})===-1,f=["focus","mouseover","touchmove","scroll","keydown"];window.LoadSnipcart=o;document.readyState==="loading"?document.addEventListener("DOMContentLoaded",r):r();function r(){window.SnipcartSettings.loadStrategy?window.SnipcartSettings.loadStrategy==="on-user-interaction"&&(f.forEach(function(t){return document.addEventListener(t,o)}),setTimeout(o,window.SnipcartSettings.timeoutDuration)):o()}var a=!1;function o(){if(a)return;a=!0;let t=document.getElementsByTagName("head")[0],n=document.querySelector("#snipcart"),i=document.querySelector('src[src^="'.concat(window.SnipcartSettings.protocol,"://").concat(window.SnipcartSettings.domain,'"][src$="snipcart.js"]')),e=document.querySelector('link[href^="'.concat(window.SnipcartSettings.protocol,"://").concat(window.SnipcartSettings.domain,'"][href$="snipcart.css"]'));n||(n=document.createElement("div"),n.id="snipcart",n.setAttribute("hidden","true"),document.body.appendChild(n)),h(n),i||(i=document.createElement("script"),i.src="".concat(window.SnipcartSettings.protocol,"://").concat(window.SnipcartSettings.domain,"/themes/v").concat(window.SnipcartSettings.version,"/default/snipcart.js"),i.async=!0,t.appendChild(i)),!e&&window.SnipcartSettings.loadCSS&&(e=document.createElement("link"),e.rel="stylesheet",e.type="text/css",e.href="".concat(window.SnipcartSettings.protocol,"://").concat(window.SnipcartSettings.domain,"/themes/v").concat(window.SnipcartSettings.version,"/default/snipcart.css"),t.prepend(e)),f.forEach(function(v){return document.removeEventListener(v,o)})}function h(t){!y||(t.dataset.apiKey=window.SnipcartSettings.publicApiKey,window.SnipcartSettings.addProductBehavior&&(t.dataset.configAddProductBehavior=window.SnipcartSettings.addProductBehavior),window.SnipcartSettings.modalStyle&&(t.dataset.configModalStyle=window.SnipcartSettings.modalStyle),window.SnipcartSettings.currency&&(t.dataset.currency=window.SnipcartSettings.currency),window.SnipcartSettings.templatesUrl&&(t.dataset.templatesUrl=window.SnipcartSettings.templatesUrl))}})();
-  </script>
   <div id="pageTransitionOverlay" class="page-transition-overlay"></div>
   <div class="page">
     <div data-include="../components/header.html"></div>
@@ -55,12 +37,14 @@
     <main>
       <section class="magazin-band">
         <div class="magazin-inner">
+          <div id="checkoutBanner" class="checkout-banner" style="display:none;"></div>
+
           <div class="magazin-heading">
             <div class="magazin-heading-text">
               <h1>Магазин</h1>
               <p>Официален мърч на INTER(MISSION).</p>
             </div>
-            <button class="snipcart-checkout magazin-cart-btn platform-link">Кошница (<span class="snipcart-items-count">0</span>)</button>
+            <button type="button" id="cartToggleBtn" class="magazin-cart-btn platform-link">Кошница (<span id="cartCount">0</span>)</button>
           </div>
 
           <!--
@@ -73,17 +57,24 @@
             Update. Don't hand-edit the structure in here; anything
             you type will just be overwritten on the next publish.
 
-            Cart + checkout are handled entirely by Snipcart (see the
-            install snippet up in <head>/<body> above) - each item
-            below is a plain button.snipcart-add-item carrying
-            data-item-id/name/price/url/image. Snipcart validates an
-            order by re-fetching data-item-url (this page) and
-            comparing it against what's in the shopper's cart, so the
-            id/name/price baked in here must always match what's live
-            - which is exactly what the app's Publish step keeps in
-            sync. Discount codes are managed separately, from the
-            same Web Store tab's "Manage Discount Codes" button
-            (calls Snipcart's real Discounts API - no HTML involved).
+            Cart + checkout are Stripe-direct, no third-party cart
+            platform involved. Each item below is a plain
+            button.magazin-add-to-cart carrying data-item-id; the
+            cart itself lives in localStorage and is rendered by the
+            script at the bottom of this page. The
+            script#magazin-catalog JSON block (also inside the
+            managed markers) is the single source of truth for
+            names/prices/digital-or-not - both this page's own cart
+            math AND the Cloudflare Worker re-fetch this exact page
+            and read that block before creating a Stripe Checkout
+            Session, so the id/name/price/digital flag baked in here
+            must always match what's live, which is exactly what the
+            app's Publish step keeps in sync. Discount codes are
+            managed separately, from the same Web Store tab's
+            "Manage Discount Codes" button (calls Stripe's real
+            Coupons/Promotion Codes API directly - no HTML involved),
+            and are entered by the shopper on Stripe's own hosted
+            Checkout page.
 
             This page currently has NO link in the site nav (by
             design, for now) - it's only reachable at /magazin
@@ -93,14 +84,29 @@
           -->
           <div class="magazin-sections">
 <!-- MAGAZIN:SECTIONS:START -->
+      <script type="application/json" id="magazin-catalog">{"items":{"teniska-logo":{"name":"Тениска — лого","price":40,"image":"","digital":false},"hudi-logo":{"name":"Худи — лого","price":80,"image":"","digital":false},"vinil-cold-summer":{"name":"Винил — cold summer","price":60,"image":"","digital":false}}}</script>
       <section class="magazin-section" data-section-id="merch">
-        <h2 class="magazin-section-title">Дигитална музика</h2>
+        <h2 class="magazin-section-title">Мърч</h2>
         <div class="magazin-grid">
           <div class="magazin-card">
-            <div class="magazin-card-image" style="--product-image:url('../assets/images/magazin/20260831033414-leta-siren-do-kraya.jpg')"></div>
-            <h3 class="magazin-card-title">Leta Siren - До края</h3>
-            <p class="magazin-card-price">1 €</p>
-            <button class="snipcart-add-item platform-link" data-item-id="leta-siren-do-kraya" data-item-name="Leta Siren - До края" data-item-price="1" data-item-url="https://intermissionrec.com/magazin" data-item-image="../assets/images/magazin/20260831033414-leta-siren-do-kraya.jpg">Купи</button>
+            <div class="magazin-card-image" style="--product-image:url('')"></div>
+            <h3 class="magazin-card-title">Тениска — лого</h3>
+            <p class="magazin-card-price">40 €</p>
+            <button type="button" class="magazin-add-to-cart platform-link" data-item-id="teniska-logo">Добави в кошницата</button>
+          </div>
+
+          <div class="magazin-card">
+            <div class="magazin-card-image" style="--product-image:url('')"></div>
+            <h3 class="magazin-card-title">Худи — лого</h3>
+            <p class="magazin-card-price">80 €</p>
+            <button type="button" class="magazin-add-to-cart platform-link" data-item-id="hudi-logo">Добави в кошницата</button>
+          </div>
+
+          <div class="magazin-card">
+            <div class="magazin-card-image" style="--product-image:url('')"></div>
+            <h3 class="magazin-card-title">Винил — cold summer</h3>
+            <p class="magazin-card-price">60 €</p>
+            <button type="button" class="magazin-add-to-cart platform-link" data-item-id="vinil-cold-summer">Добави в кошницата</button>
           </div>
         </div>
       </section>
@@ -112,7 +118,244 @@
 
     <div data-include="../components/footer.html"></div>
   </div>
+
+  <!-- Cart drawer - hidden by default, toggled by #cartToggleBtn.
+       Rendered entirely by the inline script below from the cart
+       kept in localStorage + the embedded #magazin-catalog block
+       above. Checkout hands off to Stripe's own hosted Checkout
+       page (created server-side by the Worker), so no card details
+       ever touch this page. -->
+  <div id="cartOverlay" class="cart-overlay" style="display:none;">
+    <div class="cart-drawer">
+      <div class="cart-drawer-header">
+        <h2>Кошница</h2>
+        <button type="button" id="cartCloseBtn" class="cart-close" aria-label="Затвори">&times;</button>
+      </div>
+      <div id="cartItemsList" class="cart-items"></div>
+      <div class="cart-drawer-footer">
+        <div class="cart-total-row">
+          <span>Общо</span>
+          <span id="cartTotal">0 €</span>
+        </div>
+        <button type="button" id="cartCheckoutBtn" class="platform-link cart-checkout-btn">Плащане</button>
+        <p id="cartStatus" class="cart-status" style="display:none;"></p>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="../assets/logo3d.js"></script>
   <script src="../assets/script.js" defer></script>
+
+  <!-- Cart + checkout logic - Stripe-direct, no third-party cart
+       platform. Reads the embedded #magazin-catalog JSON block for
+       names/prices, keeps the cart itself in localStorage, and on
+       checkout POSTs {items:[{id,qty}]} to the Worker, which
+       re-validates against this same page and returns a Stripe
+       Checkout Session URL to redirect to. -->
+  <script>
+  (function () {
+    var CATALOG = {};
+    try {
+      var catalogEl = document.getElementById('magazin-catalog');
+      var parsed = catalogEl ? JSON.parse(catalogEl.textContent) : null;
+      CATALOG = (parsed && parsed.items) || {};
+    } catch (e) {
+      console.error('Magazin catalog parse failed', e);
+    }
+
+    var CHECKOUT_URL = 'https://mail.intermissionrec.com/shop/checkout';
+    var CART_KEY = 'intermission_cart';
+
+    function loadCart() {
+      try {
+        var raw = localStorage.getItem(CART_KEY);
+        var parsedCart = raw ? JSON.parse(raw) : {};
+        return (parsedCart && typeof parsedCart === 'object') ? parsedCart : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveCart() {
+      try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {}
+    }
+
+    var cart = loadCart();
+
+    function formatEur(amount) {
+      var fixed = amount.toFixed(2);
+      return (fixed.slice(-3) === '.00' ? fixed.slice(0, -3) : fixed) + ' €';
+    }
+
+    function cartIds() {
+      return Object.keys(cart).filter(function (id) { return cart[id] > 0 && CATALOG[id]; });
+    }
+
+    function cartCount() {
+      return cartIds().reduce(function (sum, id) { return sum + cart[id]; }, 0);
+    }
+
+    function cartTotal() {
+      return cartIds().reduce(function (sum, id) { return sum + CATALOG[id].price * cart[id]; }, 0);
+    }
+
+    function renderCart() {
+      var countEl = document.getElementById('cartCount');
+      if (countEl) countEl.textContent = cartCount();
+
+      var listEl = document.getElementById('cartItemsList');
+      var ids = cartIds();
+
+      if (listEl) {
+        if (ids.length === 0) {
+          listEl.innerHTML = '<p class="cart-empty">Кошницата е празна.</p>';
+        } else {
+          listEl.innerHTML = '';
+          ids.forEach(function (id) {
+            var product = CATALOG[id];
+            var qty = cart[id];
+            var row = document.createElement('div');
+            row.className = 'cart-item-row';
+            row.innerHTML =
+              '<div class="cart-item-info">' +
+                '<span class="cart-item-name">' + product.name + '</span>' +
+                '<span class="cart-item-price">' + formatEur(product.price) + '</span>' +
+              '</div>' +
+              '<div class="cart-item-qty">' +
+                '<button type="button" class="cart-qty-btn" data-action="dec" data-id="' + id + '" aria-label="Намали">&minus;</button>' +
+                '<span class="cart-qty-value">' + qty + '</span>' +
+                '<button type="button" class="cart-qty-btn" data-action="inc" data-id="' + id + '" aria-label="Увеличи">+</button>' +
+                '<button type="button" class="cart-remove-btn" data-action="remove" data-id="' + id + '">Премахни</button>' +
+              '</div>';
+            listEl.appendChild(row);
+          });
+        }
+      }
+
+      var totalEl = document.getElementById('cartTotal');
+      if (totalEl) totalEl.textContent = formatEur(cartTotal());
+
+      var checkoutBtn = document.getElementById('cartCheckoutBtn');
+      if (checkoutBtn) checkoutBtn.disabled = ids.length === 0;
+    }
+
+    function addToCart(id) {
+      if (!CATALOG[id]) return;
+      cart[id] = (cart[id] || 0) + 1;
+      saveCart();
+      renderCart();
+      openCart();
+    }
+
+    function openCart() {
+      var overlay = document.getElementById('cartOverlay');
+      if (overlay) overlay.style.display = 'flex';
+    }
+
+    function closeCart() {
+      var overlay = document.getElementById('cartOverlay');
+      if (overlay) overlay.style.display = 'none';
+    }
+
+    document.addEventListener('click', function (e) {
+      var addBtn = e.target.closest('.magazin-add-to-cart');
+      if (addBtn) {
+        e.preventDefault();
+        addToCart(addBtn.getAttribute('data-item-id'));
+        return;
+      }
+
+      var qtyBtn = e.target.closest('.cart-qty-btn, .cart-remove-btn');
+      if (qtyBtn) {
+        var id = qtyBtn.getAttribute('data-id');
+        var action = qtyBtn.getAttribute('data-action');
+        if (action === 'inc') cart[id] = (cart[id] || 0) + 1;
+        if (action === 'dec') cart[id] = Math.max(0, (cart[id] || 0) - 1);
+        if (action === 'remove') cart[id] = 0;
+        if (!cart[id]) delete cart[id];
+        saveCart();
+        renderCart();
+        return;
+      }
+
+      if (e.target.closest('#cartToggleBtn')) {
+        e.preventDefault();
+        openCart();
+        return;
+      }
+
+      if (e.target.id === 'cartCloseBtn' || e.target.id === 'cartOverlay') {
+        closeCart();
+        return;
+      }
+    });
+
+    var checkoutBtn = document.getElementById('cartCheckoutBtn');
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', function () {
+        var ids = cartIds();
+        if (ids.length === 0) return;
+
+        var statusEl = document.getElementById('cartStatus');
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = 'Един момент...';
+        if (statusEl) statusEl.style.display = 'none';
+
+        fetch(CHECKOUT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: ids.map(function (id) { return { id: id, qty: cart[id] }; }) })
+        })
+          .then(function (res) {
+            return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+          })
+          .then(function (result) {
+            if (result.ok && result.data && result.data.url) {
+              window.location.href = result.data.url;
+            } else {
+              throw new Error((result.data && result.data.error) || 'Плащането не можа да бъде стартирано.');
+            }
+          })
+          .catch(function (err) {
+            checkoutBtn.disabled = false;
+            checkoutBtn.textContent = 'Плащане';
+            if (statusEl) {
+              statusEl.textContent = 'Грешка: ' + err.message;
+              statusEl.style.display = 'block';
+            }
+          });
+      });
+    }
+
+    // Success/cancel banner after redirect back from Stripe - the
+    // cart is only cleared on genuine success, and the query params
+    // are stripped afterward so a page refresh doesn't re-show it.
+    var params = new URLSearchParams(window.location.search);
+    var checkoutState = params.get('checkout');
+    if (checkoutState === 'success' || checkoutState === 'canceled') {
+      var bannerEl = document.getElementById('checkoutBanner');
+      if (bannerEl) {
+        if (checkoutState === 'success') {
+          bannerEl.textContent = 'Благодарим за поръчката! Провери имейла си за потвърждение (и връзка за изтегляне, ако си купил/а дигитален продукт).';
+          bannerEl.className = 'checkout-banner checkout-banner-success';
+        } else {
+          bannerEl.textContent = 'Плащането беше отменено - количката ти е запазена.';
+          bannerEl.className = 'checkout-banner checkout-banner-canceled';
+        }
+        bannerEl.style.display = 'block';
+      }
+      if (checkoutState === 'success') {
+        cart = {};
+        saveCart();
+      }
+      params.delete('checkout');
+      var newQuery = params.toString();
+      var newUrl = window.location.pathname + (newQuery ? '?' + newQuery : '') + window.location.hash;
+      window.history.replaceState({}, '', newUrl);
+    }
+
+    renderCart();
+  })();
+  </script>
 </body>
 </html>

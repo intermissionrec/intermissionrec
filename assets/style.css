@@ -1273,17 +1273,17 @@ html, body { height: 100%; }
 }
 
 /* ── Magazin (store) page ─────────────────────────────────────
-   Cart + checkout run entirely on Snipcart: each card's buy button is
-   a plain <button class="snipcart-add-item"> carrying data-item-*
-   attributes (id/name/price/url/image), picked up automatically by
-   the Snipcart loader script sitting right after <body> in
-   magazin/index.html. No JS of ours is involved in the cart/checkout
-   flow - Snipcart injects its own cart drawer and hosted checkout
-   overlay. .platform-link is reused here for buy buttons and the
-   cart trigger so they match every other pill button on the site;
-   since real <button> elements don't inherit page font/cursor styles
-   the way <a> tags do, button.platform-link resets those explicitly
-   below. */
+   Cart + checkout are Stripe-direct - no third-party cart platform.
+   Each card's add-to-cart button is a plain
+   <button class="magazin-add-to-cart"> carrying data-item-id; the
+   cart itself (localStorage) and the drawer below are rendered by
+   the inline script at the bottom of magazin/index.html, and
+   checkout hands off to a Stripe-hosted Checkout page created
+   server-side by the Cloudflare Worker. .platform-link is reused
+   here for buy buttons and the cart trigger so they match every
+   other pill button on the site; since real <button> elements don't
+   inherit page font/cursor styles the way <a> tags do,
+   button.platform-link resets those explicitly below. */
 button.platform-link {
   font: inherit;
   cursor: pointer;
@@ -1408,6 +1408,199 @@ button.platform-link {
 
   .magazin-cart-btn {
     flex: 1 1 100%;
+  }
+}
+
+/* ── Magazin: checkout success/cancel banner ──────────────────
+   Shown after the shopper is redirected back from Stripe's hosted
+   Checkout page (?checkout=success|canceled), then the query param
+   is stripped from the URL so a refresh doesn't re-show it. */
+.checkout-banner {
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.checkout-banner-success {
+  background: rgba(80, 200, 120, 0.12);
+  border: 1px solid rgba(80, 200, 120, 0.35);
+  color: #d6f5df;
+}
+
+.checkout-banner-canceled {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+/* ── Magazin: cart drawer ──────────────────────────────────────
+   A right-side overlay drawer, in the same visual language as the
+   newsletter modal (dark panel, pill buttons) - toggled by
+   #cartToggleBtn, closed by its own close button or by clicking the
+   overlay backdrop. All content inside is rendered by JS from
+   localStorage + the embedded product catalog, so there's no static
+   markup to keep in sync here. */
+.cart-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.cart-drawer {
+  width: min(100%, 420px);
+  height: 100%;
+  background: var(--bg);
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.cart-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cart-drawer-header h2 {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.cart-close {
+  font: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 28px;
+  line-height: 1;
+  padding: 4px;
+}
+
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1 1 auto;
+}
+
+.cart-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.cart-item-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.cart-item-info {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cart-item-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.cart-item-price {
+  color: var(--muted);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.cart-item-qty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cart-qty-btn {
+  font: inherit;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.cart-qty-value {
+  min-width: 1.5em;
+  text-align: center;
+  font-size: 14px;
+}
+
+.cart-remove-btn {
+  font: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: underline;
+  margin-left: auto;
+  padding: 0;
+}
+
+.cart-drawer-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.cart-total-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.cart-checkout-btn {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+
+.cart-checkout-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cart-status {
+  margin: 0;
+  color: #e05a4e;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 919.98px) {
+  .cart-drawer {
+    width: 100%;
+    padding: 24px 20px;
   }
 }
 
