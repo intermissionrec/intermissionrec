@@ -1567,6 +1567,24 @@ button.platform-link {
   padding: 0;
 }
 
+.cart-clear-btn {
+  font: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: underline;
+  padding: 0;
+  align-self: flex-start;
+}
+
+.cart-clear-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
 .cart-drawer-footer {
   display: flex;
   flex-direction: column;

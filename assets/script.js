@@ -153,7 +153,12 @@ function getInlineCatalog() {
 function ensureCatalog(callback) {
   if (magazinCatalog) { callback(magazinCatalog); return; }
   const inline = getInlineCatalog();
-  if (inline) { magazinCatalog = inline; callback(magazinCatalog); return; }
+  if (inline) {
+    magazinCatalog = inline;
+    reconcileCartWithCatalog(magazinCatalog);
+    callback(magazinCatalog);
+    return;
+  }
   fetch(MAGAZIN_URL, { cache: 'no-store' })
     .then(res => {
       if (!res.ok) throw new Error('Failed to load shop catalog: ' + res.status);
@@ -164,6 +169,7 @@ function ensureCatalog(callback) {
       const el = doc.getElementById('magazin-catalog');
       const parsed = el ? JSON.parse(el.textContent) : null;
       magazinCatalog = (parsed && parsed.items) || {};
+      reconcileCartWithCatalog(magazinCatalog);
       callback(magazinCatalog);
     })
     .catch(err => {
@@ -173,14 +179,42 @@ function ensureCatalog(callback) {
     });
 }
 
+// Prunes any cart entries whose id no longer exists in the live
+// catalog (e.g. an item was removed/renamed from the app after it
+// was added to someone's cart) - without this, readCartCount() (which
+// is deliberately catalog-independent, so the badge can show a number
+// before the catalog has even loaded) can disagree with the drawer,
+// which only ever lists ids the catalog still recognizes. Runs every
+// time the catalog resolves, so the badge self-heals as soon as the
+// cart is opened or otherwise touched anywhere on the site.
+function reconcileCartWithCatalog(CATALOG) {
+  let changed = false;
+  Object.keys(cart).forEach(id => {
+    if (!CATALOG[id]) {
+      delete cart[id];
+      changed = true;
+    }
+  });
+  if (changed) saveCart();
+}
+
 function cartIdsFromCatalog(CATALOG) {
   return Object.keys(cart).filter(id => cart[id] > 0 && CATALOG[id]);
+}
+
+// Empties the cart entirely, regardless of catalog state - doesn't
+// need CATALOG since it just wipes everything.
+function clearCart() {
+  cart = {};
+  saveCart();
+  renderCartDrawer();
 }
 
 function renderCartDrawer() {
   const listEl = document.getElementById('cartItemsList');
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.getElementById('cartCheckoutBtn');
+  const clearBtn = document.getElementById('cartClearBtn');
   // None of the drawer's own elements exist on this page yet (footer
   // hasn't loaded) or ever will (very early in page load) - nothing to do.
   if (!listEl && !totalEl && !checkoutBtn) return;
@@ -220,6 +254,7 @@ function renderCartDrawer() {
     }
 
     if (checkoutBtn) checkoutBtn.disabled = ids.length === 0;
+    if (clearBtn) clearBtn.disabled = ids.length === 0;
   });
 }
 
@@ -276,6 +311,12 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('#cartToggleBtn')) {
     e.preventDefault();
     openCartDrawer();
+    return;
+  }
+
+  if (e.target.closest('#cartClearBtn')) {
+    e.preventDefault();
+    clearCart();
     return;
   }
 
