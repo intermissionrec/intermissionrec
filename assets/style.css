@@ -704,24 +704,28 @@ html, body { height: 100%; }
 
 @media (min-width: 920px) {
 
-  body.smartlink .page {
+  body.smartlink .page,
+  body.magazin-product .page {
     height: 100vh;
     overflow: hidden;
   }
 
-  body.smartlink main {
+  body.smartlink main,
+  body.magazin-product main {
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
     overflow: hidden;
   }
 
-  body.smartlink .hero-logo {
+  body.smartlink .hero-logo,
+  body.magazin-product .hero-logo {
     width: clamp(60px, 10vh, 112px);
     height: clamp(60px, 10vh, 112px);
   }
 
-  body.smartlink .feature-band {
+  body.smartlink .feature-band,
+  body.magazin-product .feature-band {
     height: 100%;
     padding: clamp(12px, 3vh, 64px) 20px;
     display: flex;
@@ -729,7 +733,8 @@ html, body { height: 100%; }
     justify-content: center;
   }
 
-  body.smartlink .cover-card {
+  body.smartlink .cover-card,
+  body.magazin-product .cover-card {
     width: clamp(110px, 26vh, 320px);
   }
 
@@ -931,7 +936,8 @@ html, body { height: 100%; }
   .footer-top { display: none; }
   .footer-bottom { display: flex; }
 
-  body.smartlink .music-links {
+  body.smartlink .music-links,
+  body.magazin-product .music-links {
     flex-direction: column;
     align-items: center;
   }
