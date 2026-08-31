@@ -70,7 +70,7 @@ async function includeHtmlFragments() {
 // rest of the page's lifetime so it's never fetched twice.
 const CART_STORAGE_KEY = 'intermission_cart';
 const CHECKOUT_URL = 'https://mail.intermissionrec.com/shop/checkout';
-const MAGAZIN_URL = '../magazin';
+const MAGAZIN_URL = '/magazin';
 
 let cart = loadCart();
 let magazinCatalog = null; // {id: {name, price, image, digital}} once loaded - null until then
