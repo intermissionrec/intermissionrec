@@ -285,6 +285,19 @@ function closeCartDrawer() {
 // static page content (e.g. /magazin's own product grid) and the
 // async header/footer fragments.
 document.addEventListener('click', (e) => {
+  // Product page gallery (magazin/<id>/) - swaps the large image and
+  // marks which thumbnail is active. Only present on a page with more
+  // than one photo for that item; harmless no-op everywhere else.
+  const thumb = e.target.closest('.magazin-product-thumb');
+  if (thumb) {
+    const full = thumb.getAttribute('data-full');
+    const mainImg = document.getElementById('productMainImage');
+    if (mainImg && full) mainImg.src = full;
+    document.querySelectorAll('.magazin-product-thumb').forEach(t => t.classList.remove('is-active'));
+    thumb.classList.add('is-active');
+    return;
+  }
+
   const addBtn = e.target.closest('.magazin-add-to-cart');
   if (addBtn) {
     e.preventDefault();
