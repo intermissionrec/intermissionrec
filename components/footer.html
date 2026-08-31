@@ -35,14 +35,21 @@
      #magazin-catalog block embedded in /magazin's own page (fetched
      on demand when needed from a page that isn't /magazin itself).
 
-     #cartPaymentMethod / #cartCodFields: cash-on-delivery option.
-     Only ever shown when every item in the cart is physical (toggled
-     by renderCartDrawer in script.js - hidden by default here since
-     the cart starts empty on every page load); the radios' change
-     handler and the COD form's validation/submit branching also live
-     in script.js. The server (handleShopCodCheckout in worker.js)
-     re-checks the physical-only rule independently, so this markup
-     being hidden is a UX nicety, not the enforcement itself. -->
+     #cartPaymentMethod / #cartCodFields: payment method choice, incl.
+     cash-on-delivery. The whole section is hidden by default here
+     since the cart starts empty on every page load, and shown by
+     renderCartDrawer in script.js as soon as there's anything in the
+     cart - card and COD both, for consistency, even when the cart
+     isn't COD-eligible. The COD radio itself (#cartPayCod /
+     #cartPayCodOption) is only ever enabled/selectable when EVERY
+     item in the cart is physical; otherwise it's rendered disabled
+     and greyed out (see .is-disabled in style.css) rather than
+     removed, and script.js forces the selection back to card whenever
+     that stops being true. The radios' change handler and the COD
+     form's validation/submit branching also live in script.js. The
+     server (handleShopCodCheckout in worker.js) re-checks the
+     physical-only rule independently, so this markup's disabled state
+     is a UX nicety, not the enforcement itself. -->
 <div id="cartOverlay" class="cart-overlay" style="display:none;">
   <div class="cart-drawer">
     <div class="cart-drawer-header">
@@ -62,9 +69,9 @@
           <input type="radio" name="cartPaymentMethod" id="cartPayCard" value="card" checked>
           <span>Плащане с карта</span>
         </label>
-        <label class="cart-payment-option">
+        <label class="cart-payment-option" id="cartPayCodOption">
           <input type="radio" name="cartPaymentMethod" id="cartPayCod" value="cod">
-          <span>Наложен платеж</span>
+          <span>Наложен платеж <span class="cart-payment-option-note">(само за физически поръчки)</span></span>
         </label>
       </div>
 

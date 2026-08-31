@@ -1747,6 +1747,24 @@ body.magazin-product .magazin-band {
   cursor: pointer;
 }
 
+/* Cash-on-delivery is shown but not selectable for a digital-or-mixed
+   cart, rather than being hidden outright - greyed out + a
+   not-allowed cursor communicates "there, just not for this cart"
+   instead of it silently vanishing. */
+.cart-payment-option.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cart-payment-option.is-disabled input[type="radio"] {
+  cursor: not-allowed;
+}
+
+.cart-payment-option-note {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .cart-cod-fields {
   display: none;
   flex-direction: column;

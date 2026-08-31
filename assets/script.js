@@ -265,23 +265,30 @@ function renderCartDrawer() {
     if (checkoutBtn) checkoutBtn.disabled = ids.length === 0;
     if (clearBtn) clearBtn.disabled = ids.length === 0;
 
-    // Cash-on-delivery is only ever offered when EVERY item in the
-    // cart is physical - never for a digital-only or mixed cart, per
-    // request. Whenever that stops being true (an item's added/removed
-    // and the cart is no longer all-physical), force the selection
-    // back to card and hide the COD fields so a half-filled form can't
-    // linger invisibly and get submitted later against a cart that no
-    // longer qualifies - the server re-checks this independently
-    // anyway (handleShopCodCheckout in worker.js), but there's no
-    // reason to let the UI dangle in an invalid state either.
+    // The payment-method choice itself is always shown once there's
+    // anything in the cart, for consistency - but cash-on-delivery is
+    // only ever SELECTABLE when EVERY item in the cart is physical,
+    // never for a digital-only or mixed cart, per request. When that's
+    // not the case the COD option stays visible but disabled/greyed
+    // out rather than disappearing, and (whenever that stops being
+    // true - an item's added/removed and the cart is no longer
+    // all-physical) the selection is forced back to card and the COD
+    // fields are hidden, so a half-filled form can't linger invisibly
+    // and get submitted later against a cart that no longer qualifies
+    // - the server re-checks this independently anyway
+    // (handleShopCodCheckout in worker.js), but there's no reason to
+    // let the UI dangle in an invalid state either.
     const paymentSection = document.getElementById('cartPaymentMethod');
+    const codOption = document.getElementById('cartPayCodOption');
     const codFields = document.getElementById('cartCodFields');
+    const cardRadio = document.getElementById('cartPayCard');
+    const codRadio = document.getElementById('cartPayCod');
     const allPhysical = ids.length > 0 && ids.every(id => !CATALOG[id].digital);
     if (paymentSection) {
-      paymentSection.style.display = allPhysical ? 'flex' : 'none';
+      paymentSection.style.display = ids.length > 0 ? 'flex' : 'none';
+      if (codRadio) codRadio.disabled = !allPhysical;
+      if (codOption) codOption.classList.toggle('is-disabled', !allPhysical);
       if (!allPhysical) {
-        const cardRadio = document.getElementById('cartPayCard');
-        const codRadio = document.getElementById('cartPayCod');
         if (cardRadio) cardRadio.checked = true;
         if (codRadio) codRadio.checked = false;
         if (codFields) codFields.style.display = 'none';
