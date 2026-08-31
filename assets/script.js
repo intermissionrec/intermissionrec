@@ -914,6 +914,14 @@ function lockScrollForTransition() {
 }
 function unlockScrollAfterTransition() {
   document.documentElement.style.overflowY = '';
+  // style.css also has html:has(#pageTransitionOverlay:not(.transition-done))
+  // { overflow-y: hidden; } as a CSS-level backup lock for this same
+  // overlay - clearing only the inline style above isn't enough to
+  // satisfy that selector, so without this, the moment the browser
+  // recalculates the cascade it falls straight back to that rule and
+  // scrolling stays dead site-wide even though this function ran
+  // correctly. This is the one thing that actually satisfies it.
+  if (pageTransitionOverlay) pageTransitionOverlay.classList.add('transition-done');
 }
 
 // The overlay is already visible per its own default CSS the instant
