@@ -1322,6 +1322,13 @@ button.platform-link {
   padding: 96px 20px 120px;
 }
 
+/* Product pages specifically want the darker --bg-alt (#060606) rather
+   than the shop grid's --bg (#0a0a0a) - scoped to body.magazin-product
+   so /magazin itself is unaffected. */
+body.magazin-product .magazin-band {
+  background: var(--bg-alt);
+}
+
 .magazin-inner {
   width: min(100%, 1100px);
   display: flex;
