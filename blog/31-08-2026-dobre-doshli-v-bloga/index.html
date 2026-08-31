@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <title>Добре дошли в блога | INTER(MISSION)</title>
+  <meta name="description" content="Тук ще споделяме новини, съобщения и разкази зад кулисите на лейбъла - извън обичайните обяви за издания.">
+
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://intermissionrec.com/blog/31-08-2026-dobre-doshli-v-bloga">
+  <meta property="og:site_name" content="INTER(MISSION)">
+  <meta property="og:title" content="Добре дошли в блога | INTER(MISSION)">
+  <meta property="og:description" content="Тук ще споделяме новини, съобщения и разкази зад кулисите на лейбъла - извън обичайните обяви за издания.">
+  <meta property="og:image" content="https://intermissionrec.com/assets/images/social/social-20260724234201.png">
+  <meta property="og:locale" content="bg_BG">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Добре дошли в блога | INTER(MISSION)">
+  <meta name="twitter:description" content="Тук ще споделяме новини, съобщения и разкази зад кулисите на лейбъла - извън обичайните обяви за издания.">
+  <meta name="twitter:image" content="https://intermissionrec.com/assets/images/social/social-20260724234201.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/head.js"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <link rel="stylesheet" href="https://unpkg.com/lenis@1.3.26/dist/lenis.css">
+</head>
+<body class="blog-post">
+  <div id="pageTransitionOverlay" class="page-transition-overlay"></div>
+  <div class="page">
+    <div data-include="../../components/header.html"></div>
+
+    <main>
+      <section class="blog-post-band">
+        <div class="blog-post-inner">
+          <a class="blog-post-back" href="/blog">← Блог</a>
+
+          <div class="blog-post-header">
+            <h1 class="blog-post-title">Добре дошли в блога</h1>
+            <p class="blog-post-meta">
+              <span class="blog-post-date">31.08.2026</span>
+              <span class="blog-post-meta-divider" aria-hidden="true"></span>
+              <span class="blog-post-author">INTER(MISSION)</span>
+            </p>
+          </div>
+
+          <!--
+            POST BODY - THIS IS THE PART YOU EDIT PER POST
+            ──────────────────────────────────────────────────────
+            Freeform HTML inside .blog-post-body:
+              - Paragraphs as <p>...</p>
+              - Subheadings as <h2>...</h2>
+              - A photo goes wherever you feel it belongs in the
+                story - just drop a plain
+                  <img src="../../assets/images/blog/your-photo.jpg" alt="...">
+                between whichever two paragraphs it should sit
+                between. No extra classes needed - it's made
+                full-width and rounded automatically by
+                .blog-post-body img in style.css.
+              - Want a caption under a photo instead? Wrap it:
+                  <figure>
+                    <img src="../../assets/images/blog/your-photo.jpg" alt="...">
+                    <figcaption>Caption text here</figcaption>
+                  </figure>
+
+            Keep post photos in assets/images/blog/ alongside this
+            file's own siblings, and keep them reasonably compressed
+            (this is a text/photo blog, not a video host) - see the
+            repo-size discussion this project already had for why
+            that matters more than the total post count ever will.
+          -->
+          <div class="blog-post-body">
+            <p>Това е първата публикация в блога на INTER(MISSION). Тук, извън обичайните обяви за нови издания, ще споделяме новини, кратки съобщения и разкази зад кулисите на лейбъла.</p>
+
+            <p>Снимки могат да се добавят навсякъде в текста - просто постави <code>&lt;img&gt;</code> тага между абзаците, там където му е мястото в разказа.</p>
+
+            <p>Очаквайте повече съвсем скоро.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div data-include="../../components/footer.html"></div>
+  </div>
+
+  <script type="module" src="../../assets/logo3d.js"></script>
+  <script src="../../assets/script.js" defer></script>
+
+  <!-- Lenis smooth scroll - same as /magazin, since posts are also
+       variable-length scrolling content rather than a viewport-
+       locked page. -->
+  <script src="https://unpkg.com/lenis@1.3.26/dist/lenis.min.js"></script>
+  <script>
+    new Lenis({
+      autoRaf: true,
+      autoToggle: true,
+      anchors: true,
+      allowNestedScroll: true,
+      naiveDimensions: true,
+      stopInertiaOnNavigate: true,
+      duration: 1.44
+    });
+  </script>
+</body>
+</html>
