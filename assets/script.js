@@ -411,23 +411,6 @@ function setupCheckoutBanner() {
   window.history.replaceState({}, '', newUrl);
 }
 
-// Clears the cart after a genuine purchase, triggered from a hidden
-// iframe embedded on the Worker-hosted thank-you page (mail.intermissionrec.com
-// -> https://intermissionrec.com/magazin/?clearcart=1). The cart lives in
-// this site's own localStorage, which the Worker's page (a different
-// origin) can't touch directly - this is the same "hidden iframe on the
-// real origin" pattern the contact form and newsletter signup already
-// use for their own cross-context needs. No banner here (the thank-you
-// page itself already shows the confirmation); this just quietly empties
-// the cart so it isn't still full next time the shopper visits.
-function setupCartAutoClear() {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('clearcart') !== '1') return;
-  cart = {};
-  saveCart();
-  renderCartDrawer();
-}
-
 // Relocates the drawer to a direct child of <body>, same as and for
 // the same reason as the newsletter modal below: escapes any
 // transformed ancestor (Lenis included) that would otherwise trap
@@ -930,7 +913,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupCartDrawer();
   setupNavCartLink();
   setupCheckoutBanner();
-  setupCartAutoClear();
   setupNewsletterModal();
   setupNewsletterForm({
     formId: 'newsletterForm',
