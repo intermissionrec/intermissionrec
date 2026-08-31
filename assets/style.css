@@ -1273,11 +1273,43 @@ html, body { height: 100%; }
 }
 
 /* ── Magazin (store) page ─────────────────────────────────────
-   Product grid backed entirely by Payhip's own hosted checkout - each
-   card's buy button is Payhip's embed anchor (theme "none", so it
-   renders as a plain link and picks up .platform-link's own styling
-   like every other button on the site) rather than a custom cart.
-   No JS of ours is involved in the purchase flow at all. */
+   Cart + checkout run entirely on Snipcart: each card's buy button is
+   a plain <button class="snipcart-add-item"> carrying data-item-*
+   attributes (id/name/price/url/image), picked up automatically by
+   the Snipcart loader script sitting right after <body> in
+   magazin/index.html. No JS of ours is involved in the cart/checkout
+   flow - Snipcart injects its own cart drawer and hosted checkout
+   overlay. .platform-link is reused here for buy buttons and the
+   cart trigger so they match every other pill button on the site;
+   since real <button> elements don't inherit page font/cursor styles
+   the way <a> tags do, button.platform-link resets those explicitly
+   below. */
+button.platform-link {
+  font: inherit;
+  cursor: pointer;
+  background-color: var(--panel-2);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.magazin-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.magazin-heading-text {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.magazin-cart-btn {
+  flex: 0 0 auto;
+}
+
 .magazin-band {
   width: 100%;
   background: var(--bg);
@@ -1294,7 +1326,7 @@ html, body { height: 100%; }
 }
 
 .magazin-heading h1 {
-  margin: 0 0 12px;
+  margin: 0;
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(2rem, 4vw, 2.6rem);
   line-height: 1.05;
@@ -1307,6 +1339,20 @@ html, body { height: 100%; }
   color: var(--muted);
   font-size: 18px;
   line-height: 1.5;
+}
+
+.magazin-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+}
+
+.magazin-section-title {
+  margin: 0 0 20px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  font-weight: 700;
+  color: var(--text);
 }
 
 .magazin-grid {
@@ -1354,6 +1400,14 @@ html, body { height: 100%; }
 @media (max-width: 919.98px) {
   .magazin-band {
     padding: 64px 20px 80px;
+  }
+
+  .magazin-heading {
+    align-items: flex-start;
+  }
+
+  .magazin-cart-btn {
+    flex: 1 1 100%;
   }
 }
 
