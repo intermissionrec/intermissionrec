@@ -55,6 +55,55 @@ async function includeHtmlFragments() {
 
 }
 
+// ── Site-wide cart badge (nav) ──────────────────────────────────
+// The cart itself lives in localStorage under 'intermission_cart' -
+// the exact same key /magazin's own inline cart script reads and
+// writes. This just sums quantities across that raw object and
+// reflects the total in the nav badge, on every page (header.html is
+// included everywhere, not just on the shop page itself). It
+// deliberately doesn't validate ids against the live catalog, which
+// would mean fetching /magazin on every single page just for a
+// count - that reconciliation already happens for real on the shop
+// page itself when it builds the cart drawer.
+const CART_STORAGE_KEY = 'intermission_cart';
+
+function readCartCount() {
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const cart = raw ? JSON.parse(raw) : {};
+    if (!cart || typeof cart !== 'object') return 0;
+    return Object.values(cart).reduce((sum, qty) => {
+      const n = Number(qty);
+      return sum + (n > 0 ? n : 0);
+    }, 0);
+  } catch (e) {
+    return 0;
+  }
+}
+
+function updateNavCartCount() {
+  const badge = document.getElementById('navCartCount');
+  const link = document.querySelector('.nav a.nav-cart');
+  if (!badge) return;
+  const count = readCartCount();
+  badge.textContent = count;
+  if (link) link.classList.toggle('has-items', count > 0);
+}
+// Exposed globally so /magazin's own inline cart script can call it
+// directly after every localStorage write, keeping the header badge
+// in sync immediately on that same page - not just on the next full
+// page load elsewhere on the site.
+window.updateNavCartCount = updateNavCartCount;
+
+// Catches the cart changing in *another* tab/page of the site (the
+// 'storage' event never fires for the tab that made the write
+// itself, only other same-origin tabs/windows) - same-tab updates on
+// /magazin are handled directly via the window.updateNavCartCount()
+// call above instead.
+window.addEventListener('storage', (e) => {
+  if (e.key === CART_STORAGE_KEY) updateNavCartCount();
+});
+
 // Nav + active section logic
 let navLinks = [];
 let sections = [];
@@ -521,6 +570,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   computeNavAndSections();
   setupMobileNav();
   setActiveLink();
+  updateNavCartCount();
   setupNewsletterModal();
   setupNewsletterForm({
     formId: 'newsletterForm',
@@ -570,18 +620,18 @@ const pageTransitionOverlay = document.getElementById('pageTransitionOverlay');
 // this, navigating between pages of very different heights (e.g. the
 // tall homepage) can make the scrollbar appear/disappear WHILE the
 // overlay is visible, shifting its centered logo sideways by the
-// scrollbar's own width. The actual lock lives in CSS (see
-// html:has(#pageTransitionOverlay:not(.transition-done))), applying
-// from the very first paint with no dependency on this deferred
-// script having run yet - these two helpers just toggle that class at
-// the right moments, matching the same timing the old inline-style
-// version used.
+// scrollbar's own width.
 function lockScrollForTransition() {
-  if (pageTransitionOverlay) pageTransitionOverlay.classList.remove('transition-done');
+  document.documentElement.style.overflowY = 'hidden';
 }
 function unlockScrollAfterTransition() {
-  if (pageTransitionOverlay) pageTransitionOverlay.classList.add('transition-done');
+  document.documentElement.style.overflowY = '';
 }
+
+// The overlay is already visible per its own default CSS the instant
+// this script runs, so lock immediately, before the browser has a
+// chance to settle on whether this page needs a scrollbar.
+lockScrollForTransition();
 
 function playEntranceTransition() {
   if (!pageTransitionOverlay) {

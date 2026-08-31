@@ -2,20 +2,20 @@
 <html lang="bg">
 <head>
   <meta charset="utf-8">
-  <title>Магазин — INTER(MISSION)</title>
-  <meta name="description" content="Официален мърч на INTER(MISSION) - тениски, дрехи и други артикули.">
+  <title>Магазин | INTER(MISSION)</title>
+  <meta name="description" content="Официален магазин на INTER(MISSION)">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://intermissionrec.com/magazin">
   <meta property="og:site_name" content="INTER(MISSION)">
-  <meta property="og:title" content="Магазин — INTER(MISSION)">
-  <meta property="og:description" content="Официален мърч на INTER(MISSION) - тениски, дрехи и други артикули.">
+  <meta property="og:title" content="Магазин | INTER(MISSION)">
+  <meta property="og:description" content="Официален магазин на INTER(MISSION)">
   <meta property="og:image" content="https://intermissionrec.com/assets/images/social/social-20260724234201.png">
   <meta property="og:locale" content="bg_BG">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Магазин — INTER(MISSION)">
-  <meta name="twitter:description" content="Официален мърч на INTER(MISSION) - тениски, дрехи и други артикули.">
+  <meta name="twitter:title" content="Магазин | INTER(MISSION)">
+  <meta name="twitter:description" content="Официален магазин на INTER(MISSION)">
   <meta name="twitter:image" content="https://intermissionrec.com/assets/images/social/social-20260724234201.png">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="../assets/head.js"></script>
@@ -166,6 +166,11 @@
 
     function saveCart() {
       try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {}
+      // Keeps the header nav's cart badge (present on every page,
+      // including this one, via header.html) in sync immediately -
+      // the 'storage' event script.js also listens for never fires
+      // for the tab/page that made the write itself, only others.
+      if (window.updateNavCartCount) window.updateNavCartCount();
     }
 
     var cart = loadCart();
@@ -346,6 +351,9 @@
   })();
   </script>
 
+  <!-- Lenis smooth scroll - scoped to the homepage and shop page for
+       now, not yet rolled out site-wide. autoRaf handles the animation
+       loop internally; reduced-motion is respected automatically. -->
   <script src="https://unpkg.com/lenis@1.3.26/dist/lenis.min.js"></script>
   <script>
     new Lenis({
