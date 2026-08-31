@@ -1448,7 +1448,6 @@ body.magazin-product .magazin-band {
 .magazin-product-main-image {
   width: 100%;
   aspect-ratio: 1;
-  border-radius: var(--radius);
   background: var(--panel);
   overflow: hidden;
 }
