@@ -1383,6 +1383,11 @@ body.magazin-product .magazin-band {
   padding: 18px;
 }
 
+.magazin-card-image-link {
+  display: block;
+  width: 100%;
+}
+
 .magazin-card-image {
   width: 100%;
   aspect-ratio: 1;
@@ -1392,6 +1397,11 @@ body.magazin-product .magazin-band {
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
+  transition: opacity 0.15s ease;
+}
+
+.magazin-card-image-link:hover .magazin-card-image {
+  opacity: 0.85;
 }
 
 .magazin-card-title {
