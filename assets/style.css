@@ -1414,6 +1414,18 @@ body.magazin-product .magazin-band {
   font-size: 15px;
 }
 
+/* Out-of-stock / preorder items stay listed on the grid (and their
+   own product page below) rather than disappearing - the button
+   itself doubles as the status badge, greyed out and unclickable
+   (also carries the disabled attribute, which is what actually
+   blocks the click - see Render-MagazinItemHtml /
+   Render-MagazinProductPage in release_publisher.ps1 and the server-
+   side re-check in worker.js). */
+.magazin-add-to-cart.is-unavailable {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ── Magazin: single-product page (magazin/<id>/) ─────────────────
    Gallery on the left, name/SKU/price+buy on the right - a proper
    product-page shape rather than the smart-link "card", reusing
@@ -1514,6 +1526,12 @@ body.magazin-product .magazin-band {
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(1.8rem, 3vw, 2.2rem);
   font-weight: 700;
+}
+
+.magazin-product-availability-note {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 @media (max-width: 919.98px) {

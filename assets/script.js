@@ -199,7 +199,15 @@ function ensureCatalog(callback) {
 function reconcileCartWithCatalog(CATALOG) {
   let changed = false;
   Object.keys(cart).forEach(id => {
-    if (!CATALOG[id]) {
+    const product = CATALOG[id];
+    // Also drops anything that WAS available when it got added but has
+    // since been marked out of stock/preorder from the app - the
+    // server would reject it at checkout anyway (handleShopCheckout /
+    // handleShopCodCheckout in worker.js both re-check this
+    // independently), so there's no reason to let a shopper walk all
+    // the way to checkout with something they can no longer actually
+    // buy still sitting in their cart.
+    if (!product || (product.availability && product.availability !== 'available')) {
       delete cart[id];
       changed = true;
     }
@@ -309,7 +317,15 @@ document.addEventListener('change', (e) => {
 
 function addToCart(id) {
   ensureCatalog((CATALOG) => {
-    if (!CATALOG[id]) return;
+    const product = CATALOG[id];
+    if (!product) return;
+    // Belt-and-suspenders: the rendered button is already disabled for
+    // an out-of-stock/preorder item (see Render-MagazinItemHtml /
+    // Render-MagazinProductPage in release_publisher.ps1), so a normal
+    // click never reaches here, but this guards any other path into
+    // addToCart too. The real enforcement is server-side regardless
+    // (handleShopCheckout / handleShopCodCheckout in worker.js).
+    if (product.availability && product.availability !== 'available') return;
     cart[id] = (cart[id] || 0) + 1;
     saveCart();
     renderCartDrawer();
