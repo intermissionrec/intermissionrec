@@ -1310,10 +1310,6 @@ button.platform-link {
   gap: 12px;
 }
 
-.magazin-cart-btn {
-  flex: 0 0 auto;
-}
-
 .magazin-band {
   width: 100%;
   background: var(--bg);
@@ -1527,10 +1523,6 @@ body.magazin-product .magazin-band {
 
   .magazin-heading {
     align-items: flex-start;
-  }
-
-  .magazin-cart-btn {
-    flex: 1 1 100%;
   }
 
   .magazin-product-layout {

@@ -34,20 +34,19 @@
   <div id="pageTransitionOverlay" class="page-transition-overlay"></div>
   <div class="page">
     <div data-include="../components/header.html"></div>
- 
+
     <main>
       <section class="magazin-band">
         <div class="magazin-inner">
           <div id="checkoutBanner" class="checkout-banner" style="display:none;"></div>
- 
+
           <div class="magazin-heading">
             <div class="magazin-heading-text">
               <h1>Магазин</h1>
               <p>Официален мърч на INTER(MISSION).</p>
             </div>
-            <button type="button" id="cartToggleBtn" class="magazin-cart-btn platform-link">Кошница (<span id="cartCount">0</span>)</button>
           </div>
- 
+
           <!--
             SECTIONS + ITEMS ARE MANAGED FROM THE APP NOW
             ──────────────────────────────────────────────
@@ -57,7 +56,7 @@
             use the Sections/Items editors, then Publish Web Store
             Update. Don't hand-edit the structure in here; anything
             you type will just be overwritten on the next publish.
- 
+
             Cart + checkout are Stripe-direct, no third-party cart
             platform involved. Each item below is a plain
             button.magazin-add-to-cart carrying data-item-id; the
@@ -81,13 +80,13 @@
             Coupons/Promotion Codes API directly - no HTML involved),
             and are entered by the shopper on Stripe's own hosted
             Checkout page.
- 
-            This page currently has NO general "browse the shop" link
-            in the site nav (by design, for now, while it's still
-            being tested) - only the cart icon/badge is site-wide;
-            /magazin itself is only reachable directly. Add
-            <a href="../magazin">Магазин</a> to components/header.html's
-            .nav whenever it's ready to go public.
+
+            The site-wide cart icon/badge lives in the nav
+            (components/header.html's .nav-cart) and opens this same
+            drawer in place from anywhere on the site - see
+            setupNavCartLink() in assets/script.js - so this page no
+            longer needs its own separate "Кошница" button next to the
+            heading above.
           -->
           <div class="magazin-sections">
 <!-- MAGAZIN:SECTIONS:START -->
@@ -111,13 +110,13 @@
         </div>
       </section>
     </main>
- 
+
     <div data-include="../components/footer.html"></div>
   </div>
- 
+
   <script type="module" src="../assets/logo3d.js"></script>
   <script src="../assets/script.js" defer></script>
- 
+
   <!-- Lenis smooth scroll - scoped to the homepage and shop page for
        now, not yet rolled out site-wide. autoRaf handles the animation
        loop internally; reduced-motion is respected automatically. -->
