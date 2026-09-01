@@ -405,17 +405,17 @@ main {
   justify-content: center;
   min-height: 46px;
   padding: 0 18px;
-  border: 1px solid var(--line);
+  border: none;
   border-radius: 999px;
   background: var(--panel-2);
   color: var(--text);
-  transition: transform .2s ease, border-color .2s ease, color .2s ease;
+  transition: transform .2s ease, background-color .2s ease, color .2s ease;
 }
 
 .platform-link:hover,
 .contact-list a:hover {
   transform: translateY(-1px);
-  border-color: rgba(255,255,255,.2);
+  background-color: rgba(255,255,255,.08);
   color: #ffffff;
 }
 
@@ -1688,11 +1688,16 @@ body.magazin-product .magazin-band {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 1px solid var(--line);
+  border: none;
   background: var(--panel-2);
   color: var(--text);
   appearance: none;
   -webkit-appearance: none;
+  transition: background-color .2s ease;
+}
+
+.cart-qty-btn:hover {
+  background-color: rgba(255,255,255,.08);
 }
 
 .cart-qty-value {
