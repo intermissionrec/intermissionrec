@@ -2967,6 +2967,51 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   }
 }
 
+/* ── Blog: pagination (bottom of the post list, page 1's
+   blog/index.html and every generated blog/page/<n>/ page alike) -
+   only ever rendered once there's more than one page, see
+   Render-BlogPaginationHtml in release_publisher.ps1. A plain
+   Prev/Next strip rather than numbered page links, since a label
+   post blog realistically stays a small handful of pages. */
+.blog-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+.blog-pagination-prev,
+.blog-pagination-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  font-family: 'Rubik', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  transition: color .2s ease;
+}
+
+.blog-pagination-prev:hover,
+.blog-pagination-next:hover {
+  color: var(--muted);
+}
+
+.blog-pagination-status {
+  color: var(--muted);
+  font-family: 'Rubik', sans-serif;
+  font-size: 14px;
+}
+
+@media (max-width: 919.98px) {
+  .blog-pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
 /* ── Blog: single post page (/blog/<dd-mm-yyyy-slug>/) ──────────
    Subject (title) at top, date + author directly below it, then the
    freeform post body - see the comment inside each post's own
