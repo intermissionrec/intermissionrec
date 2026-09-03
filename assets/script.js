@@ -499,6 +499,11 @@ function setupCheckoutBanner() {
 // reason to pull in a third-party script on every page load for a
 // feature most visitors never reach.
 let stripeJsPromise = null;
+// Some ad/tracker blockers (uBlock Origin's default lists included)
+// flag js.stripe.com itself, not just Stripe's own fraud-detection
+// beacon - script.onerror below is what actually fires when that
+// happens, so the message has to say so plainly rather than leaving
+// the shopper looking at a script tag that silently never loaded.
 function loadStripeJs() {
   if (window.Stripe) return Promise.resolve();
   if (stripeJsPromise) return stripeJsPromise;
@@ -506,11 +511,26 @@ function loadStripeJs() {
     const script = document.createElement('script');
     script.src = 'https://js.stripe.com/v3/';
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Stripe.js could not be loaded'));
+    script.onerror = () => reject(new Error(STRIPE_BLOCKED_MESSAGE));
     document.head.appendChild(script);
   });
   return stripeJsPromise;
 }
+
+// Shown both when js.stripe.com itself never loads (loadStripeJs'
+// script.onerror above) and when it loads but the Payment Element's
+// own card-details iframe never becomes ready (the ADBLOCK_READY_TIMEOUT_MS
+// fallback in setupCheckoutPage below) - an ad/privacy blocker is by
+// far the most common cause of either, and there's nothing this page
+// can do to force content past one, so the honest, actionable answer
+// is to say so and point at the fix rather than leave a blank box.
+const STRIPE_BLOCKED_MESSAGE = 'Полето за плащане с карта не се зареди - най-честата причина е разширение за блокиране на реклами (ad blocker), което спира заявки към Stripe. Изключи го за този сайт (или опитай в друг браузър/режим инкогнито) и презареди страницата.' +
+  ' Ако имаш физическа поръчка, наложен платеж е налична алтернатива, без да е нужна карта.';
+// How long to wait for the Payment Element's 'ready' event after
+// mounting before assuming it's blocked (see setupCheckoutPage) - long
+// enough for a slow connection to legitimately still be loading, short
+// enough that a genuinely blocked shopper isn't left waiting forever.
+const ADBLOCK_READY_TIMEOUT_MS = 8000;
 
 // Appearance API theme - matches the Payment Element's rendered
 // iframe fields to the site's own dark panel/input language (same
@@ -808,6 +828,23 @@ function setupCheckoutPage() {
     continueBtn.textContent = 'Продължи';
   }
 
+  // Undoes the form-lock/payment-step reveal done right after mounting
+  // the Payment Element (see the card path below) - used when that
+  // element turns out to be blocked, so the shopper isn't left stuck
+  // looking at a locked form and an empty card box with no way back.
+  function revertToContinueStep() {
+    if (paymentStep) paymentStep.style.display = 'none';
+    const el = document.getElementById('checkoutPaymentElement');
+    if (el) el.innerHTML = '';
+    stripeElements = null;
+    checkoutPaymentIntentId = null;
+    form.querySelectorAll('input').forEach((el2) => { el2.disabled = false; });
+    if (promoApplyBtn && !appliedPromo) promoApplyBtn.disabled = false;
+    if (promoRemoveBtn && appliedPromo) promoRemoveBtn.disabled = false;
+    continueBtn.style.display = '';
+    resetContinueBtn();
+  }
+
   if (continueBtn) {
     continueBtn.addEventListener('click', () => {
       const err = validateForm();
@@ -883,7 +920,8 @@ function setupCheckoutPage() {
               clientSecret: clientSecret,
               appearance: CHECKOUT_STRIPE_APPEARANCE
             });
-            stripeElements.create('payment').mount('#checkoutPaymentElement');
+            const paymentElement = stripeElements.create('payment');
+            paymentElement.mount('#checkoutPaymentElement');
 
             // Lock the form once the PaymentIntent (and its amount) is
             // fixed - editing anything now wouldn't change what's about
@@ -895,6 +933,32 @@ function setupCheckoutPage() {
             continueBtn.style.display = 'none';
             if (paymentStep) paymentStep.style.display = 'block';
             showStatus('', false);
+
+            // An ad/tracker blocker can let js.stripe.com itself load
+            // (loadStripeJs above succeeds) while still blocking the
+            // actual card-details iframe the Payment Element mounts -
+            // that failure is silent from this page's point of view, no
+            // exception to catch, just a card box that never actually
+            // shows up. 'ready' firing is the positive signal it did;
+            // if that hasn't happened within ADBLOCK_READY_TIMEOUT_MS,
+            // assume it's blocked and recover instead of leaving the
+            // shopper stuck on a locked form staring at an empty box.
+            let becameReady = false;
+            const readyTimeoutId = setTimeout(() => {
+              if (becameReady) return;
+              revertToContinueStep();
+              showStatus(STRIPE_BLOCKED_MESSAGE, true);
+            }, ADBLOCK_READY_TIMEOUT_MS);
+            paymentElement.on('ready', () => {
+              becameReady = true;
+              clearTimeout(readyTimeoutId);
+            });
+            paymentElement.on('loaderror', () => {
+              becameReady = true; // stop the timeout from also firing
+              clearTimeout(readyTimeoutId);
+              revertToContinueStep();
+              showStatus(STRIPE_BLOCKED_MESSAGE, true);
+            });
           });
         })
         .catch((e) => {
