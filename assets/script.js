@@ -55,31 +55,39 @@ async function includeHtmlFragments() {
 
 }
 
-// ── Site-wide cart (nav badge + drawer) ─────────────────────────
-// Stripe-direct, no third-party cart platform. The cart itself lives
-// in localStorage under 'intermission_cart', and the drawer markup
-// (#cartOverlay, in footer.html) is present on every page via
-// data-include - not just /magazin - so the nav's cart icon can open
-// it in place wherever you're browsing, instead of navigating you to
-// the shop page first. Item names/prices come from the
-// #magazin-catalog JSON block that's embedded directly in /magazin's
-// own page (managed by the INTER(MISSION) Editor's Web Store tab);
-// on /magazin itself that block is already in the DOM, read
-// synchronously - everywhere else it's fetched on demand, the first
-// time the drawer is actually opened, and cached in memory for the
-// rest of the page's lifetime so it's never fetched twice.
 const CART_STORAGE_KEY = 'intermission_cart';
-// Both go through the Workers Route on the main domain now (see
-// worker.js's SHOP_BASE_URL comment) rather than mail.intermissionrec.com
-// directly - kept as two separate constants since they're genuinely
-// different endpoints/flows, not just a naming difference.
 const CHECKOUT_URL = 'https://intermissionrec.com/shop/checkout';
-// Cash-on-delivery ("наложен платеж") - a site-level alternative to
-// Stripe entirely, only ever offered when every item in the cart is
-// physical (see the allPhysical check in renderCartDrawer below) and
-// re-validated server-side regardless of what this page sends.
+const CREATE_PAYMENT_INTENT_URL = 'https://intermissionrec.com/shop/create-payment-intent';
 const COD_CHECKOUT_URL = 'https://intermissionrec.com/shop/cod-checkout';
 const MAGAZIN_URL = '/magazin';
+
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51UAP0oIuDHaNKWjE9f7TXsMmx7PRU5exky3pdPzFAh9ULsDIKxFEOYtbvfmmk8gKdJTJvrcfdA0Ww59biESq9PIy00zGj0PeP3';
+
+const SPEEDY_TARIFF_EUR = [
+  { maxKg: 3,    office: 3.42, addressAddOn: 2.54 },
+  { maxKg: 6,    office: 3.71, addressAddOn: 4.24 },
+  { maxKg: 10,   office: 4.57, addressAddOn: 4.24 },
+  { maxKg: 20,   office: 8.16, addressAddOn: 5.94 },
+  { maxKg: 31.5, office: 8.16, perKgOverPrevTier: 0.35, addressAddOn: 8.45 }
+];
+const SPEEDY_MAX_KG = 31.5;
+
+function calcCartWeightKg(CATALOG, ids) {
+  return ids.reduce((sum, id) => {
+    const product = CATALOG[id];
+    if (product && product.digital) return sum; // digital items never ship, never weigh
+    const unitKg = product && Number(product.weight) > 0 ? Number(product.weight) : 0.3;
+    return sum + unitKg * (cart[id] || 0);
+  }, 0);
+}
+
+function calcSpeedyDeliveryFeeEur(weightKg, deliveryMethod) {
+  const capped = Math.min(Math.max(0.01, Number(weightKg) || 0.3), SPEEDY_MAX_KG);
+  const tier = SPEEDY_TARIFF_EUR.find((t) => capped <= t.maxKg) || SPEEDY_TARIFF_EUR[SPEEDY_TARIFF_EUR.length - 1];
+  let officeEur = tier.office;
+  if (tier.perKgOverPrevTier && capped > 20) officeEur += (capped - 20) * tier.perKgOverPrevTier;
+  return deliveryMethod === 'office' ? officeEur : officeEur + tier.addressAddOn;
+}
 
 let cart = loadCart();
 let magazinCatalog = null; // {id: {name, price, image, digital}} once loaded - null until then
@@ -272,48 +280,8 @@ function renderCartDrawer() {
 
     if (checkoutBtn) checkoutBtn.disabled = ids.length === 0;
     if (clearBtn) clearBtn.disabled = ids.length === 0;
-
-    // The payment-method choice itself is always shown once there's
-    // anything in the cart, for consistency - but cash-on-delivery is
-    // only ever SELECTABLE when EVERY item in the cart is physical,
-    // never for a digital-only or mixed cart, per request. When that's
-    // not the case the COD option stays visible but disabled/greyed
-    // out rather than disappearing, and (whenever that stops being
-    // true - an item's added/removed and the cart is no longer
-    // all-physical) the selection is forced back to card and the COD
-    // fields are hidden, so a half-filled form can't linger invisibly
-    // and get submitted later against a cart that no longer qualifies
-    // - the server re-checks this independently anyway
-    // (handleShopCodCheckout in worker.js), but there's no reason to
-    // let the UI dangle in an invalid state either.
-    const paymentSection = document.getElementById('cartPaymentMethod');
-    const codOption = document.getElementById('cartPayCodOption');
-    const codFields = document.getElementById('cartCodFields');
-    const cardRadio = document.getElementById('cartPayCard');
-    const codRadio = document.getElementById('cartPayCod');
-    const allPhysical = ids.length > 0 && ids.every(id => !CATALOG[id].digital);
-    if (paymentSection) {
-      paymentSection.style.display = ids.length > 0 ? 'flex' : 'none';
-      if (codRadio) codRadio.disabled = !allPhysical;
-      if (codOption) codOption.classList.toggle('is-disabled', !allPhysical);
-      if (!allPhysical) {
-        if (cardRadio) cardRadio.checked = true;
-        if (codRadio) codRadio.checked = false;
-        if (codFields) codFields.style.display = 'none';
-      }
-    }
   });
 }
-
-// Toggles the COD mini-form as soon as the shopper picks either radio -
-// delegated on document since the drawer markup (footer.html) can load
-// after this script runs, same reasoning as the click delegation below.
-document.addEventListener('change', (e) => {
-  if (e.target && e.target.name === 'cartPaymentMethod') {
-    const codFields = document.getElementById('cartCodFields');
-    if (codFields) codFields.style.display = e.target.value === 'cod' ? 'flex' : 'none';
-  }
-});
 
 function addToCart(id) {
   ensureCatalog((CATALOG) => {
@@ -404,83 +372,20 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// The drawer itself no longer collects contact/shipping/payment info or
+// talks to the server at all - it's just a summary now. The checkout
+// button's only job is to send the shopper to the dedicated /checkout/
+// page (see checkout/index.html + setupCheckoutPage below), which is
+// where CHECKOUT_URL (Stripe Elements/PaymentIntent flow) and
+// COD_CHECKOUT_URL actually get used.
 function setupCartCheckout() {
   const checkoutBtn = document.getElementById('cartCheckoutBtn');
   if (!checkoutBtn) return;
-  // Delegated document click above already handles this element once
-  // it exists, but the checkout POST itself needs its own listener
-  // (not just open/close/qty toggling) - attached once footer.html
-  // has actually loaded, same timing as the rest of post-fragment setup.
   checkoutBtn.addEventListener('click', () => {
     ensureCatalog((CATALOG) => {
       const ids = cartIdsFromCatalog(CATALOG);
       if (ids.length === 0) return;
-
-      const statusEl = document.getElementById('cartStatus');
-      const showError = (msg) => {
-        checkoutBtn.disabled = false;
-        checkoutBtn.textContent = 'Плащане';
-        if (statusEl) {
-          statusEl.textContent = msg;
-          statusEl.style.display = 'block';
-        }
-      };
-
-      // Only actually COD when the payment-method section is both
-      // present AND visible (renderCartDrawer hides it and resets the
-      // radio back to card the moment the cart isn't all-physical) -
-      // this mirrors the server's own check rather than trusting the
-      // radio's checked state in isolation.
-      const paymentSection = document.getElementById('cartPaymentMethod');
-      const codRadio = document.getElementById('cartPayCod');
-      const isCod = !!(paymentSection && paymentSection.style.display !== 'none' && codRadio && codRadio.checked);
-
-      let url = CHECKOUT_URL;
-      let payload = { items: ids.map(id => ({ id: id, qty: cart[id] })) };
-
-      if (isCod) {
-        const val = (elId) => ((document.getElementById(elId) || {}).value || '').trim();
-        const name = val('cartCodName');
-        const email = val('cartCodEmail');
-        const phone = val('cartCodPhone');
-        const line1 = val('cartCodLine1');
-        const line2 = val('cartCodLine2');
-        const city = val('cartCodCity');
-        const postalCode = val('cartCodPostal');
-
-        if (!name || !email || !phone || !line1 || !city || !postalCode) {
-          showError('Моля, попълни всички задължителни полета за наложен платеж (име, имейл, телефон, адрес, град, пощ. код).');
-          return;
-        }
-
-        url = COD_CHECKOUT_URL;
-        payload = {
-          items: ids.map(id => ({ id: id, qty: cart[id] })),
-          customer: { name: name, email: email, phone: phone },
-          shipping: { line1: line1, line2: line2, city: city, postalCode: postalCode }
-        };
-      }
-
-      checkoutBtn.disabled = true;
-      checkoutBtn.textContent = 'Един момент...';
-      if (statusEl) statusEl.style.display = 'none';
-
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-        .then(res => res.json().then(data => ({ ok: res.ok, data: data })))
-        .then(result => {
-          if (result.ok && result.data && result.data.url) {
-            window.location.href = result.data.url;
-          } else {
-            throw new Error((result.data && result.data.error) || 'Плащането не можа да бъде стартирано.');
-          }
-        })
-        .catch(err => {
-          showError('Грешка: ' + err.message);
-        });
+      window.location.href = '/checkout/';
     });
   });
 }
@@ -513,6 +418,351 @@ function setupCheckoutBanner() {
   const newQuery = params.toString();
   const newUrl = window.location.pathname + (newQuery ? '?' + newQuery : '') + window.location.hash;
   window.history.replaceState({}, '', newUrl);
+}
+
+// ── Checkout page (/checkout/) ──────────────────────────────────
+// Replaces the old cart-drawer checkout entirely - card payments now
+// go through Stripe's Payment Element (Stripe Elements), mounted
+// directly on this page via Stripe.js, instead of a redirect to a
+// stripe.com-hosted Checkout page. See handleShopCreatePaymentIntent
+// / handlePaymentIntentSucceeded in worker.js for the server side of
+// the card path, and handleShopCodCheckout (unchanged) for cash-on-
+// delivery, which this page also now collects instead of the drawer.
+//
+// Stripe.js is loaded lazily, only on this page and only once the
+// shopper actually picks the card path and clicks "Продължи" - no
+// reason to pull in a third-party script on every page load for a
+// feature most visitors never reach.
+let stripeJsPromise = null;
+function loadStripeJs() {
+  if (window.Stripe) return Promise.resolve();
+  if (stripeJsPromise) return stripeJsPromise;
+  stripeJsPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://js.stripe.com/v3/';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Stripe.js could not be loaded'));
+    document.head.appendChild(script);
+  });
+  return stripeJsPromise;
+}
+
+// Appearance API theme - matches the Payment Element's rendered
+// iframe fields to the site's own dark panel/input language (same
+// colors/radius as .cart-cod-input in style.css) rather than Stripe's
+// default light theme.
+const CHECKOUT_STRIPE_APPEARANCE = {
+  theme: 'night',
+  variables: {
+    colorPrimary: '#f2f2f2',
+    colorBackground: '#111111',
+    colorText: '#f2f2f2',
+    colorTextSecondary: '#bfbfbf',
+    colorTextPlaceholder: '#555555',
+    colorDanger: '#e05a4e',
+    fontFamily: 'Rubik, sans-serif',
+    fontSizeBase: '14px',
+    borderRadius: '12px',
+    spacingUnit: '4px'
+  },
+  rules: {
+    '.Input': {
+      border: '1px solid rgba(255, 255, 255, 0.08)',
+      boxShadow: 'none',
+      padding: '12px 14px'
+    },
+    '.Input:focus': {
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      boxShadow: 'none'
+    },
+    '.Label': {
+      color: '#bfbfbf'
+    },
+    '.Tab': {
+      border: '1px solid rgba(255, 255, 255, 0.08)',
+      background: '#111111'
+    },
+    '.Tab--selected': {
+      border: '1px solid rgba(255, 255, 255, 0.3)'
+    }
+  }
+};
+
+function setupCheckoutPage() {
+  const form = document.getElementById('checkoutForm');
+  if (!form) return; // not on /checkout/ - nothing to do
+
+  // The whole flow is handled by hand below (validation, then either a
+  // COD POST or a PaymentIntent creation + Payment Element confirm) -
+  // a native form submit (e.g. Enter key in a text field) would just
+  // reload the page for nothing, so it's suppressed outright.
+  form.addEventListener('submit', (e) => e.preventDefault());
+
+  const itemsListEl = document.getElementById('checkoutItemsList');
+  const subtotalEl = document.getElementById('checkoutSubtotalAmount');
+  const deliveryRow = document.getElementById('checkoutDeliveryFeeRow');
+  const deliveryLabelEl = document.getElementById('checkoutDeliveryFeeLabel');
+  const deliveryFeeEl = document.getElementById('checkoutDeliveryFeeAmount');
+  const totalEl = document.getElementById('checkoutTotalAmount');
+  const shippingSection = document.getElementById('checkoutShippingSection');
+  const addressFields = document.getElementById('checkoutAddressFields');
+  const officeField = document.getElementById('checkoutOfficeText');
+  const codOption = document.getElementById('checkoutPayCodOption');
+  const codRadio = document.getElementById('checkoutPayCod');
+  const cardRadio = document.getElementById('checkoutPayCard');
+  const continueBtn = document.getElementById('checkoutContinueBtn');
+  const statusEl = document.getElementById('checkoutStatus');
+  const paymentStep = document.getElementById('checkoutPaymentStep');
+  const payBtn = document.getElementById('checkoutPayBtn');
+
+  let currentIds = [];
+  let currentCatalog = null;
+  let hasPhysical = false;
+  let stripeInstance = null;
+  let stripeElements = null;
+  let checkoutPaymentIntentId = null;
+
+  const showStatus = (msg, isError) => {
+    if (!statusEl) return;
+    statusEl.textContent = msg || '';
+    statusEl.style.color = isError ? '' : 'var(--muted)';
+    statusEl.style.display = msg ? 'block' : 'none';
+  };
+
+  const val = (elId) => {
+    const el = document.getElementById(elId);
+    return el ? el.value.trim() : '';
+  };
+
+  function currentDeliveryMethod() {
+    const officeRadio = document.getElementById('checkoutDeliveryOffice');
+    return (officeRadio && officeRadio.checked) ? 'office' : 'address';
+  }
+
+  function currentSubtotal() {
+    if (!currentCatalog) return 0;
+    return currentIds.reduce((sum, id) => sum + currentCatalog[id].price * cart[id], 0);
+  }
+
+  function updateDeliveryFeePreview() {
+    if (!hasPhysical || !currentCatalog || currentIds.length === 0) {
+      if (deliveryRow) deliveryRow.style.display = 'none';
+      if (totalEl) totalEl.textContent = formatEur(currentSubtotal());
+      return;
+    }
+    const method = currentDeliveryMethod();
+    const weightKg = calcCartWeightKg(currentCatalog, currentIds);
+    const feeEur = calcSpeedyDeliveryFeeEur(weightKg, method);
+    if (deliveryRow) deliveryRow.style.display = 'flex';
+    if (deliveryLabelEl) deliveryLabelEl.textContent = 'Доставка (Speedy, ' + (method === 'office' ? 'до офис' : 'до адрес') + ')';
+    if (deliveryFeeEl) deliveryFeeEl.textContent = formatEur(feeEur);
+    if (totalEl) totalEl.textContent = formatEur(currentSubtotal() + feeEur);
+  }
+
+  function refreshSummary() {
+    ensureCatalog((CATALOG) => {
+      currentCatalog = CATALOG;
+      currentIds = cartIdsFromCatalog(CATALOG);
+
+      // Nothing to check out - send the shopper back to the shop
+      // rather than showing an empty checkout page.
+      if (currentIds.length === 0) {
+        window.location.href = MAGAZIN_URL;
+        return;
+      }
+
+      if (itemsListEl) {
+        itemsListEl.innerHTML = '';
+        currentIds.forEach((id) => {
+          const product = CATALOG[id];
+          const qty = cart[id];
+          const row = document.createElement('div');
+          row.className = 'checkout-item-row';
+          row.innerHTML =
+            '<span class="checkout-item-name">' + product.name +
+              (qty > 1 ? ' <span class="checkout-item-qty">&times; ' + qty + '</span>' : '') +
+            '</span>' +
+            '<span class="checkout-item-price">' + formatEur(product.price * qty) + '</span>';
+          itemsListEl.appendChild(row);
+        });
+      }
+
+      if (subtotalEl) subtotalEl.textContent = formatEur(currentSubtotal());
+
+      hasPhysical = currentIds.some((id) => !CATALOG[id].digital);
+      const allPhysical = currentIds.length > 0 && currentIds.every((id) => !CATALOG[id].digital);
+
+      if (shippingSection) shippingSection.style.display = hasPhysical ? 'block' : 'none';
+
+      if (codRadio) codRadio.disabled = !allPhysical;
+      if (codOption) codOption.classList.toggle('is-disabled', !allPhysical);
+      if (!allPhysical && codRadio) {
+        codRadio.checked = false;
+        if (cardRadio) cardRadio.checked = true;
+      }
+
+      updateDeliveryFeePreview();
+    });
+  }
+
+  // Delivery method radios (address vs. office pickup) - swaps which
+  // fields are shown and refreshes the fee preview, same pattern the
+  // old cart drawer used.
+  document.addEventListener('change', (e) => {
+    if (e.target && e.target.name === 'checkoutDeliveryMethod') {
+      const isOffice = e.target.value === 'office';
+      if (addressFields) addressFields.style.display = isOffice ? 'none' : 'flex';
+      if (officeField) officeField.style.display = isOffice ? 'block' : 'none';
+      updateDeliveryFeePreview();
+    }
+  });
+
+  function buildCheckoutPayload() {
+    return {
+      items: currentIds.map((id) => ({ id: id, qty: cart[id] })),
+      customer: { name: val('checkoutName'), email: val('checkoutEmail'), phone: val('checkoutPhone') },
+      shipping: { line1: val('checkoutLine1'), line2: val('checkoutLine2'), city: val('checkoutCity'), postalCode: val('checkoutPostal') },
+      delivery: { method: currentDeliveryMethod(), officeText: val('checkoutOfficeText') }
+    };
+  }
+
+  function validateForm() {
+    if (!val('checkoutName')) return 'Моля, въведи име.';
+    if (!val('checkoutEmail')) return 'Моля, въведи имейл.';
+
+    if (hasPhysical) {
+      if (!val('checkoutPhone')) return 'Моля, въведи телефон - куриерът има нужда от него.';
+      if (!val('checkoutCity')) return 'Моля, въведи град.';
+      if (currentDeliveryMethod() === 'address') {
+        if (!val('checkoutLine1') || !val('checkoutPostal')) return 'Моля, попълни адреса и пощенския код за доставка до адрес.';
+      } else if (!val('checkoutOfficeText')) {
+        return 'Моля, посочи кой офис на Speedy предпочиташ.';
+      }
+    }
+    return null;
+  }
+
+  function resetContinueBtn() {
+    continueBtn.disabled = false;
+    continueBtn.textContent = 'Продължи';
+  }
+
+  if (continueBtn) {
+    continueBtn.addEventListener('click', () => {
+      const err = validateForm();
+      if (err) { showStatus(err, true); return; }
+      showStatus('', false);
+
+      const isCod = !!(codRadio && codRadio.checked && !codRadio.disabled);
+      const payload = buildCheckoutPayload();
+
+      continueBtn.disabled = true;
+      continueBtn.textContent = 'Един момент...';
+
+      if (isCod) {
+        fetch(COD_CHECKOUT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+          .then((res) => res.json().then((data) => ({ ok: res.ok, data: data })))
+          .then((result) => {
+            if (result.ok && result.data && result.data.url) {
+              window.location.href = result.data.url;
+            } else {
+              throw new Error((result.data && result.data.error) || 'Поръчката не можа да бъде направена.');
+            }
+          })
+          .catch((e) => {
+            showStatus('Грешка: ' + e.message, true);
+            resetContinueBtn();
+          });
+        return;
+      }
+
+      // Card path - create the PaymentIntent server-side, then load
+      // Stripe.js (if not already) and mount the Payment Element
+      // against its client secret.
+      fetch(CREATE_PAYMENT_INTENT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then((res) => res.json().then((data) => ({ ok: res.ok, data: data })))
+        .then((result) => {
+          if (!result.ok || !result.data || !result.data.clientSecret) {
+            throw new Error((result.data && result.data.error) || 'Плащането не можа да бъде стартирано.');
+          }
+          const clientSecret = result.data.clientSecret;
+          // A PaymentIntent's client secret is always "pi_XXX_secret_YYY" -
+          // the "pi_XXX" part is its id, which is exactly what
+          // handleShopThankYou's pi_ branch expects as ?session_id=.
+          checkoutPaymentIntentId = clientSecret.split('_secret_')[0];
+
+          if (totalEl && typeof result.data.amountTotal === 'number') {
+            totalEl.textContent = formatEur(result.data.amountTotal / 100);
+          }
+
+          return loadStripeJs().then(() => {
+            stripeInstance = stripeInstance || Stripe(STRIPE_PUBLISHABLE_KEY);
+            stripeElements = stripeInstance.elements({
+              clientSecret: clientSecret,
+              appearance: CHECKOUT_STRIPE_APPEARANCE
+            });
+            stripeElements.create('payment').mount('#checkoutPaymentElement');
+
+            // Lock the form once the PaymentIntent (and its amount) is
+            // fixed - editing anything now wouldn't change what's about
+            // to be charged, only what worker.js's webhook later reads
+            // back off the PaymentIntent's own metadata.
+            form.querySelectorAll('input').forEach((el) => { el.disabled = true; });
+            continueBtn.style.display = 'none';
+            if (paymentStep) paymentStep.style.display = 'block';
+            showStatus('', false);
+          });
+        })
+        .catch((e) => {
+          showStatus('Грешка: ' + e.message, true);
+          resetContinueBtn();
+        });
+    });
+  }
+
+  if (payBtn) {
+    payBtn.addEventListener('click', () => {
+      if (!stripeInstance || !stripeElements || !checkoutPaymentIntentId) return;
+      payBtn.disabled = true;
+      payBtn.textContent = 'Един момент...';
+      showStatus('', false);
+
+      stripeInstance.confirmPayment({
+        elements: stripeElements,
+        confirmParams: {
+          return_url: window.location.origin + '/shop/thank-you?session_id=' + encodeURIComponent(checkoutPaymentIntentId)
+        },
+        // Most cards never need to leave this page at all (no redirect);
+        // a 3D Secure challenge shows as an in-page modal in most cases.
+        // The rare case that genuinely needs a full-page redirect (e.g.
+        // certain bank-redirect payment methods) still lands correctly
+        // on /shop/thank-you via return_url above.
+        redirect: 'if_required'
+      }).then((result) => {
+        if (result.error) {
+          showStatus(result.error.message || 'Плащането не бе успешно.', true);
+          payBtn.disabled = false;
+          payBtn.textContent = 'Плати';
+          return;
+        }
+        window.location.href = '/shop/thank-you?session_id=' + encodeURIComponent(checkoutPaymentIntentId);
+      }).catch((e) => {
+        showStatus('Грешка: ' + e.message, true);
+        payBtn.disabled = false;
+        payBtn.textContent = 'Плати';
+      });
+    });
+  }
+
+  refreshSummary();
 }
 
 // Relocates the drawer to a direct child of <body>, same as and for
@@ -1017,6 +1267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupCartDrawer();
   setupNavCartLink();
   setupCheckoutBanner();
+  setupCheckoutPage();
   setupNewsletterModal();
   setupNewsletterForm({
     formId: 'newsletterForm',
