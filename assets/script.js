@@ -106,7 +106,7 @@ const MAGAZIN_URL = '/magazin';
 // or pk_test_) from https://dashboard.stripe.com/apikeys before the
 // /checkout/ page can process card payments - it's a placeholder
 // right now and card payment will fail until this is set.
-const STRIPE_PUBLISHABLE_KEY = 'pk_live_REPLACE_ME';
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51UAP0oIuDHaNKWjE9f7TXsMmx7PRU5exky3pdPzFAh9ULsDIKxFEOYtbvfmmk8gKdJTJvrcfdA0Ww59biESq9PIy00zGj0PeP3';
 
 // Speedy domestic "Стандарт 24 часа [505]" tariff - kept in sync by
 // hand with the same table in worker.js's calcSpeedyDeliveryFeeCents.
