@@ -55,71 +55,13 @@ async function includeHtmlFragments() {
 
 }
 
-// ── Site-wide cart (nav badge + drawer) ─────────────────────────
-// Stripe-direct, no third-party cart platform. The cart itself lives
-// in localStorage under 'intermission_cart', and the drawer markup
-// (#cartOverlay, in footer.html) is present on every page via
-// data-include - not just /magazin - so the nav's cart icon can open
-// it in place wherever you're browsing, instead of navigating you to
-// the shop page first. Item names/prices come from the
-// #magazin-catalog JSON block that's embedded directly in /magazin's
-// own page (managed by the INTER(MISSION) Editor's Web Store tab);
-// on /magazin itself that block is already in the DOM, read
-// synchronously - everywhere else it's fetched on demand, the first
-// time the drawer is actually opened, and cached in memory for the
-// rest of the page's lifetime so it's never fetched twice.
 const CART_STORAGE_KEY = 'intermission_cart';
-// All go through the Workers Route on the main domain now (see
-// worker.js's SHOP_BASE_URL comment) rather than mail.intermissionrec.com
-// directly - kept as separate constants since they're genuinely
-// different endpoints/flows, not just a naming difference.
-//
-// CHECKOUT_URL - the OLD hosted-redirect Stripe Checkout Session flow
-// (handleShopCheckout in worker.js). Left wired up server-side as a
-// dormant fallback but nothing on the site links to it anymore now
-// that every card payment goes through the new /checkout/ page below.
 const CHECKOUT_URL = 'https://intermissionrec.com/shop/checkout';
-// CREATE_PAYMENT_INTENT_URL - the NEW flow behind /checkout/'s own
-// Stripe Elements (Payment Element) form. Creates a PaymentIntent
-// server-side (handleShopCreatePaymentIntent in worker.js) and returns
-// a client secret to mount the Payment Element against - card payment
-// never leaves this site, no redirect to a stripe.com page.
 const CREATE_PAYMENT_INTENT_URL = 'https://intermissionrec.com/shop/create-payment-intent';
-// Cash-on-delivery ("наложен платеж") - a site-level alternative to
-// Stripe entirely, only ever offered when every item in the cart is
-// physical, and re-validated server-side regardless of what this page
-// sends. Selectable on the /checkout/ page now rather than in the
-// drawer itself.
 const COD_CHECKOUT_URL = 'https://intermissionrec.com/shop/cod-checkout';
-// Live-validates a promo code typed into /checkout/'s "Приложи"
-// field and previews its discount - purely a preview, the actual
-// discount is always re-validated and recomputed from scratch again
-// server-side at order-creation time (handleShopCreatePaymentIntent /
-// handleShopCodCheckout in worker.js).
 const VALIDATE_PROMO_URL = 'https://intermissionrec.com/shop/validate-promo';
 const MAGAZIN_URL = '/magazin';
-// Stripe PUBLISHABLE key (safe to expose client-side - distinct from
-// the secret key configured in the app's Credentials dialog, which
-// worker.js reads server-side and this file never sees). Required for
-// Stripe.js to mount the Payment Element on /checkout/.
-// TODO: replace with your real publishable key (starts with pk_live_
-// or pk_test_) from https://dashboard.stripe.com/apikeys before the
-// /checkout/ page can process card payments - it's a placeholder
-// right now and card payment will fail until this is set.
-const STRIPE_PUBLISHABLE_KEY = 'pk_live_REPLACE_ME';
-
-// Speedy domestic "Стандарт 24 часа [505]" tariff - kept in sync by
-// hand with the same table in worker.js's calcSpeedyDeliveryFeeCents.
-// This copy is for an instant price preview only, purely cosmetic -
-// the actual charge is always recomputed server-side from the live
-// catalog and never trusts what this page sends. Speedy only for now,
-// no Econt.
-//
-// Only the <=3kg tier is a verified real MySpeedy quote (2026-09-01) -
-// Speedy's published price list turned out not to match actual
-// account pricing, so the 6/10/20/31.5kg tiers below are still the
-// unverified published-list numbers pending real quotes. See
-// worker.js's own copy of this table for the full explanation.
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51UAP0oIuDHaNKWjE9f7TXsMmx7PRU5exky3pdPzFAh9ULsDIKxFEOYtbvfmmk8gKdJTJvrcfdA0Ww59biESq9PIy00zGj0PeP3';
 const SPEEDY_TARIFF_EUR = [
   { maxKg: 3,    office: 3.42, addressAddOn: 2.54 },
   { maxKg: 6,    office: 3.71, addressAddOn: 4.24 },
