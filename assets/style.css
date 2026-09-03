@@ -886,6 +886,14 @@ html, body { height: 100%; }
   body.blog-post .page {
     overflow: visible;
   }
+
+  /* body.checkout .page: the /checkout/ page's two-column form +
+     summary layout is variable-length content too (delivery/payment
+     fields show and hide as the shopper fills the form in), same
+     reasoning as blog/magazin above. */
+  body.checkout .page {
+    overflow: visible;
+  }
 }
 
 @media (max-width: 919.98px) {
@@ -1937,6 +1945,182 @@ body.magazin-product .magazin-band {
   .cart-drawer {
     width: 100%;
     padding: 24px 20px;
+  }
+}
+
+/* ── Checkout page (/checkout/) ────────────────────────────────
+   Two-column layout (form + order summary), replacing the old
+   cart-drawer checkout entirely - see checkout/index.html and
+   setupCheckoutPage in script.js. Built from the same dark-panel/
+   rounded-input language as the COD fields above; .cart-cod-input,
+   .cart-delivery-option, .cart-payment-option, .cart-cod-note and
+   .cart-status are reused directly rather than duplicated here -
+   only the page-level layout and the order-summary panel are new. */
+.checkout-band {
+  width: 100%;
+  background: var(--bg-alt);
+  display: flex;
+  justify-content: center;
+  padding: 96px 20px 120px;
+}
+
+.checkout-inner {
+  width: min(100%, 1100px);
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.checkout-heading h1 {
+  margin: 0 0 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  line-height: 1.05;
+  font-weight: 700;
+}
+
+.checkout-heading p {
+  margin: 0;
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.checkout-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 32px;
+}
+
+.checkout-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkout-section-title {
+  margin: 0 0 4px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Same visual language as .cart-payment-method used to have, minus
+   the default display:none - on this page the choice is always
+   visible, never toggled by cart contents (only the COD radio's
+   disabled state is). */
+.checkout-payment-method {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkout-payment-step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Stripe's Payment Element mounts inside this div as its own
+   sandboxed iframe - the padding/background/border here frame it to
+   look like the rest of the form; CHECKOUT_STRIPE_APPEARANCE in
+   script.js themes the iframe's own internals (inputs, tabs, labels)
+   to match. */
+.checkout-payment-element {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.checkout-summary {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 32px;
+}
+
+.checkout-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.checkout-item-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.checkout-item-qty {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.checkout-item-price {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.checkout-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.checkout-summary-row.checkout-summary-total {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--text);
+}
+
+@media (max-width: 919.98px) {
+  .checkout-band {
+    padding: 72px 20px 96px;
+  }
+
+  .checkout-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-form,
+  .checkout-summary {
+    padding: 24px;
+  }
+
+  /* Summary (what's in the cart) reads better above the form on a
+     narrow screen than after it - and can't stay sticky once the
+     columns stack. */
+  .checkout-summary {
+    position: static;
+    order: -1;
   }
 }
 
