@@ -133,9 +133,28 @@
             <div class="checkout-summary">
               <h2 class="checkout-section-title">Поръчка</h2>
               <div id="checkoutItemsList" class="checkout-items"></div>
+
+              <!-- Hidden outright (not just left empty) when the app's
+                   promo-code toggle is off - script.js's setupCheckoutPage
+                   sets this from the #magazin-catalog block's own
+                   promoCodesEnabled flag, defaulting to shown if that
+                   flag is missing entirely (older published catalogs). -->
+              <div id="checkoutPromoSection" class="checkout-promo">
+                <div class="checkout-promo-row">
+                  <input type="text" id="checkoutPromoInput" class="cart-cod-input checkout-promo-input" placeholder="Промо код">
+                  <button type="button" id="checkoutPromoApplyBtn" class="checkout-promo-btn">Приложи</button>
+                  <button type="button" id="checkoutPromoRemoveBtn" class="checkout-promo-btn checkout-promo-btn-remove" style="display:none;">Премахни</button>
+                </div>
+                <p id="checkoutPromoNote" class="cart-cod-note" style="display:none;"></p>
+              </div>
+
               <div class="checkout-summary-row">
                 <span>Междинна сума</span>
                 <span id="checkoutSubtotalAmount">0 €</span>
+              </div>
+              <div id="checkoutPromoRow" class="checkout-summary-row" style="display:none;">
+                <span>Промо код</span>
+                <span id="checkoutPromoAmount">0 €</span>
               </div>
               <div id="checkoutDeliveryFeeRow" class="checkout-summary-row" style="display:none;">
                 <span id="checkoutDeliveryFeeLabel">Доставка</span>

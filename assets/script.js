@@ -55,14 +55,71 @@ async function includeHtmlFragments() {
 
 }
 
+// ── Site-wide cart (nav badge + drawer) ─────────────────────────
+// Stripe-direct, no third-party cart platform. The cart itself lives
+// in localStorage under 'intermission_cart', and the drawer markup
+// (#cartOverlay, in footer.html) is present on every page via
+// data-include - not just /magazin - so the nav's cart icon can open
+// it in place wherever you're browsing, instead of navigating you to
+// the shop page first. Item names/prices come from the
+// #magazin-catalog JSON block that's embedded directly in /magazin's
+// own page (managed by the INTER(MISSION) Editor's Web Store tab);
+// on /magazin itself that block is already in the DOM, read
+// synchronously - everywhere else it's fetched on demand, the first
+// time the drawer is actually opened, and cached in memory for the
+// rest of the page's lifetime so it's never fetched twice.
 const CART_STORAGE_KEY = 'intermission_cart';
+// All go through the Workers Route on the main domain now (see
+// worker.js's SHOP_BASE_URL comment) rather than mail.intermissionrec.com
+// directly - kept as separate constants since they're genuinely
+// different endpoints/flows, not just a naming difference.
+//
+// CHECKOUT_URL - the OLD hosted-redirect Stripe Checkout Session flow
+// (handleShopCheckout in worker.js). Left wired up server-side as a
+// dormant fallback but nothing on the site links to it anymore now
+// that every card payment goes through the new /checkout/ page below.
 const CHECKOUT_URL = 'https://intermissionrec.com/shop/checkout';
+// CREATE_PAYMENT_INTENT_URL - the NEW flow behind /checkout/'s own
+// Stripe Elements (Payment Element) form. Creates a PaymentIntent
+// server-side (handleShopCreatePaymentIntent in worker.js) and returns
+// a client secret to mount the Payment Element against - card payment
+// never leaves this site, no redirect to a stripe.com page.
 const CREATE_PAYMENT_INTENT_URL = 'https://intermissionrec.com/shop/create-payment-intent';
+// Cash-on-delivery ("наложен платеж") - a site-level alternative to
+// Stripe entirely, only ever offered when every item in the cart is
+// physical, and re-validated server-side regardless of what this page
+// sends. Selectable on the /checkout/ page now rather than in the
+// drawer itself.
 const COD_CHECKOUT_URL = 'https://intermissionrec.com/shop/cod-checkout';
+// Live-validates a promo code typed into /checkout/'s "Приложи"
+// field and previews its discount - purely a preview, the actual
+// discount is always re-validated and recomputed from scratch again
+// server-side at order-creation time (handleShopCreatePaymentIntent /
+// handleShopCodCheckout in worker.js).
+const VALIDATE_PROMO_URL = 'https://intermissionrec.com/shop/validate-promo';
 const MAGAZIN_URL = '/magazin';
+// Stripe PUBLISHABLE key (safe to expose client-side - distinct from
+// the secret key configured in the app's Credentials dialog, which
+// worker.js reads server-side and this file never sees). Required for
+// Stripe.js to mount the Payment Element on /checkout/.
+// TODO: replace with your real publishable key (starts with pk_live_
+// or pk_test_) from https://dashboard.stripe.com/apikeys before the
+// /checkout/ page can process card payments - it's a placeholder
+// right now and card payment will fail until this is set.
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_REPLACE_ME';
 
-const STRIPE_PUBLISHABLE_KEY = 'pk_live_51UAP0oIuDHaNKWjE9f7TXsMmx7PRU5exky3pdPzFAh9ULsDIKxFEOYtbvfmmk8gKdJTJvrcfdA0Ww59biESq9PIy00zGj0PeP3';
-
+// Speedy domestic "Стандарт 24 часа [505]" tariff - kept in sync by
+// hand with the same table in worker.js's calcSpeedyDeliveryFeeCents.
+// This copy is for an instant price preview only, purely cosmetic -
+// the actual charge is always recomputed server-side from the live
+// catalog and never trusts what this page sends. Speedy only for now,
+// no Econt.
+//
+// Only the <=3kg tier is a verified real MySpeedy quote (2026-09-01) -
+// Speedy's published price list turned out not to match actual
+// account pricing, so the 6/10/20/31.5kg tiers below are still the
+// unverified published-list numbers pending real quotes. See
+// worker.js's own copy of this table for the full explanation.
 const SPEEDY_TARIFF_EUR = [
   { maxKg: 3,    office: 3.42, addressAddOn: 2.54 },
   { maxKg: 6,    office: 3.71, addressAddOn: 4.24 },
@@ -91,6 +148,12 @@ function calcSpeedyDeliveryFeeEur(weightKg, deliveryMethod) {
 
 let cart = loadCart();
 let magazinCatalog = null; // {id: {name, price, image, digital}} once loaded - null until then
+// Whether the app's promo-code toggle is on - read off the same
+// #magazin-catalog block's top-level promoCodesEnabled flag, right
+// alongside .items, in getInlineCatalog()/ensureCatalog() below.
+// Defaults to true (matching release_publisher.ps1's own default) so
+// older published catalog JSON without the key still shows the field.
+let magazinPromoCodesEnabled = true;
 
 function loadCart() {
   try {
@@ -157,6 +220,7 @@ function getInlineCatalog() {
   if (!el) return null;
   try {
     const parsed = JSON.parse(el.textContent);
+    magazinPromoCodesEnabled = !parsed || parsed.promoCodesEnabled !== false;
     return (parsed && parsed.items) || {};
   } catch (e) {
     console.error('Magazin catalog parse failed', e);
@@ -186,6 +250,7 @@ function ensureCatalog(callback) {
       const el = doc.getElementById('magazin-catalog');
       const parsed = el ? JSON.parse(el.textContent) : null;
       magazinCatalog = (parsed && parsed.items) || {};
+      magazinPromoCodesEnabled = !parsed || parsed.promoCodesEnabled !== false;
       reconcileCartWithCatalog(magazinCatalog);
       callback(magazinCatalog);
     })
@@ -514,6 +579,17 @@ function setupCheckoutPage() {
   const statusEl = document.getElementById('checkoutStatus');
   const paymentStep = document.getElementById('checkoutPaymentStep');
   const payBtn = document.getElementById('checkoutPayBtn');
+  // Promo code - #checkoutPromoSection wraps the whole input/Apply/
+  // Remove UI so it can be hidden outright when the app's toggle
+  // (magazinPromoCodesEnabled, read off the catalog block alongside
+  // .items) is off.
+  const promoSection = document.getElementById('checkoutPromoSection');
+  const promoInput = document.getElementById('checkoutPromoInput');
+  const promoApplyBtn = document.getElementById('checkoutPromoApplyBtn');
+  const promoRemoveBtn = document.getElementById('checkoutPromoRemoveBtn');
+  const promoNote = document.getElementById('checkoutPromoNote');
+  const promoRow = document.getElementById('checkoutPromoRow');
+  const promoAmountEl = document.getElementById('checkoutPromoAmount');
 
   let currentIds = [];
   let currentCatalog = null;
@@ -521,6 +597,7 @@ function setupCheckoutPage() {
   let stripeInstance = null;
   let stripeElements = null;
   let checkoutPaymentIntentId = null;
+  let appliedPromo = null; // { code, discountCents } once a code is applied, else null
 
   const showStatus = (msg, isError) => {
     if (!statusEl) return;
@@ -534,6 +611,26 @@ function setupCheckoutPage() {
     return el ? el.value.trim() : '';
   };
 
+  const showPromoNote = (msg, isError) => {
+    if (!promoNote) return;
+    promoNote.textContent = msg || '';
+    promoNote.style.color = isError ? '' : 'var(--muted)';
+    promoNote.style.display = msg ? 'block' : 'none';
+  };
+
+  // Reflects appliedPromo into the summary's discount row - separate
+  // from updateDeliveryFeePreview (which folds the discount into the
+  // total itself) since this just toggles the row's own visibility/text.
+  function updatePromoRow() {
+    if (!promoRow) return;
+    if (appliedPromo) {
+      promoRow.style.display = 'flex';
+      if (promoAmountEl) promoAmountEl.textContent = '−' + formatEur(appliedPromo.discountCents / 100);
+    } else {
+      promoRow.style.display = 'none';
+    }
+  }
+
   function currentDeliveryMethod() {
     const officeRadio = document.getElementById('checkoutDeliveryOffice');
     return (officeRadio && officeRadio.checked) ? 'office' : 'address';
@@ -545,9 +642,13 @@ function setupCheckoutPage() {
   }
 
   function updateDeliveryFeePreview() {
+    // Preview only, like the rest of this function - the discount
+    // actually charged is always recomputed server-side again at
+    // order-creation time, never trusted from appliedPromo itself.
+    const discountEur = appliedPromo ? appliedPromo.discountCents / 100 : 0;
     if (!hasPhysical || !currentCatalog || currentIds.length === 0) {
       if (deliveryRow) deliveryRow.style.display = 'none';
-      if (totalEl) totalEl.textContent = formatEur(currentSubtotal());
+      if (totalEl) totalEl.textContent = formatEur(Math.max(0, currentSubtotal() - discountEur));
       return;
     }
     const method = currentDeliveryMethod();
@@ -556,7 +657,7 @@ function setupCheckoutPage() {
     if (deliveryRow) deliveryRow.style.display = 'flex';
     if (deliveryLabelEl) deliveryLabelEl.textContent = 'Доставка (Speedy, ' + (method === 'office' ? 'до офис' : 'до адрес') + ')';
     if (deliveryFeeEl) deliveryFeeEl.textContent = formatEur(feeEur);
-    if (totalEl) totalEl.textContent = formatEur(currentSubtotal() + feeEur);
+    if (totalEl) totalEl.textContent = formatEur(Math.max(0, currentSubtotal() - discountEur) + feeEur);
   }
 
   function refreshSummary() {
@@ -588,6 +689,11 @@ function setupCheckoutPage() {
       }
 
       if (subtotalEl) subtotalEl.textContent = formatEur(currentSubtotal());
+
+      // magazinPromoCodesEnabled is set as a side effect of the
+      // ensureCatalog() call above resolving (see getInlineCatalog/
+      // ensureCatalog), so it's always current by this point.
+      if (promoSection) promoSection.style.display = magazinPromoCodesEnabled ? '' : 'none';
 
       hasPhysical = currentIds.some((id) => !CATALOG[id].digital);
       const allPhysical = currentIds.length > 0 && currentIds.every((id) => !CATALOG[id].digital);
@@ -622,8 +728,63 @@ function setupCheckoutPage() {
       items: currentIds.map((id) => ({ id: id, qty: cart[id] })),
       customer: { name: val('checkoutName'), email: val('checkoutEmail'), phone: val('checkoutPhone') },
       shipping: { line1: val('checkoutLine1'), line2: val('checkoutLine2'), city: val('checkoutCity'), postalCode: val('checkoutPostal') },
-      delivery: { method: currentDeliveryMethod(), officeText: val('checkoutOfficeText') }
+      delivery: { method: currentDeliveryMethod(), officeText: val('checkoutOfficeText') },
+      // Re-validated and recomputed from scratch server-side regardless
+      // (see worker.js's validatePromoCode) - this is never trusted as
+      // the actual discount, only as which code the shopper applied.
+      promoCode: appliedPromo ? appliedPromo.code : ''
     };
+  }
+
+  if (promoApplyBtn) {
+    promoApplyBtn.addEventListener('click', () => {
+      const code = promoInput ? promoInput.value.trim() : '';
+      if (!code) { showPromoNote('Въведи промо код.', true); return; }
+      if (!currentCatalog || currentIds.length === 0) return;
+
+      const prevLabel = promoApplyBtn.textContent;
+      promoApplyBtn.disabled = true;
+      promoApplyBtn.textContent = 'Проверка...';
+      showPromoNote('', false);
+
+      fetch(VALIDATE_PROMO_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code, items: currentIds.map((id) => ({ id: id, qty: cart[id] })) })
+      })
+        .then((res) => res.json().then((data) => ({ ok: res.ok, data: data })))
+        .then((result) => {
+          promoApplyBtn.disabled = false;
+          promoApplyBtn.textContent = prevLabel;
+          if (!result.ok || !result.data || typeof result.data.discountCents !== 'number') {
+            throw new Error((result.data && result.data.error) || 'Невалиден промо код.');
+          }
+          appliedPromo = { code: result.data.code, discountCents: result.data.discountCents };
+          showPromoNote('Приложен код "' + appliedPromo.code + '" - отстъпка ' + formatEur(appliedPromo.discountCents / 100) + '.', false);
+          if (promoInput) promoInput.disabled = true;
+          promoApplyBtn.style.display = 'none';
+          if (promoRemoveBtn) promoRemoveBtn.style.display = '';
+          updatePromoRow();
+          updateDeliveryFeePreview();
+        })
+        .catch((e) => {
+          promoApplyBtn.disabled = false;
+          promoApplyBtn.textContent = prevLabel;
+          showPromoNote(e.message, true);
+        });
+    });
+  }
+
+  if (promoRemoveBtn) {
+    promoRemoveBtn.addEventListener('click', () => {
+      appliedPromo = null;
+      if (promoInput) { promoInput.disabled = false; promoInput.value = ''; }
+      if (promoApplyBtn) promoApplyBtn.style.display = '';
+      promoRemoveBtn.style.display = 'none';
+      showPromoNote('', false);
+      updatePromoRow();
+      updateDeliveryFeePreview();
+    });
   }
 
   function validateForm() {
@@ -716,6 +877,8 @@ function setupCheckoutPage() {
             // to be charged, only what worker.js's webhook later reads
             // back off the PaymentIntent's own metadata.
             form.querySelectorAll('input').forEach((el) => { el.disabled = true; });
+            if (promoApplyBtn) promoApplyBtn.disabled = true;
+            if (promoRemoveBtn) promoRemoveBtn.disabled = true;
             continueBtn.style.display = 'none';
             if (paymentStep) paymentStep.style.display = 'block';
             showStatus('', false);

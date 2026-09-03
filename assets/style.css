@@ -2101,6 +2101,51 @@ body.magazin-product .magazin-band {
   color: var(--text);
 }
 
+/* Promo code - sits between the item list and the subtotal row.
+   Hidden outright (display:none on #checkoutPromoSection) rather than
+   just emptied when the app's toggle turns promo codes off - see
+   setupCheckoutPage in script.js. */
+.checkout-promo {
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.checkout-promo-row {
+  display: flex;
+  gap: 8px;
+}
+
+.checkout-promo-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.checkout-promo-btn {
+  flex-shrink: 0;
+  font: inherit;
+  cursor: pointer;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
+.checkout-promo-btn:hover {
+  border-color: rgba(255,255,255,.3);
+}
+
+.checkout-promo-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkout-promo-btn-remove {
+  color: var(--muted);
+}
+
 @media (max-width: 919.98px) {
   .checkout-band {
     padding: 72px 20px 96px;
