@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <title>Плащане | INTER(MISSION)</title>
+  <meta name="description" content="Завърши поръчката си - INTER(MISSION)">
+  <meta name="robots" content="noindex">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://intermissionrec.com/checkout">
+  <meta property="og:site_name" content="INTER(MISSION)">
+  <meta property="og:title" content="Плащане | INTER(MISSION)">
+  <meta property="og:description" content="Завърши поръчката си - INTER(MISSION)">
+  <meta property="og:image" content="https://intermissionrec.com/assets/images/social/social-20260724234201.png">
+  <meta property="og:locale" content="bg_BG">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Плащане | INTER(MISSION)">
+  <meta name="twitter:description" content="Завърши поръчката си - INTER(MISSION)">
+  <meta name="twitter:image" content="https://intermissionrec.com/assets/images/social/social-20260724234201.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../assets/head.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <link rel="stylesheet" href="https://unpkg.com/lenis@1.3.26/dist/lenis.css">
+</head>
+<body class="checkout">
+  <div id="pageTransitionOverlay" class="page-transition-overlay"></div>
+  <div class="page">
+    <div data-include="../components/header.html"></div>
+
+    <main>
+      <section class="checkout-band">
+        <div class="checkout-inner">
+          <div class="checkout-heading">
+            <h1>Плащане</h1>
+            <p>Провери поръчката си и избери начин на плащане. Няма пренасочване към друга страница - всичко се случва тук.</p>
+          </div>
+
+          <div class="checkout-layout">
+            <!-- The form itself is deliberately a plain container, not a
+                 real submitting <form> action - script.js's
+                 setupCheckoutPage handles every step (validation, the
+                 COD POST, the PaymentIntent creation, mounting Stripe's
+                 Payment Element and confirming the payment) by hand, so
+                 a stray Enter-key native submit is prevented on purpose.
+                 See setupCheckoutPage in script.js for the full flow,
+                 and handleShopCreatePaymentIntent / handleShopCodCheckout
+                 in worker.js for the server side of each path. -->
+            <form id="checkoutForm" class="checkout-form" novalidate>
+              <div class="checkout-section">
+                <h2 class="checkout-section-title">Контакти</h2>
+                <input type="text" id="checkoutName" class="cart-cod-input" placeholder="Три имена" autocomplete="name">
+                <input type="email" id="checkoutEmail" class="cart-cod-input" placeholder="Имейл" autocomplete="email">
+              </div>
+
+              <!-- Hidden by default (cart starts unresolved until the
+                   catalog loads) and shown by setupCheckoutPage only
+                   when the cart has at least one physical item - a
+                   digital-only cart skips straight to payment method. -->
+              <div id="checkoutShippingSection" class="checkout-section" style="display:none;">
+                <h2 class="checkout-section-title">Доставка</h2>
+                <input type="tel" id="checkoutPhone" class="cart-cod-input" placeholder="Телефон" autocomplete="tel">
+
+                <!-- Speedy only for now, no Econt - same as the old cart
+                     drawer. "До офис" swaps the address fields for a
+                     free-text field naming the office, since there's no
+                     live Speedy office-map lookup wired up yet. -->
+                <div class="cart-cod-delivery-method">
+                  <label class="cart-delivery-option">
+                    <input type="radio" name="checkoutDeliveryMethod" id="checkoutDeliveryAddress" value="address" checked>
+                    <span>Доставка до адрес</span>
+                  </label>
+                  <label class="cart-delivery-option">
+                    <input type="radio" name="checkoutDeliveryMethod" id="checkoutDeliveryOffice" value="office">
+                    <span>Доставка до офис на Speedy</span>
+                  </label>
+                </div>
+
+                <div id="checkoutAddressFields" class="cart-cod-address-fields">
+                  <input type="text" id="checkoutLine1" class="cart-cod-input" placeholder="Адрес (улица, номер)" autocomplete="address-line1">
+                  <input type="text" id="checkoutLine2" class="cart-cod-input" placeholder="Адрес - продължение (по избор)" autocomplete="address-line2">
+                </div>
+                <input type="text" id="checkoutOfficeText" class="cart-cod-input" placeholder="Кой офис на Speedy? (град и квартал/адрес на офиса)" style="display:none;">
+                <div class="cart-cod-row">
+                  <input type="text" id="checkoutCity" class="cart-cod-input" placeholder="Град" autocomplete="address-level2">
+                  <input type="text" id="checkoutPostal" class="cart-cod-input" placeholder="Пощ. код" autocomplete="postal-code">
+                </div>
+                <p class="cart-cod-note">Доставка само за България.</p>
+              </div>
+
+              <!-- Card is always available; cash-on-delivery only becomes
+                   selectable once setupCheckoutPage confirms every item
+                   in the cart is physical (see the allPhysical check),
+                   mirroring the old cart drawer's rule. The server
+                   re-checks this independently either way. -->
+              <div class="checkout-section">
+                <h2 class="checkout-section-title">Начин на плащане</h2>
+                <div class="checkout-payment-method">
+                  <label class="cart-payment-option">
+                    <input type="radio" name="checkoutPaymentMethod" id="checkoutPayCard" value="card" checked>
+                    <span>Плащане с карта</span>
+                  </label>
+                  <label class="cart-payment-option" id="checkoutPayCodOption">
+                    <input type="radio" name="checkoutPaymentMethod" id="checkoutPayCod" value="cod" disabled>
+                    <span>Наложен платеж <span class="cart-payment-option-note">(само за физически поръчки)</span></span>
+                  </label>
+                </div>
+              </div>
+
+              <button type="button" id="checkoutContinueBtn" class="platform-link cart-checkout-btn">Продължи</button>
+
+              <!-- Revealed only for the card path, after the PaymentIntent
+                   is created - Stripe's Payment Element mounts into
+                   #checkoutPaymentElement (a Stripe-hosted iframe, so
+                   card details never touch this page's own JS/DOM). The
+                   cash-on-delivery path never reaches this - Continue
+                   submits it directly and navigates to the thank-you page. -->
+              <div id="checkoutPaymentStep" class="checkout-payment-step" style="display:none;">
+                <div id="checkoutPaymentElement" class="checkout-payment-element"></div>
+                <button type="button" id="checkoutPayBtn" class="platform-link cart-checkout-btn">Плати</button>
+              </div>
+
+              <p id="checkoutStatus" class="cart-status" style="display:none;"></p>
+            </form>
+
+            <div class="checkout-summary">
+              <h2 class="checkout-section-title">Поръчка</h2>
+              <div id="checkoutItemsList" class="checkout-items"></div>
+              <div class="checkout-summary-row">
+                <span>Междинна сума</span>
+                <span id="checkoutSubtotalAmount">0 €</span>
+              </div>
+              <div id="checkoutDeliveryFeeRow" class="checkout-summary-row" style="display:none;">
+                <span id="checkoutDeliveryFeeLabel">Доставка</span>
+                <span id="checkoutDeliveryFeeAmount">0 €</span>
+              </div>
+              <div class="checkout-summary-row checkout-summary-total">
+                <span>Общо</span>
+                <span id="checkoutTotalAmount">0 €</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div data-include="../components/footer.html"></div>
+  </div>
+
+  <script type="module" src="../assets/logo3d.js"></script>
+  <script src="../assets/script.js" defer></script>
+
+  <!-- Lenis smooth scroll - same as /magazin and /blog, since this page
+       is also variable-length scrolling content rather than
+       viewport-locked. -->
+  <script src="https://unpkg.com/lenis@1.3.26/dist/lenis.min.js"></script>
+  <script>
+    new Lenis({
+      autoRaf: true,
+      autoToggle: true,
+      anchors: true,
+      allowNestedScroll: true,
+      naiveDimensions: true,
+      stopInertiaOnNavigate: true,
+      duration: 1.44
+    });
+  </script>
+</body>
+</html>
