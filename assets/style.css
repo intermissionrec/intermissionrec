@@ -3426,12 +3426,24 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   flex: 0 0 420px;
 }
 
+/* Only present when the app's "Side Image Link" field was filled in -
+   a bare, unlinked <img> otherwise. Same hover-fade cue as the
+   magazin product cards' own clickable image. */
+.blog-post-side-image a {
+  display: block;
+}
+
+.blog-post-side-image a:hover img {
+  opacity: 0.85;
+}
+
 .blog-post-side-image img {
   display: block;
   width: 100%;
   aspect-ratio: 3 / 4;
   object-fit: cover;
   border-radius: 0;
+  transition: opacity 0.15s ease;
 }
 
 @media (max-width: 919.98px) {
