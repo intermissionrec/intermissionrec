@@ -3349,7 +3349,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
    below) get the wider column - every other post stays at the same
    720px reading width as before. */
 .blog-post-inner.has-side-image {
-  width: min(100%, 980px);
+  width: min(100%, 1080px);
 }
 
 .blog-post-back {
@@ -3419,9 +3419,11 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
    Blog tab's "Side Image" field in the app). Fixed at a portrait
    aspect ratio since it's meant for mostly-vertical photos; a
    landscape one just gets center-cropped to fit rather than
-   distorted. */
+   distorted. Sharp corners (no border-radius) on purpose - distinct
+   from the rounded-corner treatment used everywhere else on the
+   site (cards, covers, modals). */
 .blog-post-side-image {
-  flex: 0 0 300px;
+  flex: 0 0 420px;
 }
 
 .blog-post-side-image img {
@@ -3429,7 +3431,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   width: 100%;
   aspect-ratio: 3 / 4;
   object-fit: cover;
-  border-radius: var(--radius);
+  border-radius: 0;
 }
 
 @media (max-width: 919.98px) {
@@ -3440,7 +3442,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   .blog-post-side-image {
     flex: 0 0 auto;
     width: 100%;
-    max-width: 320px;
+    max-width: 420px;
     align-self: center;
   }
 }
