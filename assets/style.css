@@ -3345,6 +3345,13 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   gap: 28px;
 }
 
+/* Only posts with an optional side image (see .blog-post-side-image
+   below) get the wider column - every other post stays at the same
+   720px reading width as before. */
+.blog-post-inner.has-side-image {
+  width: min(100%, 980px);
+}
+
 .blog-post-back {
   align-self: flex-start;
   color: var(--muted);
@@ -3387,13 +3394,55 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   background: var(--muted-2);
 }
 
+/* Wraps .blog-post-body (and, optionally, .blog-post-side-image) side
+   by side. With no side image it holds just the one child, which
+   fills the row via flex:1 exactly as if this wrapper weren't there -
+   so unchanged for every post that doesn't use this. */
+.blog-post-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+}
+
 .blog-post-body {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 22px;
   color: var(--text);
   font-size: 17px;
   line-height: 1.75;
+}
+
+/* Optional - only rendered for posts given a side image (see the
+   Blog tab's "Side Image" field in the app). Fixed at a portrait
+   aspect ratio since it's meant for mostly-vertical photos; a
+   landscape one just gets center-cropped to fit rather than
+   distorted. */
+.blog-post-side-image {
+  flex: 0 0 300px;
+}
+
+.blog-post-side-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+@media (max-width: 919.98px) {
+  .blog-post-layout {
+    flex-direction: column;
+  }
+
+  .blog-post-side-image {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 320px;
+    align-self: center;
+  }
 }
 
 .blog-post-body p {
