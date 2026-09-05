@@ -99,12 +99,13 @@
         "rank":  11
     },
     {
-        "mainArtist":  "Leta Siren",
-        "slug":  "do-kraq",
-        "artist":  "Leta Siren",
-        "cover":  "https://intermissionrec.com/assets/images/links/do-kraq.jpg",
+        "notReleased":  true,
         "rank":  12,
+        "mainArtist":  "Leta Siren",
         "title":  "До края",
-        "url":  "https://intermissionrec.com/do-kraq/"
+        "url":  "https://intermissionrec.com/do-kraq/",
+        "cover":  "https://intermissionrec.com/assets/images/links/do-kraq.jpg",
+        "slug":  "do-kraq",
+        "artist":  "Leta Siren"
     }
 ]
