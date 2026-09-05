@@ -186,8 +186,24 @@
 
       linksEl.innerHTML = '';
       platformLinks.forEach(function (a) {
+        var href = a.getAttribute('href');
+        if (!href) {
+          // Not a real streaming link - e.g. the disabled "Coming soon"
+          // pill a not-yet-released smart link shows instead of platform
+          // buttons (see release_publisher.ps1's Render-SmartLinkPage).
+          // Reproduce it here as the same non-clickable pill rather than
+          // building an <a> with no real href - setting .href to null
+          // coerces to the literal string "null", which is what was
+          // sending clicks to /music/null.
+          var placeholder = document.createElement('span');
+          placeholder.className = 'platform-link';
+          placeholder.setAttribute('aria-disabled', 'true');
+          placeholder.textContent = a.textContent;
+          linksEl.appendChild(placeholder);
+          return;
+        }
         var newA = document.createElement('a');
-        newA.href = a.getAttribute('href');
+        newA.href = href;
         newA.className = 'platform-link';
         newA.target = '_blank';
         newA.rel = 'noopener noreferrer';
