@@ -1565,9 +1565,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   // min-width: 920px body.nav-stuck rule in style.css). .nav-wrap
   // itself starts sticking via CSS position: sticky the moment .hero
   // scrolls out of the way - no JS needed for the sticking itself,
-  // this observer only exists to line up the shadow with that same
-  // moment instead of guessing a fixed scroll distance, and (below)
-  // to time the wipe-closed animation on the way back up.
+  // this only exists to line up the shadow with that same moment
+  // instead of guessing a fixed scroll distance, and (below) to time
+  // the wipe-closed animation on the way back up. Two separate
+  // IntersectionObservers on the same .hero, deliberately not one:
+  // the "add nav-stuck" boundary and the "start hiding" boundary need
+  // to sit at two different scroll positions (see stuckObserver vs.
+  // hideObserver below), which a single observer can only ever report
+  // one crossing point for.
   function setupNavStuckObserver() {
     const hero = document.querySelector('.hero');
     if (!hero || !('IntersectionObserver' in window)) return;
@@ -1579,41 +1584,59 @@ document.addEventListener('DOMContentLoaded', async () => {
     const NAV_HIDE_MS = 600;
     let hideTimer = null;
 
-    const observer = new IntersectionObserver((entries) => {
+    function startHiding() {
+      if (hideTimer) return; // already mid-hide
+      document.body.classList.add('nav-hiding');
+      hideTimer = setTimeout(() => {
+        document.body.classList.remove('nav-stuck', 'nav-hiding');
+        hideTimer = null;
+      }, NAV_HIDE_MS);
+    }
+
+    function cancelHiding() {
+      if (hideTimer) {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+      }
+      document.body.classList.remove('nav-hiding');
+    }
+
+    // Real, unmargined boundary - .hero fully clear of the viewport -
+    // same condition as before. Its only job now is adding nav-stuck
+    // on the way down (and cancelling any hide still in flight if the
+    // user reverses direction); removal is handled entirely by the
+    // hide flow below rather than by this observer going the other
+    // way, so this half is otherwise unchanged from before.
+    const stuckObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         // isIntersecting is false both once .hero has scrolled above
         // the viewport (top < 0) and, momentarily, before layout has
         // settled - boundingClientRect.top < 0 is what actually tells
         // "scrolled past" apart from "not yet visible below the fold".
         const scrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-
         if (scrolledPast) {
-          // Scrolling down past .hero - cancel any wipe-closed still
-          // in flight from a moment ago and go straight to stuck,
-          // same as before.
-          if (hideTimer) {
-            clearTimeout(hideTimer);
-            hideTimer = null;
-          }
-          document.body.classList.remove('nav-hiding');
+          cancelHiding();
           document.body.classList.add('nav-stuck');
-        } else if (document.body.classList.contains('nav-stuck') && !hideTimer) {
-          // Scrolling back up - rather than dropping nav-stuck (and
-          // with it the left-aligned/logo layout) instantly, play the
-          // wipe-closed animation first (body.nav-hiding, see
-          // style.css) and only remove nav-stuck once that's actually
-          // finished, so the layout snap back to centered/no-logo
-          // happens while everything's already invisible instead of
-          // being seen.
-          document.body.classList.add('nav-hiding');
-          hideTimer = setTimeout(() => {
-            document.body.classList.remove('nav-stuck', 'nav-hiding');
-            hideTimer = null;
-          }, NAV_HIDE_MS);
         }
       });
     }, { threshold: 0 });
-    observer.observe(hero);
+    stuckObserver.observe(hero);
+
+    // rootMargin expands the intersection root 40px above the real
+    // viewport, so this reports .hero as "back near view" a full 40px
+    // of upward scroll before it would actually reappear under
+    // stuckObserver above - i.e. the wipe-closed animation
+    // (body.nav-hiding, see style.css) gets a 40px head start on the
+    // way up, so it's already finished by the time .hero is actually
+    // visible again instead of only starting the instant it is.
+    const hideObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && document.body.classList.contains('nav-stuck')) {
+          startHiding();
+        }
+      });
+    }, { threshold: 0, rootMargin: '40px 0px 0px 0px' });
+    hideObserver.observe(hero);
   }
   setupNavStuckObserver();
 
