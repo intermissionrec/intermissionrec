@@ -74,15 +74,26 @@ body.nav-open .page {
   width: 100%;
 }
 
-/* Desktop: the header's data-include wrapper is now just a plain
-   block - .hero (logo) scrolls away normally with the page, and only
-   .nav-wrap below it (see its own rule further down) is sticky, so it
-   only starts pinning to the top once .hero has fully scrolled past.
+/* Desktop: the header's data-include wrapper only ever holds .hero
+   now - relocateNavWrap() in script.js pulls .nav-wrap straight out of
+   it and makes it a direct sibling inside .page instead, right after
+   this wrapper, the moment the header/nav fragment finishes loading.
+   That relocation is what makes .nav-wrap's OWN sticky positioning
+   (see its rule further down) actually hold for the whole page's
+   scroll length: a stickily-positioned element can only stay stuck
+   for as long as its own immediate parent's box is still in view, and
+   this wrapper is only ever as tall as .hero itself once .hero isn't
+   sticky anymore - nowhere near enough room. .page (a flex column
+   that grows the full height of the page's content) gives it that
+   room, exactly like making the *whole* wrapper the sticky element
+   used to before this variant. .hero itself scrolls away normally
+   with the page, unaffected by any of this.
    Mobile keeps the older "whole header pinned from the very top"
    behavior (wrapper itself made sticky again under the
-   max-width: 919.98px query below) since .nav-wrap is relocated
-   off-screen into the fullscreen mobile menu there and isn't shown as
-   an inline bar at all. */
+   max-width: 919.98px query below) since .nav-wrap is relocated a
+   second time there, off into the fullscreen mobile menu (see
+   setupMobileNav in script.js), and isn't shown as an inline bar at
+   all. */
 div[data-include*="header.html"] {
   display: block;
   margin: 0 auto;
@@ -132,13 +143,16 @@ div[data-include*="header.html"] {
 
 /* Desktop-only: .nav-wrap is the sticky element itself here (instead
    of the whole header/nav data-include wrapper - see the comment on
-   div[data-include*="header.html"] above). Because it's sticky rather
-   than fixed, it only starts pinning to the top once .hero has fully
-   scrolled past - position: sticky's own native "stick once it would
-   otherwise scroll above top: 0" behavior, no JS needed for the
-   timing itself. Sticky still establishes a positioning context for
-   absolutely-positioned descendants exactly like position: relative
-   did above, so .nav-cart is unaffected. */
+   div[data-include*="header.html"] above, and relocateNavWrap() in
+   script.js, which is what actually gives this rule a tall enough
+   parent to stick against). Because it's sticky rather than fixed, it
+   only starts pinning to the top once .hero has fully scrolled past -
+   position: sticky's own native "stick once it would otherwise scroll
+   above top: 0" behavior, no JS needed for the timing itself, only
+   for relocating .nav-wrap's parent beforehand. Sticky still
+   establishes a positioning context for absolutely-positioned
+   descendants exactly like position: relative did above, so .nav-cart
+   is unaffected. */
 @media (min-width: 920px) {
   .nav-wrap {
     position: sticky;

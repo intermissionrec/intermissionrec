@@ -1500,6 +1500,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   // independently and would otherwise race against this async fetch.
   document.dispatchEvent(new CustomEvent('header-ready'));
 
+  // A stickily-positioned element can only stay stuck for as long as
+  // its own immediate parent's box is still on screen - it never
+  // reaches past that, however tall the rest of the page is. Left
+  // nested inside the header's own data-include wrapper (which is
+  // only ever as tall as .hero itself, now that .hero isn't sticky
+  // anymore), .nav-wrap would run out of room to stick in almost
+  // immediately, and scroll away with the rest of the header instead
+  // of staying pinned. Pulling it out to be a direct child of .page
+  // instead - a full page-height flex column - gives its own
+  // position: sticky rule (in style.css, desktop only) the room it
+  // actually needs, exactly like making the *whole* header wrapper
+  // the sticky element used to before this variant (see the
+  // div[data-include="header.html"] comment in style.css). Placed
+  // right after that wrapper so it still renders directly below
+  // .hero, same as it always has.
+  function relocateNavWrap() {
+    // Substring match, not exact - pages reference this fragment by
+    // path (e.g. data-include="./components/header.html"), same as
+    // the div[data-include*="header.html"] selector in style.css.
+    const wrapper = document.querySelector('div[data-include*="header.html"]');
+    const navWrap = document.querySelector('.nav-wrap');
+    if (!wrapper || !navWrap || !wrapper.parentNode) return;
+    wrapper.parentNode.insertBefore(navWrap, wrapper.nextSibling);
+  }
+  relocateNavWrap();
+
   // 3. Now the .nav exists, so compute nav and sections
   computeNavAndSections();
   setupMobileNav();
