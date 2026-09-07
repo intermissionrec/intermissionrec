@@ -164,30 +164,22 @@ div[data-include*="header.html"] {
    for relocating .nav-wrap's parent beforehand. Sticky still
    establishes a positioning context for absolutely-positioned
    descendants exactly like position: relative did above, so .nav-cart
-   is unaffected. The bar itself (and everything in it) is visible
-   right from the top of the page, same as it always was - only the
-   logo/link reveal wipe below is gated on scroll position.
-   Logo-to-links gap is deliberately tight (right next to each other)
-   rather than the wider spacing the centered/mobile layout uses.
-   The logo+links group is left-aligned here too (justify-content:
-   flex-start, .nav-logo-link shown, .nav's own centering width cap
-   dropped below so it just hugs the logo instead) rather than
-   centered in the bar - .nav-cart keeps pinning to the bar's own
-   right edge via its own absolute positioning regardless. */
+   is unaffected. The bar itself is visible right from the top of the
+   page, same as it always was - but at rest (not yet scrolled past
+   .hero) it looks exactly like the base/mobile styling: no logo,
+   links centered in the bar. Only once .hero has fully scrolled away
+   (body.nav-stuck, toggled by setupNavStuckObserver in script.js) do
+   the logo appear and the links shift to sit left-aligned right next
+   to it - gap: 20px between them - instead of staying centered;
+   .nav-cart keeps pinning to the bar's own right edge via its own
+   absolute positioning regardless of either state. */
 @media (min-width: 920px) {
   .nav-wrap {
     position: sticky;
     top: 0;
     z-index: 10;
-    justify-content: flex-start;
-    gap: 12px;
     box-shadow: none;
     transition: box-shadow .3s ease;
-  }
-
-  .nav-logo-link {
-    display: inline-flex;
-    flex: 0 0 auto;
   }
 
   .nav-logo {
@@ -196,7 +188,17 @@ div[data-include*="header.html"] {
     display: block;
   }
 
-  .nav {
+  body.nav-stuck .nav-wrap {
+    justify-content: flex-start;
+    gap: 20px;
+  }
+
+  body.nav-stuck .nav-logo-link {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  body.nav-stuck .nav {
     width: auto;
     justify-content: flex-start;
   }
