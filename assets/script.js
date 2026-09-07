@@ -1665,6 +1665,10 @@ lockScrollForTransition();
 
 function playEntranceTransition() {
   if (!pageTransitionOverlay) {
+    // Still play the desktop nav's own first-load wipe (see the
+    // min-width: 920px body.nav-intro-play rule in style.css) even
+    // without the overlay to sync it against.
+    document.body.classList.add('nav-intro-play');
     unlockScrollAfterTransition();
     return;
   }
@@ -1682,6 +1686,11 @@ function playEntranceTransition() {
     maxWait,
   ]).then(() => {
     pageTransitionOverlay.classList.add('is-hidden');
+    // Plays the resting/centered desktop nav's own wipe-in (see the
+    // min-width: 920px body.nav-intro-play rule in style.css) right
+    // as the curtain starts lifting, instead of it just sitting there
+    // fully-formed underneath the overlay the whole time.
+    document.body.classList.add('nav-intro-play');
     // Waits for the fade-out's own CSS transition to actually finish
     // before unlocking - tied to the real transitionend event rather
     // than a guessed timeout, so it's exact regardless of the CSS
