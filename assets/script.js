@@ -1588,11 +1588,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (scrolledPast) {
           // Scrolling down past .hero - cancel any retraction still
           // in flight from a moment ago and go straight to stuck.
+          // Also drops nav-return-play so it's ready to replay
+          // (see the else-branch below) next time we come back up -
+          // adding a class that's already present doesn't retrigger
+          // its animation, so this reset is what makes it repeatable.
           if (hideTimer) {
             clearTimeout(hideTimer);
             hideTimer = null;
           }
-          document.body.classList.remove('nav-hiding');
+          document.body.classList.remove('nav-hiding', 'nav-return-play');
           document.body.classList.add('nav-stuck');
         } else if (document.body.classList.contains('nav-stuck') && !hideTimer) {
           // The moment .hero is back in view - play the fast retract
@@ -1607,6 +1611,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           document.body.classList.add('nav-hiding');
           hideTimer = setTimeout(() => {
             document.body.classList.remove('nav-stuck', 'nav-hiding');
+            // Once back in its resting/centered layout, the links
+            // play their own wipe-in (body.nav-return-play, see
+            // style.css - same nav-reveal animation as the stuck
+            // cascade) instead of just sitting there already visible.
+            document.body.classList.add('nav-return-play');
             hideTimer = null;
           }, NAV_HIDE_MS);
         }
@@ -1665,10 +1674,6 @@ lockScrollForTransition();
 
 function playEntranceTransition() {
   if (!pageTransitionOverlay) {
-    // Still play the desktop nav's own first-load wipe (see the
-    // min-width: 920px body.nav-intro-play rule in style.css) even
-    // without the overlay to sync it against.
-    document.body.classList.add('nav-intro-play');
     unlockScrollAfterTransition();
     return;
   }
@@ -1686,11 +1691,6 @@ function playEntranceTransition() {
     maxWait,
   ]).then(() => {
     pageTransitionOverlay.classList.add('is-hidden');
-    // Plays the resting/centered desktop nav's own wipe-in (see the
-    // min-width: 920px body.nav-intro-play rule in style.css) right
-    // as the curtain starts lifting, instead of it just sitting there
-    // fully-formed underneath the overlay the whole time.
-    document.body.classList.add('nav-intro-play');
     // Waits for the fade-out's own CSS transition to actually finish
     // before unlocking - tied to the real transitionend event rather
     // than a guessed timeout, so it's exact regardless of the CSS
