@@ -74,21 +74,18 @@ body.nav-open .page {
   width: 100%;
 }
 
-/* The header's own data-include wrapper is only as tall as its own
-   content (~185px) - making it the sticky element itself (rather than
-   .nav-wrap individually) fixes two things at once: it's now
-   constrained by its parent .page (full page height) instead of its
-   own short self, so it can actually stay stuck for the whole page's
-   scroll length - and it groups .hero (logo) + .nav-wrap together as
-   one pinned unit, moving/sticking as a single piece. */
+/* Desktop: the header's data-include wrapper is now just a plain
+   block - .hero (logo) scrolls away normally with the page, and only
+   .nav-wrap below it (see its own rule further down) is sticky, so it
+   only starts pinning to the top once .hero has fully scrolled past.
+   Mobile keeps the older "whole header pinned from the very top"
+   behavior (wrapper itself made sticky again under the
+   max-width: 919.98px query below) since .nav-wrap is relocated
+   off-screen into the fullscreen mobile menu there and isn't shown as
+   an inline bar at all. */
 div[data-include*="header.html"] {
-  position: sticky;
-  top: 0;
-  z-index: 10;
   display: block;
   margin: 0 auto;
-  box-shadow: none;
-  transition: width .3s ease, top .3s ease, box-shadow .3s ease;
 }
 
 .hero {
@@ -133,12 +130,45 @@ div[data-include*="header.html"] {
   position: relative;
 }
 
-/* Floating "popup window" state once scrolled past the very top -
-   full-bleed bar at the top of the page, then insets into a distinct,
-   rounded, shadowed card once you've scrolled. Toggled via a
-   body.scrolled class added/removed in script.js. */
-body.scrolled div[data-include*="header.html"] {
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+/* Desktop-only: .nav-wrap is the sticky element itself here (instead
+   of the whole header/nav data-include wrapper - see the comment on
+   div[data-include*="header.html"] above). Because it's sticky rather
+   than fixed, it only starts pinning to the top once .hero has fully
+   scrolled past - position: sticky's own native "stick once it would
+   otherwise scroll above top: 0" behavior, no JS needed for the
+   timing itself. Sticky still establishes a positioning context for
+   absolutely-positioned descendants exactly like position: relative
+   did above, so .nav-cart is unaffected. */
+@media (min-width: 920px) {
+  .nav-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: none;
+    transition: box-shadow .3s ease;
+  }
+}
+
+/* Mobile: shadow on the whole pinned header (hero+hamburger) once
+   scrolled past the very top - body.scrolled, toggled by scrollY
+   in script.js's updateScrolledState(). Desktop uses a separate
+   body.nav-stuck class instead (see the min-width: 920px rule
+   below), timed to when .nav-wrap itself actually sticks rather than
+   a fixed scroll distance. */
+@media (max-width: 919.98px) {
+  body.scrolled div[data-include*="header.html"] {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Desktop: shadow once .nav-wrap has actually pinned to the top -
+   body.nav-stuck, toggled by an IntersectionObserver watching .hero
+   in script.js (setupNavStuckObserver), so it lines up exactly with
+   when .nav-wrap's own sticky positioning kicks in. */
+@media (min-width: 920px) {
+  body.nav-stuck .nav-wrap {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
 }
 
 .nav {
@@ -899,6 +929,17 @@ html, body { height: 100%; }
 @media (max-width: 919.98px) {
   .page {
     overflow: visible;
+  }
+
+  /* Mobile keeps the original "whole header (hero+hamburger) pinned
+     from the very top" behavior - .nav-wrap itself is relocated off
+     into the fullscreen mobile menu (see setupMobileNav in script.js)
+     and isn't shown as an inline bar here, so the desktop-only
+     nav-wrap-alone sticky behavior above doesn't apply. */
+  div[data-include*="header.html"] {
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
 
   .hero-logo {

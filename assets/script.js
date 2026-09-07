@@ -1525,11 +1525,38 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Toggles the "floating popup" header state once scrolled past the
-  // very top - see .nav-wrap / body.scrolled in style.css.
+  // very top - mobile-only shadow now, see the max-width: 919.98px
+  // body.scrolled rule in style.css (desktop uses body.nav-stuck
+  // instead, set up by setupNavStuckObserver below).
   function updateScrolledState() {
     document.body.classList.toggle('scrolled', window.scrollY > 20);
   }
   updateScrolledState();
+
+  // Desktop-only: toggles body.nav-stuck once .hero has fully
+  // scrolled past the top, purely for the cosmetic shadow on
+  // .nav-wrap once it's actually pinned there (see the
+  // min-width: 920px body.nav-stuck rule in style.css). .nav-wrap
+  // itself starts sticking via CSS position: sticky the moment .hero
+  // scrolls out of the way - no JS needed for the sticking itself,
+  // this observer only exists to line up the shadow with that same
+  // moment instead of guessing a fixed scroll distance.
+  function setupNavStuckObserver() {
+    const hero = document.querySelector('.hero');
+    if (!hero || !('IntersectionObserver' in window)) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        // isIntersecting is false both once .hero has scrolled above
+        // the viewport (top < 0) and, momentarily, before layout has
+        // settled - boundingClientRect.top < 0 is what actually tells
+        // "scrolled past" apart from "not yet visible below the fold".
+        const scrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+        document.body.classList.toggle('nav-stuck', scrolledPast);
+      });
+    }, { threshold: 0 });
+    observer.observe(hero);
+  }
+  setupNavStuckObserver();
 
   window.addEventListener('scroll', setActiveLink, { passive: true });
   window.addEventListener('scroll', updateScrolledState, { passive: true });
