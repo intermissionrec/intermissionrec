@@ -324,14 +324,26 @@ div[data-include*="header.html"] {
 
   /* Once back in the resting/centered layout (no logo - see
      .nav-logo-link's own display: none default), the links play the
-     same nav-reveal wipe the stuck cascade above uses, rather than
-     just sitting there already visible. body.nav-return-play is added
-     in setupNavStuckObserver in script.js right as nav-stuck/
-     nav-hiding are dropped (i.e. once the retraction above has
-     actually finished), and removed again the next time nav-stuck is
-     added so it's ready to replay each time you scroll back up. */
+     same wipe the stuck cascade above uses, rather than just sitting
+     there already visible. body.nav-return-play is added in
+     setupNavStuckObserver in script.js right as nav-stuck/nav-hiding
+     are dropped (i.e. once the retraction above has actually
+     finished), and removed again the next time nav-stuck is added so
+     it's ready to replay each time you scroll back up.
+     Deliberately its own separate @keyframes (nav-reveal-return,
+     right below - visually identical to nav-reveal, just under a
+     different name) rather than reusing nav-reveal directly: since
+     body.nav-stuck and body.nav-return-play are never both present at
+     once, going straight from one to the other only actually changes
+     which element matches which rule, not the animation-name value
+     itself, if both rules point at the same keyframe name - and a CSS
+     animation whose name never changes value doesn't restart, it just
+     stays parked at the held "both" end state from whichever one
+     played first. Two distinctly-named (but identical) keyframes
+     sidesteps that entirely - the name always changes, so it always
+     restarts. */
   body.nav-return-play .nav > a:not(.nav-cart) {
-    animation: nav-reveal .3s cubic-bezier(.22, 1, .36, 1) both;
+    animation: nav-reveal-return .3s cubic-bezier(.22, 1, .36, 1) both;
   }
 
   body.nav-return-play .nav > a:nth-child(1) { animation-delay: .05s; }
@@ -343,6 +355,20 @@ div[data-include*="header.html"] {
 }
 
 @keyframes nav-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+    transform: translateX(-10px);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: translateX(0);
+  }
+}
+
+/* Visually identical to nav-reveal above, just under its own name -
+   see the comment on body.nav-return-play above for why this needs
+   to be a distinct @keyframes rather than the same one reused. */
+@keyframes nav-reveal-return {
   from {
     clip-path: inset(0 100% 0 0);
     transform: translateX(-10px);
