@@ -1566,10 +1566,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   // itself starts sticking via CSS position: sticky the moment .hero
   // scrolls out of the way - no JS needed for the sticking itself,
   // this observer only exists to line up the shadow with that same
-  // moment instead of guessing a fixed scroll distance.
+  // moment instead of guessing a fixed scroll distance, and (below)
+  // to time the wipe-closed animation on the way back up.
   function setupNavStuckObserver() {
     const hero = document.querySelector('.hero');
     if (!hero || !('IntersectionObserver' in window)) return;
+    // Matches the body.nav-hiding animation's own total run time in
+    // style.css (its own delay + duration - .3s delay + .3s duration
+    // on the logo, which finishes last of the group). Kept in sync by
+    // hand since JS can't read a keyframe's timing back out of the
+    // stylesheet.
+    const NAV_HIDE_MS = 600;
+    let hideTimer = null;
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         // isIntersecting is false both once .hero has scrolled above
@@ -1577,7 +1586,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         // settled - boundingClientRect.top < 0 is what actually tells
         // "scrolled past" apart from "not yet visible below the fold".
         const scrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-        document.body.classList.toggle('nav-stuck', scrolledPast);
+
+        if (scrolledPast) {
+          // Scrolling down past .hero - cancel any wipe-closed still
+          // in flight from a moment ago and go straight to stuck,
+          // same as before.
+          if (hideTimer) {
+            clearTimeout(hideTimer);
+            hideTimer = null;
+          }
+          document.body.classList.remove('nav-hiding');
+          document.body.classList.add('nav-stuck');
+        } else if (document.body.classList.contains('nav-stuck') && !hideTimer) {
+          // Scrolling back up - rather than dropping nav-stuck (and
+          // with it the left-aligned/logo layout) instantly, play the
+          // wipe-closed animation first (body.nav-hiding, see
+          // style.css) and only remove nav-stuck once that's actually
+          // finished, so the layout snap back to centered/no-logo
+          // happens while everything's already invisible instead of
+          // being seen.
+          document.body.classList.add('nav-hiding');
+          hideTimer = setTimeout(() => {
+            document.body.classList.remove('nav-stuck', 'nav-hiding');
+            hideTimer = null;
+          }, NAV_HIDE_MS);
+        }
       });
     }, { threshold: 0 });
     observer.observe(hero);
