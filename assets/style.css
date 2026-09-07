@@ -74,26 +74,27 @@ body.nav-open .page {
   width: 100%;
 }
 
-/* Desktop: the header's data-include wrapper only ever holds .hero
-   now - relocateNavWrap() in script.js pulls .nav-wrap straight out of
-   it and makes it a direct sibling inside .page instead, right after
-   this wrapper, the moment the header/nav fragment finishes loading.
-   That relocation is what makes .nav-wrap's OWN sticky positioning
-   (see its rule further down) actually hold for the whole page's
-   scroll length: a stickily-positioned element can only stay stuck
-   for as long as its own immediate parent's box is still in view, and
-   this wrapper is only ever as tall as .hero itself once .hero isn't
-   sticky anymore - nowhere near enough room. .page (a flex column
-   that grows the full height of the page's content) gives it that
-   room, exactly like making the *whole* wrapper the sticky element
-   used to before this variant. .hero itself scrolls away normally
-   with the page, unaffected by any of this.
+/* Desktop: the header's data-include wrapper only ever holds .hero -
+   .hero itself just scrolls away normally with the rest of the page,
+   no sticky/fixed positioning on it or this wrapper at all. .nav-wrap
+   is a completely separate, always position: fixed element (see its
+   rule under the min-width: 920px query below) that relocateNavWrap()
+   in script.js moves out to be a direct child of <body> the moment
+   the header/nav fragment finishes loading - same reason as the
+   newsletter modal / cart drawer relocations further down this file:
+   escapes any transformed ancestor (Lenis included) that would
+   otherwise trap a position: fixed element relative to that ancestor's
+   box instead of the true viewport. It starts translated fully above
+   the viewport (invisible, taking no space) and only slides down once
+   body.nav-stuck is set - see setupNavStuckObserver in script.js,
+   which watches .hero and flips that class only once .hero has
+   completely scrolled past the top, i.e. once "the entire header" is
+   gone.
    Mobile keeps the older "whole header pinned from the very top"
    behavior (wrapper itself made sticky again under the
-   max-width: 919.98px query below) since .nav-wrap is relocated a
-   second time there, off into the fullscreen mobile menu (see
-   setupMobileNav in script.js), and isn't shown as an inline bar at
-   all. */
+   max-width: 919.98px query below) - .nav-wrap is relocated to body
+   too there, but shown as a fullscreen slide-out menu instead of an
+   inline bar (see setupMobileNav in script.js). */
 div[data-include*="header.html"] {
   display: block;
   margin: 0 auto;
@@ -153,18 +154,18 @@ div[data-include*="header.html"] {
   display: none;
 }
 
-/* Desktop-only: .nav-wrap is the sticky element itself here (instead
-   of the whole header/nav data-include wrapper - see the comment on
-   div[data-include*="header.html"] above, and relocateNavWrap() in
-   script.js, which is what actually gives this rule a tall enough
-   parent to stick against). Because it's sticky rather than fixed, it
-   only starts pinning to the top once .hero has fully scrolled past -
-   position: sticky's own native "stick once it would otherwise scroll
-   above top: 0" behavior, no JS needed for the timing itself, only
-   for relocating .nav-wrap's parent beforehand. Sticky still
-   establishes a positioning context for absolutely-positioned
-   descendants exactly like position: relative did above, so .nav-cart
-   is unaffected.
+/* Desktop-only: .nav-wrap is always position: fixed here (pinned to
+   the very top of the viewport, moved out to be a direct child of
+   <body> by relocateNavWrap() in script.js - see the comment on
+   div[data-include*="header.html"] above for why). Hidden by default
+   via transform: translateY(-100%) - fully above the viewport, no
+   layout space taken up, nothing to see until it's actually meant to
+   appear. body.nav-stuck (toggled by setupNavStuckObserver in
+   script.js, watching .hero) slides it down into view once .hero -
+   the entire visible header - has completely scrolled past the top.
+   Fixed still establishes a positioning context for absolutely-
+   positioned descendants exactly like position: relative did above,
+   so .nav-cart is unaffected.
    The logo+links group is left-aligned here too (justify-content:
    flex-start, .nav-logo-link shown, .nav's own centering width cap
    dropped below so it just hugs the logo instead) rather than
@@ -172,13 +173,19 @@ div[data-include*="header.html"] {
    right edge via its own absolute positioning regardless. */
 @media (min-width: 920px) {
   .nav-wrap {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
     z-index: 10;
     justify-content: flex-start;
     gap: 28px;
     box-shadow: none;
-    transition: box-shadow .3s ease;
+    transform: translateY(-100%);
+    transition: transform .4s cubic-bezier(.22, 1, .36, 1), box-shadow .3s ease;
+  }
+
+  body.nav-stuck .nav-wrap {
+    transform: translateY(0);
   }
 
   .nav-logo-link {
@@ -202,18 +209,18 @@ div[data-include*="header.html"] {
    scrolled past the very top - body.scrolled, toggled by scrollY
    in script.js's updateScrolledState(). Desktop uses a separate
    body.nav-stuck class instead (see the min-width: 920px rule
-   below), timed to when .nav-wrap itself actually sticks rather than
-   a fixed scroll distance. */
+   below), timed to when .nav-wrap itself actually slides into view
+   rather than a fixed scroll distance. */
 @media (max-width: 919.98px) {
   body.scrolled div[data-include*="header.html"] {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   }
 }
 
-/* Desktop: shadow once .nav-wrap has actually pinned to the top -
+/* Desktop: shadow once .nav-wrap has actually slid into view -
    body.nav-stuck, toggled by an IntersectionObserver watching .hero
    in script.js (setupNavStuckObserver), so it lines up exactly with
-   when .nav-wrap's own sticky positioning kicks in. */
+   when .nav-wrap's own slide-in kicks in. */
 @media (min-width: 920px) {
   body.nav-stuck .nav-wrap {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
@@ -245,15 +252,18 @@ div[data-include*="header.html"] {
   outline: none;
 }
 
-/* Desktop: once .nav-wrap has actually stuck to the top (body.nav-stuck
+/* Desktop: once .nav-wrap has actually slid into view (body.nav-stuck
    - see setupNavStuckObserver in script.js), the logo and links reveal
    themselves rather than just being there already - a deliberate wipe
    via clip-path (not an opacity fade) that uncovers each one left edge
    to right edge, with .nav-cart left out entirely since it stays
    visible/functional throughout regardless of scroll position. Hidden
    state is the resting default (not gated behind body.nav-stuck) so
-   there's something to reveal FROM the moment nav-wrap first sticks;
-   removing body.nav-stuck (scrolling back above .hero) drops the
+   there's something to reveal FROM the moment nav-wrap slides in -
+   harmless while nav-wrap itself is still off-screen (translateY(-100%)
+   above the viewport, see the min-width: 920px .nav-wrap rule above),
+   since nothing inside it is visible at all until then anyway.
+   Removing body.nav-stuck (scrolling back above .hero) drops the
    "forwards"-filled animation and the elements simply snap back to
    this same hidden state, ready to replay next time. */
 @media (min-width: 920px) {
@@ -1033,7 +1043,7 @@ html, body { height: 100%; }
      from the very top" behavior - .nav-wrap itself is relocated off
      into the fullscreen mobile menu (see setupMobileNav in script.js)
      and isn't shown as an inline bar here, so the desktop-only
-     nav-wrap-alone sticky behavior above doesn't apply. */
+     nav-wrap-alone fixed/slide-in behavior above doesn't apply. */
   div[data-include*="header.html"] {
     position: sticky;
     top: 0;
