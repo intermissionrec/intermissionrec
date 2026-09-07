@@ -1667,6 +1667,11 @@ function playEntranceTransition() {
 function isPageTransitionLink(link) {
   if (!link) return false;
   if (link.classList.contains('hero-logo-link')) return true;
+  // .nav-logo-link (the small stand-in logo shown in .nav-wrap once
+  // it's stuck, left of the links - see style.css) isn't inside .nav
+  // itself, so it needs its own check here alongside the identical
+  // hero-logo-link one right above.
+  if (link.classList.contains('nav-logo-link')) return true;
   if (link.closest('.nav')) return true;
   if (link.classList.contains('cover-card')) return true;
   return false;
@@ -1685,8 +1690,12 @@ function setupPageTransitionLinks() {
     if (!href) return;
 
     // clicking the home logo while already on the home page shouldn't
-    // reload the page or play the transition at all
-    if (link.classList.contains('hero-logo-link') && document.body.classList.contains('home')) {
+    // reload the page or play the transition at all - covers both the
+    // big .hero-logo-link and its small .nav-wrap stand-in.
+    if (
+      (link.classList.contains('hero-logo-link') || link.classList.contains('nav-logo-link')) &&
+      document.body.classList.contains('home')
+    ) {
       e.preventDefault();
       return;
     }

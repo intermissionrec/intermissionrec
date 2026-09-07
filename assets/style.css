@@ -133,12 +133,24 @@ div[data-include*="header.html"] {
   background: rgba(15, 15, 15, 0.92);
   backdrop-filter: blur(10px);
   display: flex;
+  align-items: center;
   justify-content: center;
   padding: 0px 20px;
   /* Positioned so .nav-cart (see below) can pin itself to this bar's
      own right edge via position: absolute, regardless of where the
      narrower, centered .nav content box happens to sit inside it. */
   position: relative;
+}
+
+/* Small stand-in logo, left of the links, for once .hero's own big
+   one has scrolled out of view - see the min-width: 920px rule below
+   for where it's actually shown and how it reveals itself. Hidden
+   outright below the desktop breakpoint since mobile's .nav-wrap
+   becomes a fullscreen vertical menu (see the max-width: 919.98px
+   overrides further down) rather than a horizontal bar - a logo
+   alongside the stacked links doesn't apply there. */
+.nav-logo-link {
+  display: none;
 }
 
 /* Desktop-only: .nav-wrap is the sticky element itself here (instead
@@ -152,14 +164,37 @@ div[data-include*="header.html"] {
    for relocating .nav-wrap's parent beforehand. Sticky still
    establishes a positioning context for absolutely-positioned
    descendants exactly like position: relative did above, so .nav-cart
-   is unaffected. */
+   is unaffected.
+   The logo+links group is left-aligned here too (justify-content:
+   flex-start, .nav-logo-link shown, .nav's own centering width cap
+   dropped below so it just hugs the logo instead) rather than
+   centered in the bar - .nav-cart keeps pinning to the bar's own
+   right edge via its own absolute positioning regardless. */
 @media (min-width: 920px) {
   .nav-wrap {
     position: sticky;
     top: 0;
     z-index: 10;
+    justify-content: flex-start;
+    gap: 28px;
     box-shadow: none;
     transition: box-shadow .3s ease;
+  }
+
+  .nav-logo-link {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  .nav-logo {
+    width: 40px;
+    height: 40px;
+    display: block;
+  }
+
+  .nav {
+    width: auto;
+    justify-content: flex-start;
   }
 }
 
@@ -208,6 +243,55 @@ div[data-include*="header.html"] {
 .nav a.is-active {
   color: #8c8c8c;
   outline: none;
+}
+
+/* Desktop: once .nav-wrap has actually stuck to the top (body.nav-stuck
+   - see setupNavStuckObserver in script.js), the logo and links reveal
+   themselves rather than just being there already - a deliberate wipe
+   via clip-path (not an opacity fade) that uncovers each one left edge
+   to right edge, with .nav-cart left out entirely since it stays
+   visible/functional throughout regardless of scroll position. Hidden
+   state is the resting default (not gated behind body.nav-stuck) so
+   there's something to reveal FROM the moment nav-wrap first sticks;
+   removing body.nav-stuck (scrolling back above .hero) drops the
+   "forwards"-filled animation and the elements simply snap back to
+   this same hidden state, ready to replay next time. */
+@media (min-width: 920px) {
+  .nav-logo-link,
+  .nav > a:not(.nav-cart) {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  body.nav-stuck .nav-logo-link {
+    animation: nav-reveal .5s cubic-bezier(.22, 1, .36, 1) .5s forwards;
+  }
+
+  body.nav-stuck .nav > a:not(.nav-cart) {
+    animation: nav-reveal .5s cubic-bezier(.22, 1, .36, 1) forwards;
+  }
+
+  /* Staggered left-to-right cascade, in the links' own left-to-right
+     visual order (.nav is left-aligned now, so DOM order === reading
+     order) - each one starts its own reveal a beat after the last,
+     all of them starting only after the shared 0.5s "once scrolled"
+     delay the logo above also uses. */
+  body.nav-stuck .nav > a:nth-child(1) { animation-delay: .58s; }
+  body.nav-stuck .nav > a:nth-child(2) { animation-delay: .66s; }
+  body.nav-stuck .nav > a:nth-child(3) { animation-delay: .74s; }
+  body.nav-stuck .nav > a:nth-child(4) { animation-delay: .82s; }
+  body.nav-stuck .nav > a:nth-child(5) { animation-delay: .90s; }
+  body.nav-stuck .nav > a:nth-child(6) { animation-delay: .98s; }
+}
+
+@keyframes nav-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+    transform: translateX(-10px);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: translateX(0);
+  }
 }
 
 main {
