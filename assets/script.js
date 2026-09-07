@@ -1565,19 +1565,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   // min-width: 920px body.nav-stuck rule in style.css). .nav-wrap
   // itself starts sticking via CSS position: sticky the moment .hero
   // scrolls out of the way - no JS needed for the sticking itself,
-  // this observer only exists to line up the shadow with that same
-  // moment instead of guessing a fixed scroll distance.
-  // Deliberately symmetric/instant in both directions - no separate
-  // "hiding" class or timer for scrolling back up. The reveal wipe
-  // (body.nav-stuck, see style.css) only ever plays on the way down;
-  // going back up just drops nav-stuck outright and the layout snaps
-  // straight back to centered/no-logo. That snap isn't visible in
-  // practice because .hero sits above .nav-wrap in stacking order
-  // (z-index: 11 vs. 10, see .hero's own rule in style.css) for the
-  // moment they overlap, so .hero's opaque background masks it.
+  // this only exists to line up the shadow with that same moment
+  // instead of guessing a fixed scroll distance, and (below) to time
+  // the fast retraction on the way back up.
   function setupNavStuckObserver() {
     const hero = document.querySelector('.hero');
     if (!hero || !('IntersectionObserver' in window)) return;
+    // Matches the body.nav-hiding animation's own duration in
+    // style.css exactly (nav-hide, .15s) - kept in sync by hand since
+    // JS can't read a keyframe's timing back out of the stylesheet.
+    const NAV_HIDE_MS = 150;
+    let hideTimer = null;
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         // isIntersecting is false both once .hero has scrolled above
@@ -1585,7 +1584,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         // settled - boundingClientRect.top < 0 is what actually tells
         // "scrolled past" apart from "not yet visible below the fold".
         const scrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-        document.body.classList.toggle('nav-stuck', scrolledPast);
+
+        if (scrolledPast) {
+          // Scrolling down past .hero - cancel any retraction still
+          // in flight from a moment ago and go straight to stuck.
+          if (hideTimer) {
+            clearTimeout(hideTimer);
+            hideTimer = null;
+          }
+          document.body.classList.remove('nav-hiding');
+          document.body.classList.add('nav-stuck');
+        } else if (document.body.classList.contains('nav-stuck') && !hideTimer) {
+          // The moment .hero is back in view - play the fast retract
+          // (body.nav-hiding, see style.css) and only drop nav-stuck
+          // once it's actually finished, so the layout snap back to
+          // centered/no-logo happens right as the wipe closes rather
+          // than a beat before it. .hero already sits above .nav-wrap
+          // in stacking order for this whole stretch (z-index: 11 vs.
+          // 10, see .hero's own rule in style.css), so the wipe is
+          // playing out mostly hidden underneath the header rather
+          // than overlaying it.
+          document.body.classList.add('nav-hiding');
+          hideTimer = setTimeout(() => {
+            document.body.classList.remove('nav-stuck', 'nav-hiding');
+            hideTimer = null;
+          }, NAV_HIDE_MS);
+        }
       });
     }, { threshold: 0 });
     observer.observe(hero);

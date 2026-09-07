@@ -274,16 +274,19 @@ div[data-include*="header.html"] {
    "from" state the instant body.nav-stuck is added (even during the
    delay below), and "forwards" holds the revealed end state once it
    finishes.
-   Scrolling back up is deliberately NOT animated the same way -
-   nav-stuck just gets removed outright (see setupNavStuckObserver in
-   script.js) and the layout snaps straight back to centered/no-logo.
-   That snap isn't visible in practice because .hero itself sits above
-   .nav-wrap in stacking order while this happens (z-index: 11 vs. 10
-   - see .hero's own rule above): .nav-wrap is still pinned via
-   position: sticky and briefly overlapping .hero as .hero scrolls
-   back into place, and .hero's opaque background paints over that
-   overlap, so the reflow underneath is hidden rather than overlaying
-   the header. */
+   Scrolling back up plays a fast reverse wipe (body.nav-hiding, one
+   quick .15s motion, no stagger) the moment .hero comes back into
+   view - see setupNavStuckObserver in script.js, which holds
+   body.nav-stuck in place for that .15s so the left-aligned/logo
+   layout doesn't snap back to centered/no-logo until the wipe has
+   actually finished retracting. Doesn't need to hide the reflow via
+   trickery the way the reveal above does, because .hero itself sits
+   above .nav-wrap in stacking order the whole time this plays
+   (z-index: 11 vs. 10 - see .hero's own rule above): .nav-wrap is
+   still pinned via position: sticky and overlapping .hero as .hero
+   scrolls back into place, so .hero's opaque background already
+   covers most of it regardless - the nav-wrap is retracting *under*
+   the header, not on top of it. */
 @media (min-width: 920px) {
   .nav-logo-link,
   .nav > a:not(.nav-cart) {
@@ -309,6 +312,15 @@ div[data-include*="header.html"] {
   body.nav-stuck .nav > a:nth-child(4) { animation-delay: .35s; }
   body.nav-stuck .nav > a:nth-child(5) { animation-delay: .40s; }
   body.nav-stuck .nav > a:nth-child(6) { animation-delay: .45s; }
+
+  /* Fast retraction, the reverse of nav-reveal - one motion, no
+     stagger, since it's mostly happening underneath .hero anyway
+     (see the comment above) rather than something that needs to read
+     as its own showcase moment. */
+  body.nav-hiding .nav-logo-link,
+  body.nav-hiding .nav > a:not(.nav-cart) {
+    animation: nav-hide .15s ease both;
+  }
 }
 
 @keyframes nav-reveal {
@@ -319,6 +331,18 @@ div[data-include*="header.html"] {
   to {
     clip-path: inset(0 0 0 0);
     transform: translateX(0);
+  }
+}
+
+/* Exact reverse of nav-reveal above. */
+@keyframes nav-hide {
+  from {
+    clip-path: inset(0 0 0 0);
+    transform: translateX(0);
+  }
+  to {
+    clip-path: inset(0 100% 0 0);
+    transform: translateX(-10px);
   }
 }
 
