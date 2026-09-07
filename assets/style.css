@@ -255,98 +255,64 @@ div[data-include*="header.html"] {
    the page (the bar itself is visible immediately too - see the
    sticky .nav-wrap rule above), same as the site originally worked.
    Once .nav-wrap actually pins to the top (body.nav-stuck - see
-   setupNavStuckObserver in script.js, watching .hero), the wipe
-   REPLAYS - clip-path (not an opacity fade) snaps each one back to
-   fully hidden and immediately re-reveals it left edge to right edge,
-   with .nav-cart left out entirely since it stays visible/functional
-   throughout regardless of scroll position. animation-fill-mode: both
-   is what makes this work with a resting state of "visible": the
-   "backwards" half snaps the element to the animation's own hidden
-   "from" state the instant body.nav-stuck is added (even during the
-   delay below), and "forwards" holds the revealed end state once it
-   finishes.
-   Scrolling back up plays the mirror image of this rather than just
-   snapping the layout back - see the body.nav-hiding rule right
-   below. setupNavStuckObserver doesn't remove body.nav-stuck the
-   instant .hero comes back into view anymore; it adds body.nav-hiding
-   first (wipe-closed, right-to-left, logo last) and only drops both
-   classes once that finishes, so by the time the left-aligned/logo
-   layout actually snaps back to centered/no-logo, everything's
-   already clipped invisible and the snap itself isn't seen. */
+   setupNavStuckObserver in script.js, watching .hero), they wipe in
+   as one unit - clip-path (not an opacity fade), sliding/revealing
+   downward from the top edge, with .nav-cart left out entirely since
+   it stays visible/functional throughout regardless of scroll
+   position. animation-fill-mode: both is what makes this work with a
+   resting state of "visible": the "backwards" half snaps every
+   element to the animation's own hidden "from" state the instant
+   body.nav-stuck is added, and "forwards" holds the revealed end
+   state once it finishes.
+   Scrolling back up plays the exact reverse (body.nav-hiding, wiping
+   back up and out) at the same speed rather than snapping the layout
+   back instantly. setupNavStuckObserver doesn't remove body.nav-stuck
+   the moment .hero comes back into view; it adds body.nav-hiding
+   first and only drops both classes once that finishes, so by the
+   time the left-aligned/logo layout actually snaps back to
+   centered/no-logo, everything's already wiped invisible and the
+   snap itself isn't seen. No stagger on either direction - the whole
+   group moves together as a single band, same duration both ways. */
 @media (min-width: 920px) {
   .nav-logo-link,
   .nav > a:not(.nav-cart) {
     clip-path: inset(0 0 0 0);
   }
 
-  body.nav-stuck .nav-logo-link {
-    animation: nav-reveal .3s cubic-bezier(.22, 1, .36, 1) .15s both;
-  }
-
+  body.nav-stuck .nav-logo-link,
   body.nav-stuck .nav > a:not(.nav-cart) {
-    animation: nav-reveal .3s cubic-bezier(.22, 1, .36, 1) both;
+    animation: nav-reveal .25s ease both;
   }
 
-  /* Staggered left-to-right cascade, in the links' own left-to-right
-     visual order (.nav is left-aligned now, so DOM order === reading
-     order) - each one starts its own reveal a beat after the last,
-     all of them starting only after the shared 0.15s "once stuck"
-     delay the logo above also uses. Tightened up considerably from
-     the original timing so the whole cascade reads as quick rather
-     than a slow reveal. */
-  body.nav-stuck .nav > a:nth-child(1) { animation-delay: .20s; }
-  body.nav-stuck .nav > a:nth-child(2) { animation-delay: .25s; }
-  body.nav-stuck .nav > a:nth-child(3) { animation-delay: .30s; }
-  body.nav-stuck .nav > a:nth-child(4) { animation-delay: .35s; }
-  body.nav-stuck .nav > a:nth-child(5) { animation-delay: .40s; }
-  body.nav-stuck .nav > a:nth-child(6) { animation-delay: .45s; }
-
-  /* Wipe-closed, the reverse of the reveal above - right-to-left
-     (last link first, logo last) rather than left-to-right, so it
-     reads as the same motion folding back the way it came instead of
-     an unrelated exit effect. body.nav-hiding is only ever applied
-     alongside body.nav-stuck (see setupNavStuckObserver in
-     script.js), so the left-aligned/logo-visible layout stays put
-     for the whole ~0.6s this runs - only the clip-path/transform
-     animate, nothing about the layout itself. */
-  body.nav-hiding .nav-logo-link {
-    animation: nav-hide .3s cubic-bezier(.22, 1, .36, 1) .3s both;
-  }
-
+  body.nav-hiding .nav-logo-link,
   body.nav-hiding .nav > a:not(.nav-cart) {
-    animation: nav-hide .3s cubic-bezier(.22, 1, .36, 1) both;
+    animation: nav-hide .25s ease both;
   }
-
-  body.nav-hiding .nav > a:nth-child(1) { animation-delay: .25s; }
-  body.nav-hiding .nav > a:nth-child(2) { animation-delay: .20s; }
-  body.nav-hiding .nav > a:nth-child(3) { animation-delay: .15s; }
-  body.nav-hiding .nav > a:nth-child(4) { animation-delay: .10s; }
-  body.nav-hiding .nav > a:nth-child(5) { animation-delay: .05s; }
-  body.nav-hiding .nav > a:nth-child(6) { animation-delay: 0s; }
 }
 
 @keyframes nav-reveal {
   from {
-    clip-path: inset(0 100% 0 0);
-    transform: translateX(-10px);
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-10px);
   }
   to {
     clip-path: inset(0 0 0 0);
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 
 /* Exact reverse of nav-reveal above - same two clip-path/transform
    states, just animated the other direction, so the close reads as
-   the open playing backwards rather than a different effect. */
+   the open playing backwards (wiping upward and out) rather than a
+   different effect. */
 @keyframes nav-hide {
   from {
     clip-path: inset(0 0 0 0);
-    transform: translateX(0);
+    transform: translateY(0);
   }
   to {
-    clip-path: inset(0 100% 0 0);
-    transform: translateX(-10px);
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-10px);
   }
 }
 
