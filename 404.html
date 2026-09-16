@@ -113,6 +113,10 @@
       touch-action: none;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      /* Fallback chain for older/other mobile browsers that don't recognize
+         "pixelated" - each browser just uses the last one it understands. */
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
       image-rendering: pixelated;
       /* No CSS filter here on purpose - besides forcing a blurred resample on
          mobile (defeats image-rendering: pixelated), ctx.filter/CSS filter
@@ -249,6 +253,8 @@
       background-repeat: no-repeat;
       background-position: center bottom;
       background-size: contain;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
       image-rendering: pixelated;
       /* Greyscale is baked into these thumbnail PNGs directly rather than
          applied as a CSS filter - same reason as the canvas: a CSS filter
@@ -290,11 +296,11 @@
               <div class="runner-picker" id="runnerPicker">
 
               <button type="button" class="runner-picker-btn is-selected" data-char="vidrata" aria-pressed="true">
-                <span class="runner-picker-thumb" style="background-image:url('data:image/png;base64,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')"></span>
+                <span class="runner-picker-thumb" style="background-image:url('data:image/png;base64,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')"></span>
                 <span class="runner-picker-label">Vidrata</span>
               </button>
               <button type="button" class="runner-picker-btn" data-char="igra" aria-pressed="false">
-                <span class="runner-picker-thumb" style="background-image:url('data:image/png;base64,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')"></span>
+                <span class="runner-picker-thumb" style="background-image:url('data:image/png;base64,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')"></span>
                 <span class="runner-picker-label">игра на думи</span>
               </button>
             </div>
@@ -337,6 +343,11 @@
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
+    // Older/vendor-prefixed variants some mobile browsers still check.
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
+    ctx.msImageSmoothingEnabled = false;
+    ctx.oImageSmoothingEnabled = false;
 
     // Mobile gets a taller world space (more vertical framing) instead of the
     // desktop's wide/short one - keeps the same 800-wide world so obstacle
@@ -345,7 +356,17 @@
     // (800 / 800 reduces to the same 1:1 ratio, keeping the 800-wide world intact).
     var IS_MOBILE = window.matchMedia('(max-width: 640px)').matches;
     var LOGICAL_W = 800, LOGICAL_H = IS_MOBILE ? 800 : 300;
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Capping this below the device's real pixel ratio (most phones are 3x, not 2x)
+    // means our canvas backing store is lower-resolution than the physical screen,
+    // so the browser has to stretch our already-drawn bitmap by an extra
+    // non-integer factor (e.g. 3/2 = 1.5x) to fill it - a scaling step outside our
+    // control that isn't guaranteed to stay crisp even with image-rendering:
+    // pixelated. That's especially destructive to fine 1px dithering (which is what
+    // the character sprites' shading uses) even though it barely shows on the
+    // obstacles' larger flat-color regions - exactly the pattern being seen. Raising
+    // the cap to 3 covers the vast majority of phones exactly, so our own pixel-perfect
+    // drawing is the last scaling step and nothing has to smooth it afterward.
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
     canvas.width = LOGICAL_W * dpr;
     canvas.height = LOGICAL_H * dpr;
     ctx.scale(dpr, dpr);
@@ -728,15 +749,45 @@
       // cycle its natural 1px-ish bob, since some frames sit a pixel higher than
       // others in the source art. We only correct the horizontal anchor (offset).
       var sx = frame[0], sw = frame[1] - frame[0] + 1;
-      var scale = 1.25;
-      var dw = sw * scale, dh = sh * scale;
-      // Not rounded: the per-frame offset above already lines every frame's content up
-      // on the same fractional anchor. Rounding dx to a whole pixel here would re-add up
-      // to ~1px of frame-to-frame jitter (rounding error differs per frame), which is
-      // exactly the twitch this offset correction is meant to remove.
-      var dx = PLAYER_X + player.w / 2 - dw / 2 + offset * scale;
-      var dy = Math.round(player.y - dh);
-      ctx.drawImage(img, sx, 0, sw, sh, dx, dy, dw, dh);
+      var scale = PLAYER_SCALE;
+      var dwLocal = sw * scale, dhLocal = sh * scale;
+      var dxLocal = PLAYER_X + player.w / 2 - dwLocal / 2 + offset * scale;
+      var dyLocal = player.y - dhLocal;
+      drawSpriteCrisp(img, sx, 0, sw, sh, dxLocal, dyLocal, dwLocal, dhLocal);
+    }
+
+    // Draws a sprite snapped to whole DEVICE pixels, bypassing the active zoom/dpr
+    // transform's fractional scaling. ctx.scale(ZOOM) followed by ctx.scale(dpr) can
+    // land any given source pixel's edges on a fractional device pixel (ZOOM and dpr
+    // are rarely round numbers), and the canvas rasterizer then blends/antialiases
+    // that edge even with imageSmoothingEnabled off.
+    //
+    // That alone isn't the whole story, though: even with perfectly-aligned edges,
+    // if the destination size isn't an exact whole multiple of the source size,
+    // nearest-neighbor sampling still has to make SOME source pixels cover one more
+    // device pixel than others to fill the gap - the sprite ends up as a mix of
+    // slightly-different-sized blocks instead of a uniform grid, which reads as
+    // softness/blur at high magnification. Snapping the scale itself to the nearest
+    // whole number of device pixels per source pixel (not just rounding the final
+    // width) guarantees every source pixel becomes an identically-sized block - true
+    // crisp pixel art at any zoom level.
+    function drawSpriteCrisp(img, sx, sy, sw, sh, dxLocal, dyLocal, dwLocal, dhLocal) {
+      var zx = ZOOM_PIVOT_X + (dxLocal - ZOOM_PIVOT_X) * ZOOM;
+      var zy = ZOOM_PIVOT_Y + (dyLocal - ZOOM_PIVOT_Y) * ZOOM;
+      var rawW = dwLocal * ZOOM * dpr;
+      var rawH = dhLocal * ZOOM * dpr;
+      var pxPerSrcX = Math.max(1, Math.round(rawW / sw));
+      var pxPerSrcY = Math.max(1, Math.round(rawH / sh));
+      var ddw = sw * pxPerSrcX;
+      var ddh = sh * pxPerSrcY;
+      // Re-center on the originally intended position/size so snapping the scale
+      // doesn't visibly shift the sprite.
+      var ddx = Math.round(zx * dpr + (rawW - ddw) / 2);
+      var ddy = Math.round(zy * dpr + (rawH - ddh) / 2);
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(img, sx, sy, sw, sh, ddx, ddy, ddw, ddh);
+      ctx.restore();
     }
 
     var MIC_NATIVE_W = 23, MIC_NATIVE_H = 68;
@@ -751,17 +802,19 @@
           if (o.type === 'monitor') {
             var img = monitorImg;
             if (!img.complete || !img.naturalWidth) continue;
-            var dh = o.h, dw = dh * (MONITOR_NATIVE_W / MONITOR_NATIVE_H);
+            // o.h itself (collision height) is untouched - OBSTACLE_DRAW_SCALE only
+            // grows the drawn sprite, anchored to the same ground-level base.
+            var dh = o.h * OBSTACLE_DRAW_SCALE, dw = dh * (MONITOR_NATIVE_W / MONITOR_NATIVE_H);
             var dx = slotX + unitW / 2 - dw / 2;
             var dy = GROUND_Y - dh;
-            ctx.drawImage(img, 0, 0, MONITOR_NATIVE_W, MONITOR_NATIVE_H, dx, dy, dw, dh);
+            drawSpriteCrisp(img, 0, 0, MONITOR_NATIVE_W, MONITOR_NATIVE_H, dx, dy, dw, dh);
           } else {
             var img2 = micImg;
             if (!img2.complete || !img2.naturalWidth) continue;
-            var dh2 = o.h, dw2 = dh2 * (MIC_NATIVE_W / MIC_NATIVE_H);
+            var dh2 = o.h * OBSTACLE_DRAW_SCALE, dw2 = dh2 * (MIC_NATIVE_W / MIC_NATIVE_H);
             var dx2 = slotX + unitW / 2 - dw2 / 2;
             var dy2 = GROUND_Y - dh2;
-            ctx.drawImage(img2, 0, 0, MIC_NATIVE_W, MIC_NATIVE_H, dx2, dy2, dw2, dh2);
+            drawSpriteCrisp(img2, 0, 0, MIC_NATIVE_W, MIC_NATIVE_H, dx2, dy2, dw2, dh2);
           }
         }
       });
@@ -780,6 +833,8 @@
     var ZOOM = IS_MOBILE ? 3.08 : 1.12;
     var ZOOM_PIVOT_X = PLAYER_X;
     var ZOOM_PIVOT_Y = GROUND_Y;
+    var PLAYER_SCALE = 1.25;
+    var OBSTACLE_DRAW_SCALE = 1;
 
     function render() {
       ctx.save();
