@@ -136,7 +136,7 @@
       pointer-events: none;
     }
 
-    #runnerHiScore { color: var(--face); }
+    #runnerHiScore { color: #7a7a7a; }
     #runnerHiScore.is-hidden { visibility: hidden; }
     #runnerScore.is-flash-off { visibility: hidden; }
 
@@ -276,14 +276,14 @@
         <div class="error-404-inner">
           <div class="error-404-copy">
             <p class="error-404-eyebrow">404</p>
-            <h1>Тази страница не съществува, но остани, за да поиграеш малко MUSIC RUN.</h1>
+            <p class="error-404-lead">Тази страница не съществува, но остани, за да поиграеш малко MUSIC RUN.</p>
           </div>
 
           <div class="error-404-game">
             <canvas id="runnerCanvas" width="800" height="300" role="img" aria-label="Мини игра - скачай през препятствията с SPACE, стрелка нагоре или допир"></canvas>
             <div class="error-404-hud">
-              <span id="runnerScore">00000</span>
               <span id="runnerHiScore">HI 00000</span>
+              <span id="runnerScore">00000</span>
             </div>
             <div class="error-404-overlay" id="runnerOverlay">
               <p class="runner-overlay-title" id="runnerOverlayTitle">MUSIC RUN</p>
