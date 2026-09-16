@@ -185,10 +185,24 @@
     }
 
     /* Mobile: taller/more-vertical game canvas (matches the JS mobile logical
-       size below - both must stay in sync or the pixel art stretches). */
+       size below - both must stay in sync or the pixel art stretches). Overlay
+       is also tightened up so its text has room inside the shorter box on
+       narrow phones instead of overflowing past the game frame. */
     @media (max-width: 640px) {
       #runnerCanvas {
-        aspect-ratio: 800 / 480;
+        aspect-ratio: 640 / 800;
+      }
+      .error-404-overlay {
+        padding: 14px;
+        gap: 6px;
+      }
+      .runner-picker {
+        gap: 14px;
+        margin: 2px 0 4px;
+      }
+      .runner-picker-thumb {
+        width: 42px;
+        height: 60px;
       }
     }
 
@@ -264,11 +278,11 @@
               <p class="runner-overlay-title" id="runnerOverlayTitle">MUSIC RUN</p>
               <div class="runner-picker" id="runnerPicker">
 
-              <button type="button" class="runner-picker-btn" data-char="vidrata" aria-pressed="false">
+              <button type="button" class="runner-picker-btn is-selected" data-char="vidrata" aria-pressed="true">
                 <span class="runner-picker-thumb" style="background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAmCAYAAAAr+dCVAAAEZUlEQVR4nJ2WzW8VVRTAf+feeR99fX0PLBQQJRKNXWAwUbAIdIWExBBZ6oLEBTEx0T/IP6AxUVfqlgWJCyGyQDeKUJUUKCmF8vE+5s2de4+LeTOd175i63mZvJs7M797vs/I3NwZdioLC19t2rt48fNiLf8HCuiYPckX0f8BGWOxxmYbmm2n3mkO3i5UQTDGIEOFgipSOsnaCO9TBcRsFyhIQVBVNAREBBFhenoPbx05WrywHSiCoKVfLiEEVJXjx96h1+utP7+NQKkMz1a00E5VkaFLVBUffGFYyaeyGTfUSgkIBiMGEcFGFg0ZyHtfaG9thIjk0HHAdapgyFyqWGPxPoy4JT/ce5c/vbXZkKWPsZmJqgGXOrxPmWxM0mg0mZnZD8Dsm0eK18y6ljrmghA83qe8cvAQs7PZi/Pz85w7d4bTp9/n408uYG2F4++9nVssL8rTchpy6tQczjlWV1c5dOgg1lpsZPlrcYkLH53n2rUbxeNbQUtlmEX4m2+/A5TJRpPr13/j2LGjRFHEzT8XqVaqRJEt3tgIHalpayt4nxKKdIFur8OdO39z/949Xjt8mBMn3qXb6XLlyk9joUXl7H5pmsZEg5WVZdqtaR6vPRqel92P4x4xfRZv32J1dZV+v8eTJ49ylxXR10qlSmQjqrUaSTIgqNKcahPHMfXaBLt2TQ9PDoDwxuuz9PpdlpeXSsAs6Ca3uN3azczMAUSEbrfDw5UHDAYxg0FMPOiBwssHXqVarQFwe/EmRRojUomqI+ariPD06RpihNSlqCoudbjUFWbHgz7GGrwPRacaVtLG3pqllDGGyeYUGgJ97ZI4n8cdRDBi0KB0ux28d5tqZv++A+zZs4/BoM+t239o3inwqafTeU5jcgpjsvSoVCvUaxPs3TtDszlF6hyjJZ2t+/0+IXja7XZhvviQqhI4f/5D6vU6cRzz/Q8/kiQJU80JjI3QJMGHNGssxuCDH9Y+PHv2lFarzf3le6Mp1ZiYZO/MNN4Hlu4uF75MkgGPH6/ikqRQLoQAKCJZnBVl6e4/oz4FZOXhA/31xu9MNhtcu/ozgqHVapOmjngwKLQsBYig60VR9ks5+eWX61c1v1+JKlRr9WHPHPpSQDWMBZVlY5kKiILi0oRHj1bQkJ1jxGAjC0op1cbLuH6a9S8M1UotGyEYFCV1KS51iGzZ1DdCdeRfCVklZS0h+5NsscEFm2Sr1ieAWhNhrMG5LPJasjjP5Z1A1RiLtQYF8roOIeBDWqx3AtVKpUoImtX5cCSLEXyaMjp+xsvGQCkIziWYfBSrZnN9OEHzMfwiMUYs5evs2bMIBpcmoEpUqQy/k1zhx2GgtiRvMl81j7aQOAes52Q2VvwLgePMZ6Jex4gBlGZzilZrV/m2/BcQwAQNlK94MOCLLz8DhE7nOZ3OszJwW7JRU7l8+TIAJ0/OZ1HfPmsdMjf3wehG9kWnly59SqNRY23tOQsLX+9I062gUHxLGULwO1L3X72HGAc8uIYtAAAAAElFTkSuQmCC')"></span>
                 <span class="runner-picker-label">Vidrata</span>
               </button>
-              <button type="button" class="runner-picker-btn is-selected" data-char="igra" aria-pressed="true">
+              <button type="button" class="runner-picker-btn" data-char="igra" aria-pressed="false">
                 <span class="runner-picker-thumb" style="background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAlCAYAAACtbaI7AAAEyUlEQVR4nK2W709TVxjHP8+9/cEtLSjKbykTnJE4E11o6jLZTFwiOl5M9gcsS7YF3/SP6RvnlmyvfKO+0LiYuGQTQ5aMiYqbUBCBoVAQDQgttLTce/aivZeWIkKyk7S5Pff0c77f55znPEeuXLnO/90kHD7j/IhELpYMiEYvbe5S2/EAXLsQ4MBEpKhH5WkKpQDRdgvMi3F6nAkK2k6heZzkFKk8U0ChkIIRgNoJ1NaU+9akqLu9PexMYL/Rco8ClNooYcsGPBQ6iVKKQMBPKBTOuciHYtf2lbIIhcIEAn7OnzvH3d9/Y+B+P6c6PkGpnPodrb6IcOhQG8/GYnR1dWH4yqitrQLg+Il2JibGCQYbUPlAFCjdbvvBykqSQ++3ceuXW8zMzBGPv2J1dY2Ojnb8/gBer8cZW2Q/Gr1UtNmj0UsKoKPjU+Lx5xw9epiqqmqCwQZ8Ph/J5Cpzc6/p7u7kxfPZDWfh8GdbKVWwkWGp1BpLSwmuXr2Gz+ensTFIe/sxRIS/+h/hdnuwlMXo6BCAbI6pAqirawSgt7ef06fDGIYXw/DS3NzC1NQEL55PMjs7TXNzCyc/aieZXOFeb9+WSpWm6Qigu9z09HzN4GCM48fbnMFzc6/ZuzfA5cs/AYJh+Kis3EMqlWJpaQHsTZeHqsJd6vZ40DWdb7/7qmTB3rxJMDk5zcxMnIqKCgYHBxyB9oNmx1JEnGzJZDKY5noJEGB6eo6+vnsc++AIg4MDdF+4AIi4XR6Hq9lx7DzXyZfd3Zz4MIQA1dX13LxxB8uysCzLgS4svEEEAhUBAA401dlrYX+QcPiM6ug4TWtrU87e4jI3bt4EoDnYgu5yYRg+moP1IMLt27eddOw828nQ0AjptTTV+2tIp1OMTzzNZVQmkwUgFptgZCSGpulYlsnBlvfYv28vDY01APx6p68wdIyNTSAipFMpTNOksnKPY1/6+//g+rUb1NZUcfbsGbo+Pw8I93rvOkCAkdEniIAmuaXwlhl4vF4aDzSRSCYYn3gGFOS+YZRTXbMP07SYmooDirq6Jp6O/kuZ4WXs6WR+iQVLWSgUw8OPaTtyjOHYPxQWBhsqr16/VIOPYpT7DQbu/0mw6SBfXOhkeTnJg4EnDA0/Li0jSjEc+9uB2Q+FGSUPHvYrgIb6Juob6gDw+33Mz89hn/uWsij8D1u0Aqh9fqPisy8wzXUWF5ZZW0vxcn4WTdPQdRe6gux6lu1Otbeepy/nZwuKWr4y5Mum2+0mm80SifQApWVcNl8motHv87I3lGii5QqcSFEiRCIXt7RfUk4ikR4ikR5nsH2sKaWKgJqmv81ksf0CG0rTdFy6Tiabcd7rmo5pmQBFE7xTKaDcbg+hUBjTNHG53LhdHjweTx5oV963L9RmqBKEbDbDwwcD9Fz8htbWw3x86hSWmVPm0nW0LW4lha3IvqZplHl9pNIrZNcz/PjDz4hoTE6Os26uo2k6tbWNzMSnYJuLwpZbShAUkM1m8yZz35ZlvhMIW8RUxL50Kcr9fgKByuL53n2VKYZaVu4ymDvChGQyycpKohC4o7ZZqaTTqwB4vWVoIjsnbQPFUkoWFxfwerwEKvZg+Mp3DS1ZKE0EpZQkEktKkdsR7MI6wH9dPsrfK+vabQAAAABJRU5ErkJggg==')"></span>
                 <span class="runner-picker-label">игра на думи</span>
               </button>
@@ -316,9 +330,10 @@
     // Mobile gets a taller world space (more vertical framing) instead of the
     // desktop's wide/short one - keeps the same 800-wide world so obstacle
     // spawn/gap/speed math is untouched, only the vertical canvas is taller.
-    // Must stay in sync with the "aspect-ratio: 800 / 480" mobile media query above.
+    // Must stay in sync with the "aspect-ratio: 640 / 800" mobile media query above
+    // (800 / 1000 reduces to the same 0.8 ratio, keeping the 800-wide world intact).
     var IS_MOBILE = window.matchMedia('(max-width: 640px)').matches;
-    var LOGICAL_W = 800, LOGICAL_H = IS_MOBILE ? 480 : 300;
+    var LOGICAL_W = 800, LOGICAL_H = IS_MOBILE ? 1000 : 300;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = LOGICAL_W * dpr;
     canvas.height = LOGICAL_H * dpr;
@@ -400,7 +415,7 @@
     var micImg = new Image(); micImg.src = MIC_STAND_SRC;
     var monitorImg = new Image(); monitorImg.src = MONITOR_SRC;
 
-    var selectedChar = 'igra';
+    var selectedChar = 'vidrata';
     var runImages = {}, jumpImages = {};
     Object.keys(CHARACTERS).forEach(function (key) {
       var c = CHARACTERS[key];
@@ -752,7 +767,7 @@
     // Mobile gets a bigger zoom than desktop's 1.4 - the taller canvas has the
     // headroom to support it, and it's what makes the character/obstacles read
     // as "bigger" on phones instead of just "taller empty sky".
-    var ZOOM = IS_MOBILE ? 1.8 : 1.4;
+    var ZOOM = IS_MOBILE ? 2.2 : 1.4;
     var ZOOM_PIVOT_X = PLAYER_X;
     var ZOOM_PIVOT_Y = GROUND_Y;
 
