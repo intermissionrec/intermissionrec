@@ -93,6 +93,18 @@
       overflow: hidden;
     }
 
+    /* Long-pressing anywhere in the game (canvas, overlay text, picker
+       thumbnails) was triggering the browser's native text-select/callout
+       menu on mobile, which felt like a tap delay. Locking selection and the
+       iOS callout down across the whole game area stops that. */
+    .error-404-game,
+    .error-404-game * {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
     .error-404-game.is-hit {
       animation: runner-hit-flash .26s ease;
     }
@@ -145,6 +157,7 @@
       text-align: center;
       background: rgba(6, 6, 6, .4);
       cursor: pointer;
+      touch-action: none;
       -webkit-tap-highlight-color: transparent;
     }
 
