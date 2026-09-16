@@ -884,8 +884,9 @@
     // Mobile gets a bigger zoom than desktop - the taller/centered canvas has the
     // headroom to support it, and it's what makes the character/obstacles read
     // as "bigger" on phones instead of just "taller empty sky". Desktop was
-    // zoomed out 20% (1.4 -> 1.12) to show more of the scene.
-    var ZOOM = IS_MOBILE ? 3.08 : 1.12;
+    // zoomed out 20% (1.4 -> 1.12) to show more of the scene. Mobile was
+    // zoomed out another 10% (3.08 -> 2.772) for the same reason.
+    var ZOOM = IS_MOBILE ? 2.772 : 1.12;
     var ZOOM_PIVOT_X = PLAYER_X;
     var ZOOM_PIVOT_Y = GROUND_Y;
 
