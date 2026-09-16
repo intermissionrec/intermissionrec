@@ -367,18 +367,26 @@
     // character + line together instead of just the line.
     var GROUND_Y = IS_MOBILE ? Math.round(LOGICAL_H / 2 + (47 * 3.08) / 2) : 232;
     var GRAVITY = 2200;
-    // Tuned so each jump's peak height clears its intended obstacle with a modest
-    // margin, instead of flying way higher than needed:
+    // Every jump launches at the same speed (JUMP_VELOCITY) the instant you press -
+    // no input delay waiting to see how long you'll hold. What makes a tap "short"
+    // vs "long" is releaseJump(): an early release (still rising, within
+    // SHORT_TAP_MAX) caps the upward speed down to LIGHT_JUMP_VELOCITY instead of
+    // letting it keep climbing at the full launch speed, so a quick tap coasts up
+    // to a lower, softer hop while holding past that gets the full jump.
     //   - collision boxes are inset by 4px on every edge, so clearing an obstacle of
     //     height H only requires rising (H - 8) world units.
-    //   - monitor (h=24) needs a rise of ~16 -> light tap now peaks at ~14, just under
-    //     the monitor's clearance line, short of the mic stand.
-    //   - mic stand (h=40) needs a rise of ~32 -> a held jump peaks at ~80 (clears both
-    //     with room to spare).
-    var JUMP_VELOCITY = -593;
-    var LIGHT_JUMP_VELOCITY = -247;
-    var SHORT_TAP_MAX = 1.0;
-    var FAST_FALL_GRAVITY_MULT = 1.6;
+    //   - the tallest obstacle is the 3-speaker pyramid stack (h=72, w=~62, needs a
+    //     rise of ~64) since obstacles switched to real pre-drawn stack art instead
+    //     of a fixed-height sprite tiled sideways. Peak height alone isn't what
+    //     clears a wide obstacle though - the player has to stay above that rise for
+    //     the *whole* time it's passing underneath, not just touch it for an instant
+    //     at the top of the arc. Kept as low/tight as possible while still leaving a
+    //     real (if snug) window of press timing that clears it - verified by
+    //     sweeping jump-press timing against a forced 3-stack in a headless run.
+    var JUMP_VELOCITY = -714;
+    var LIGHT_JUMP_VELOCITY = -222;
+    var SHORT_TAP_MAX = 3.0;
+    var FAST_FALL_GRAVITY_MULT = 1.28; // 20% slower fall than the old 1.6x
     var BASE_SPEED = 220;
     var MAX_SPEED = 620;
     var SCORE_SPEED_STEP = 500;
@@ -433,9 +441,16 @@
     };
 
     var MIC_STAND_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAABECAYAAABqMK75AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDcuMi1jMDAwIDc5LjU2NmViYzViNCwgMjAyMi8wNS8wOS0wODoyNTo1NSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NTdFMzQzODdCMUNDMTFGMUE2RDA5ODBDQzA2M0M1RkIiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NTdFMzQzODZCMUNDMTFGMUE2RDA5ODBDQzA2M0M1RkIiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIzLjQgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6REJCMzZGNjJCMTY3MTFGMTkxODQ5REM0NjI4QUYzQzAiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6REJCMzZGNjNCMTY3MTFGMTkxODQ5REM0NjI4QUYzQzAiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz74mW/iAAADRUlEQVR42uxY22oqMRRNxrHeWkuVggi++WL72H6B4Af0F/0H+xc+WvqgD0UQRVrRqr2bMyu458QYNTOOhyPnbBgyySRrr+xborxSqTBFhPLO2Z7iqMDFYpEVCoWmrujh4YH6to8Ul4A8ULTNfD7PHMdp9nq9m+VEfnV1Rd+hnJ2cnLDPz0/W7/flGNrz83P29fUl+/P5XK5z/S04DovFYiyVSrHZbLa2RRXIJOPxeG3MJXNcXFw0AQrtYOGNrbBHe3d3x2q1Gnt7e2Pdbpc9PT3JHTQaDXZ9fS0BW62W7y/HxOD7+9vIDiYD8OvrK/MUs9PTU+MudZvLSZlMho1GI/b+/m6c/Pz8LL91Oh2WSCTYdDqVa7ZGy2KxkNuDwFmQn58f44LHx0cfeBdzCR6Px332rutunIxd0Q4AbMU8m82yy8tLCqOtiQFHYpfUDgYD/9vHx8fKXL7MUHF7ewtnNcEKJhkOhzdKpooQCfo7zsFgk50h5XLZj6L7+3vZVqtVmR9YhwhCi1yB0+FHAufeNpGFN96EpsZatu12W7IvlUpyoF6vSzBTUnlmTk8mE98sNoVL5HI59vLysjJIYxRly6jjK3Gu2ddYEYUQknk6nZZ9mAJJZVMVjXgrmjmXMX52dmacTLlCax0Lr/sK4CzEdTKZXMsHHdiGuXUoks1VfzmWwJxKArIYIYkHFZSy1sCcOxa29pnDoQCFI5GNakaCucJ+J3Nhqi1gD1C0iGU4eNNad4eNham2qELsNbNsDUVueKRQgaMzlZhrZrEORX8HKLNeafDPUvQRnkGZr3keL3RAQHDuoo/CpR7yQcF9IWC1DwX0rh2P3LFkLWwVqkERhDknlrY+coPYfKlALsTVQhVNsTVzvqO/aT4P5FBDHmxVGhbcjgGKURjBzVfte9dsrn3fmzm3vfxHLn8fuG7vQzDnx2UW1STLX3nRgCvA/FA25wcPxV0mCQtuXS/cECaRP8FROw6R/mq5FRscHxxcs3P0SQQFpEQts6aSEGm0kDnCOjSQ4qhrizhU4fqzB7QTtZ3/4TP0P/he142omfOjtDk/3mjRS0Coy7/FRZQHPiwIlP5x3iStVksEBqerxfJv7J1zfwkwAFbdvBXS9aqTAAAAAElFTkSuQmCC";
-    var MONITOR_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAUCAYAAACAl21KAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDcuMi1jMDAwIDc5LjU2NmViYzViNCwgMjAyMi8wNS8wOS0wODoyNTo1NSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NzYzQ0YxNTlCMUNDMTFGMUFEMDNENkY2OTdCMkUyNTgiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NzYzQ0YxNThCMUNDMTFGMUFEMDNENkY2OTdCMkUyNTgiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIzLjQgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6QTcwOTI0QThCMUE1MTFGMUFGQURFQ0M5OTJFMTBDMUIiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6QTcwOTI0QTlCMUE1MTFGMUFGQURFQ0M5OTJFMTBDMUIiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7xAgdOAAABbElEQVR42qxUzcqCQBS9Slgo+IObIBC3vkQr6Tl8TvcuW7cXhBAxRAvKnz7OxMiYWvHhgcFB7z33zJl7lZ7PJy0BmRbCim92u92/pCVJIg2IgCAIKMsyulwuVJYlVVVFt9uNZFkmwzBovV5T13Ustq5rOp1OY0XA/X5nyXyPpDRNuWJSFKWPvV6v8x4hGcGPx4Pt4zgmVVVps9nQ8XgkTdP6ZZrmtEejW5BfNdq2ZesdorqRIigBUNG2bdrv90xZ0zTk+/5vtyYSoRqv+I1gkogbCEVAGIaD4MPhMGn0iAhXD2+iKHp9XK16r3CDnNjzvL4NZjsbvQECrCmDscT++WlEoEbXdWY29lDxruQrEYYZSXmeDwj4UT96JEKSpD6RJ+PJ339UhJ5xXZcdhR9HJOIdjxg8ZxVBPoZ0u90yUzEiIhzHYWSYR4zOLBFU8JFARcuyBsH4I4ixs0Tn83n2Vt5RFMXQ06V+tX8CDAAOVMbXR3QxEgAAAABJRU5ErkJggg==";
+    // Three separate pre-composed speaker-stack textures (1/2/3 monitors,
+    // arranged as a real PA stack pyramid rather than one sprite tiled
+    // sideways) - picked by obstacle count in drawObstacles/spawnObstacle.
+    var MONITOR_1_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAARCAYAAADUryzEAAABzklEQVR4nKWTTW7iQBSEv7bbMTLmZwUSIlK4QYSE2HAwbsUFuEC2HCBCAoFYWMJpyzbQP7NyA5NJNlPL7nr1ql6/hv+EAFgul+50OpFlGXmeo5RCSkm/30dKibUWrTXr9Vq8v7875xzOOTabjZAAVVVR1zXGGIwxZFmGlJLX11fCMASgLEsA0jRFa831egUgANBaE4Yht9uN4/GIlBKtNZ+fn/T7fZIkodfrARBFEa1WizRN7wI+jxAIITDGoLV+yhpF0ROvcRYAXK9XwjAkTVNmsxlSSpIkYTqdequPcM75BhLgdrshhKDT6QCwWCwAMMZ8K9ZaY62lKIq7QFEUSCnp9Xp8fHxwOBwAGI1GzOdz8jz3HZVSRFFEXdd3gfP5zNfXF9vtljiOSZIEgCzLWK1WvL290e12vQMAa+19BlVVsdvtaLVaCCG83SAIaLfb7Pd7qqqiiauU8kJPr9BMuN1u+w7GGJxzTwN8PAseCxtCnueeFATBk6u/IR+VH603or8VewdCCIbDIZfLxQsEQYC1lrIsGQwGPwr5RbLWMplMeHl5oa5r6romjmMmkwnW2n8ulI/QfCKlFHEcE8exJyilaDg/Yjweu59vf+f+AaCA9Ljl0VtzAAAAAElFTkSuQmCC";
+    var MONITOR_2_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAiCAYAAABIiGl0AAADmElEQVR4nK2Wz076ThTFP9MOFApaiAbUaIJrN4aEuNAH8xF8G1/AF3Br4lJiArFxQQRKaKUznd/im84P8F8Rb8KCzu05d+beOafCGMN3IYT4dv2n+ApfFnn5+vravL6+MhqNmEwmRFGElJJGo4GUkizLUEpxd3cnzs/PjTEGYwwPDw9fVl2IOI5jkiRBa43WmtFohJSSk5MTXNcFYD6fA1Cv11FKsVgsvsV0ihArpXBdlzRNCcMQKSVKKfr9Po1GA9/3CYIAgFKpRKVSoV6vb0+chxACIQRaa5RSK2ulUmklLz+JrYgXiwWu61Kv1+n1ekgp8X2fbrf76ZEaYz4Uth6FepymKUIIdnZ2ALi6ugJAa/0hVylFlmXMZrPtiWezGVJKgiDg/v6el5cXAI6Ojri4uGAymdgdRlFEqVQiSZLticfjMdPplOfnZzzPw/d9AEajEbe3t3Q6HXZ3dwFsAVmWfYtZqMdxHDMYDKhUKiuC4jgOtVqN4XBIHMfAv7ZEUfRjjzeaavg3sbVaze5Ia72iTsaYD8+2Is53aoxhMplYcMdxfiWrhXqcE+bhOI4t5rdaXmjHQgja7Tbv7++W2HEcsixjPp/TarU2LqCwgGRZxunpKeVymSRJSJIEz/M4PT0ly7IftXk9Ch11bg5RFOF5Hp7n2bUoimzORpFb2Fc/gOPj4+9HdCnWc7/CLdyYw8NDk2XZl9dECIHjOIRhWAhTQHGjf3x8pNls2qv09vZGtVqlWq0ynU45OztDSonjOCilGI/HKKXY2dkhCAL29vZot9vc3NwICcWNPgxD0el0TBzHdsI9z2N3d5coiqhUKlZOtdY8PT2hlML3fbTWJEliFc6BzYw+N/larYYQgnK5bIctCAJ836fRaNDv91FKIaUkDEPSNMV1XSulK9epqNG7rkupVLJ9/Swn35DW+lOhcWBzo88Jl0mXY7FY0O128X0fKSW9Xo96vY7ruhZPwu+NPgxD0Ww2zWd5WmsuLy/t/7wdaZr+T7yN0adpar82NsGRsJ3RL8/DJjgObGf0cRzb44vjmOFwSK1WW+m/EIJKpcJgMFi9TsuxqdGvq1m+nq/l1249LPFfGX0+8XkBk8nEFraMY93pL40+f2/9o36FI0/8C6MXQtBqtZjP52RZtnLX39/fabfbFscKyG+Nftk+l3E8z7M45XL5A46E7YzeGGMJN8bZxugbjYbZ3983BwcHhTDy9/8Dr9MEObh0sn8AAAAASUVORK5CYII=";
+    var MONITOR_3_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAzCAYAAADsBOpPAAAFB0lEQVR4nMWYwW7TShSGv7EnduqktVtQAghQu0ZCqFLFgi55C16ER+BteAFeALFBSF1SIbXCYpGSxCV24rHnLiqPkpK09jjoHqmLJv5n/hmfOfPlCK01tiGEsNYC2MwtW80IvHz5UgshEELw9etX8fbtWy2lxHEclFKMx2OUUuzu7hKGIQ8ePGA4HPLhwwer1bY2LKXE8zykvBmq2+0SBAEARVHw/ft3lFIEQUBRFGRZRpqm9vO1Ndzv93Ecx6RHGIZ0Oh08z+PLly8opZBSEscxQRDgui5KKev5nLaGXdddyeVOp7PyvVKKoiio0qZttDaslFp7eBaLBcfHxwRBgJSSk5MT+v0+ruuyWCys52udEtPp1KTF7SiKgjdv3pj/fd8HIM9z6/laG86yDM/zjInr62uklIRhyOfPn/n58ycAT5484fXr10wmk1Y53NpwWZbkeW5MjMdjptMpP378wPd9UzFGoxEfP37k8PCQvb096/m2ksNJkpgdTtOUy8tLer3eSpoIIeh2u1xcXLQqa60Na60pimLl4FWfwc0b6PV6W6kQsAXD60IIgeM4xvhkMjELamu8dQ5viqruuq678nkbdoF/sMNCCAaDAbPZjLIscRzH5PJ8Pmc4HLba5a0bXiwWlGXJ0dERvu+TZZkpfUdHR5Rl+f9eHLejKAqKoiBJEnzfN5cFQJIk5hnr0Fpb/y3H06dPaydn9azNnOK+Q1A33x4/fqzLslxZSFUt4jhunLSbfNVKiffv3+tfv34xGo2YTCYkSYKUkiiKkFKavDw7O+Pg4ACtNePxmHfv3nF1dcXV1ZXepFNK8enTJ/Hq1Std7eK3b982LrCW4TRNybLM5OdoNEJKybNnz0zZ+vPnD47jEEUR8/ncMMN8Pr9TN5vNgBuuVkrdeyBrVQmlFK7rkuc5cRwjpUQpxfn5OVEUEQQBURQRx7HwfZ9ut4sQgqIo7tWFYQjccHS326Xf77c3XEV1GRRF8RdxLYP7bdSsq1t30VgZXiwWuK5Lv9/n5OQEKSVBEHB8fPzXK3Qcp/pJJJro4Oag3YeetXI4z3OEEOzu7gJwenoKrK+nSinKsrTWXV9ftzfcBMqTJDGv2UaXZVl7w02gfPmV2uiqt7MpauVwmqZcXFyY02/EjkOv1+Py8tJAeZ7n5gq20d2Xw43hRwhBr9czO3EXvNvo7rt5axuudkhrzWQyMYMvN1G2qdsUtWlteeVVna3THLHVbYpaOyyEYDgcMp/PzcSO41CWJbPZjMFgsNaAra614WUo9zzPQLnv+3dCua3urqiVErZQ/k9gvg6k28B5G91dvmon0DpAX46msD4YDLSNTkA9QFdKcXZ2xv7+vilNv3//Zmdnh52dHabTKS9evKBu9/358+faRiehHqDPZjPiOBaHh4c6TVNz8n3fZ29vjyRJGnXfbXUO1AP0CrQryK7aT57nmcMUhqGB+fPz85Xue57nK913W91KWasL2q7r0ul0TP6te6baiE3dd2sdNAP0amHLHZ3bYdt9r6OTYA/acRyL/f19vakG39V9r85LU52EdqCd57n5ldBkHFudhHagvZzvTcax1TnQDrTTNLXqvtvq/jo1TUH79u1Xt/tuqzOGtwXatt33ujpDa9sEbdvuex2dUz24DdC27b430ZmLwxa0lzG0SffdViehHWhrrc2ETcax1QHtQDuKIv3w4UP96NGjWmNUelvdfwE5CpNJzBSbAAAAAElFTkSuQmCC";
     var micImg = new Image(); micImg.src = MIC_STAND_SRC;
-    var monitorImg = new Image(); monitorImg.src = MONITOR_SRC;
+    var monitorImg1 = new Image(); monitorImg1.src = MONITOR_1_SRC;
+    var monitorImg2 = new Image(); monitorImg2.src = MONITOR_2_SRC;
+    var monitorImg3 = new Image(); monitorImg3.src = MONITOR_3_SRC;
 
     var selectedChar = 'vidrata';
     var runImages = {}, jumpImages = {};
@@ -534,10 +549,31 @@
 
     var OBSTACLE_TYPES = {
       monitor: { width: 24, height: 24, minGap: 120, multipleSpeed: 240 },
-      mic:     { width: 26, height: 40, minGap: 120, multipleSpeed: 420 }
+      mic:     { width: 26, height: 40, minGap: 120 }
     };
     var OBSTACLE_KEYS = Object.keys(OBSTACLE_TYPES);
     var MAX_OBSTACLE_LENGTH = 3;
+    // Monitor obstacles use 3 separate pre-drawn speaker-stack textures (a
+    // real PA pyramid for 2/3, not one sprite tiled sideways), keyed by
+    // count. Their native pixel heights are exactly 17/34/51 - a clean 1/2/3
+    // ratio - so a single scale factor grows both dimensions together and
+    // keeps the 1-speaker case at the same in-game height (24) it always was.
+    var MONITOR_SCALE = 24 / 17;
+    // Each tier is a stack of 17px-tall rows (1/2/3 speaker units wide,
+    // narrowing toward the top) - real transparent gaps at the corners once
+    // the stack is more than one row, not just a rectangle. "bands" is the
+    // tight native-pixel bounding box of each row's actual artwork (found by
+    // cropping the sprite to each row and trimming to its opaque pixels), so
+    // the hitbox can follow the pyramid silhouette instead of covering the
+    // whole (mostly-empty for the top rows) rectangle.
+    var MONITOR_TIERS = {
+      1: { w: 16, h: 17, img: monitorImg1,
+        bands: [ { x0: 1, x1: 15, y0: 1, y1: 17 } ] },
+      2: { w: 30, h: 34, img: monitorImg2,
+        bands: [ { x0: 9, x1: 23, y0: 1, y1: 17 }, { x0: 1, x1: 29, y0: 17, y1: 34 } ] },
+      3: { w: 44, h: 51, img: monitorImg3,
+        bands: [ { x0: 16, x1: 30, y0: 1, y1: 17 }, { x0: 9, x1: 37, y0: 17, y1: 34 }, { x0: 1, x1: 43, y0: 34, y1: 51 } ] }
+    };
     var MAX_OBSTACLE_DUPLICATION = 2;
     var GAP_COEFFICIENT = 0.6;
     var MAX_GAP_COEFFICIENT = 1.5;
@@ -566,11 +602,22 @@
       obstacleHistory.unshift(type);
       if (obstacleHistory.length > 1) obstacleHistory.length = MAX_OBSTACLE_DUPLICATION;
 
-      var size = 1 + Math.floor(Math.random() * MAX_OBSTACLE_LENGTH);
-      if (size > 1 && speed < cfg.multipleSpeed) size = 1;
+      var size, totalWidth, totalHeight;
+      if (type === 'monitor') {
+        size = 1 + Math.floor(Math.random() * MAX_OBSTACLE_LENGTH);
+        if (size > 1 && speed < cfg.multipleSpeed) size = 1;
+        var tier = MONITOR_TIERS[size];
+        totalWidth = tier.w * MONITOR_SCALE;
+        totalHeight = tier.h * MONITOR_SCALE;
+      } else {
+        // Mic stands never group up - always a single mic, spawned on its
+        // own cadence like any other single obstacle.
+        size = 1;
+        totalWidth = cfg.width;
+        totalHeight = cfg.height;
+      }
 
-      var totalWidth = cfg.width * size;
-      var ob = { type: type, x: LOGICAL_W + totalWidth, w: totalWidth, h: cfg.height, unitWidth: cfg.width, count: size };
+      var ob = { type: type, x: LOGICAL_W + totalWidth, w: totalWidth, h: totalHeight, count: size };
       obstacles.push(ob);
 
       var speedFactor = speed / SPEED_UNIT_FPS;
@@ -621,7 +668,7 @@
       if (!player || !player.jumpHeld) return;
       player.jumpHeld = false;
       var heldFor = elapsed - player.jumpPressTime;
-      if (heldFor < SHORT_TAP_MAX && player.vy < 0) {
+      if (heldFor < SHORT_TAP_MAX) {
         if (player.vy < LIGHT_JUMP_VELOCITY) player.vy = LIGHT_JUMP_VELOCITY;
         player.fastFall = true;
       }
@@ -680,9 +727,25 @@
       var py1 = player.y - player.h + m, py2 = player.y - m;
       for (var j = 0; j < obstacles.length; j++) {
         var o = obstacles[j];
-        var ox1 = o.x + m, ox2 = o.x + o.w - m;
-        var oy1 = GROUND_Y - o.h + m, oy2 = GROUND_Y - m;
-        if (px2 > ox1 && px1 < ox2 && py2 > oy1 && py1 < oy2) {
+        var hit = false;
+        if (o.type === 'monitor') {
+          // Test each row of the pyramid stack against its own tight box
+          // instead of one rectangle spanning the whole stack's silhouette -
+          // see MONITOR_TIERS' "bands" comment.
+          var tier = MONITOR_TIERS[o.count] || MONITOR_TIERS[1];
+          var oy0 = GROUND_Y - o.h;
+          for (var b = 0; b < tier.bands.length; b++) {
+            var band = tier.bands[b];
+            var bx1 = o.x + band.x0 * MONITOR_SCALE + m, bx2 = o.x + band.x1 * MONITOR_SCALE - m;
+            var by1 = oy0 + band.y0 * MONITOR_SCALE + m, by2 = oy0 + band.y1 * MONITOR_SCALE - m;
+            if (px2 > bx1 && px1 < bx2 && py2 > by1 && py1 < by2) { hit = true; break; }
+          }
+        } else {
+          var ox1 = o.x + m, ox2 = o.x + o.w - m;
+          var oy1 = GROUND_Y - o.h + m, oy2 = GROUND_Y - m;
+          hit = px2 > ox1 && px1 < ox2 && py2 > oy1 && py1 < oy2;
+        }
+        if (hit) {
           die();
           break;
         }
@@ -744,29 +807,25 @@
     }
 
     var MIC_NATIVE_W = 23, MIC_NATIVE_H = 68;
-    var MONITOR_NATIVE_W = 18, MONITOR_NATIVE_H = 20;
 
     function drawObstacles() {
       obstacles.forEach(function (o) {
-        var count = o.count || 1;
-        var unitW = o.unitWidth || o.w;
-        for (var i = 0; i < count; i++) {
-          var slotX = o.x + i * unitW;
-          if (o.type === 'monitor') {
-            var img = monitorImg;
-            if (!img.complete || !img.naturalWidth) continue;
-            var dh = o.h, dw = dh * (MONITOR_NATIVE_W / MONITOR_NATIVE_H);
-            var dx = slotX + unitW / 2 - dw / 2;
-            var dy = GROUND_Y - dh;
-            ctx.drawImage(img, 0, 0, MONITOR_NATIVE_W, MONITOR_NATIVE_H, dx, dy, dw, dh);
-          } else {
-            var img2 = micImg;
-            if (!img2.complete || !img2.naturalWidth) continue;
-            var dh2 = o.h, dw2 = dh2 * (MIC_NATIVE_W / MIC_NATIVE_H);
-            var dx2 = slotX + unitW / 2 - dw2 / 2;
-            var dy2 = GROUND_Y - dh2;
-            ctx.drawImage(img2, 0, 0, MIC_NATIVE_W, MIC_NATIVE_H, dx2, dy2, dw2, dh2);
-          }
+        if (o.type === 'monitor') {
+          var tier = MONITOR_TIERS[o.count] || MONITOR_TIERS[1];
+          var img = tier.img;
+          if (!img || !img.complete || !img.naturalWidth) return;
+          // The tier's own width/height (already the obstacle's collision
+          // box, o.w/o.h) IS the sprite's footprint now - one pre-composed
+          // stack image, no more tiling a single speaker sideways.
+          var dy = GROUND_Y - o.h;
+          ctx.drawImage(img, 0, 0, tier.w, tier.h, o.x, dy, o.w, o.h);
+        } else {
+          var img2 = micImg;
+          if (!img2.complete || !img2.naturalWidth) return;
+          var dh2 = o.h, dw2 = dh2 * (MIC_NATIVE_W / MIC_NATIVE_H);
+          var dx2 = o.x + o.w / 2 - dw2 / 2;
+          var dy2 = GROUND_Y - dh2;
+          ctx.drawImage(img2, 0, 0, MIC_NATIVE_W, MIC_NATIVE_H, dx2, dy2, dw2, dh2);
         }
       });
     }
