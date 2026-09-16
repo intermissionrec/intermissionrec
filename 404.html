@@ -138,6 +138,7 @@
 
     #runnerHiScore { color: var(--face); }
     #runnerHiScore.is-hidden { visibility: hidden; }
+    #runnerScore.is-flash-off { visibility: hidden; }
 
     .error-404-overlay {
       position: absolute;
@@ -478,7 +479,13 @@
     }
 
     function updateHud() {
-      if (scoreEl) scoreEl.textContent = pad(score);
+      // While the milestone blink is active, the displayed number holds at
+      // whatever it read the instant the blink started (still visibly
+      // ticking off/on, just not re-counting) - the real score keeps
+      // accumulating underneath the whole time regardless, so once the
+      // blink ends this starts updating again and the display jumps
+      // straight to the total the player actually earned in the meantime.
+      if (scoreEl && milestoneFlashActiveTimer <= 0) scoreEl.textContent = pad(score);
       if (hiScoreEl) {
         hiScoreEl.textContent = 'HI ' + pad(hiScore);
         hiScoreEl.classList.toggle('is-hidden', hiScore === 0 && runCount < 2);
@@ -530,6 +537,16 @@
     var dyingTimer = 0;
     var DEATH_FREEZE_SECONDS = 1.5;
 
+    // Every 100-point milestone: the score digits blink on and off for
+    // MILESTONE_FLASH_SECONDS as a little callout - gameplay itself never
+    // pauses, the score keeps counting up underneath the blink the whole
+    // time, so it lands on whatever it's actually reached once the blink ends.
+    var MILESTONE_FLASH_SECONDS = 1.0;
+    var MILESTONE_FLASH_INTERVAL = 0.15;
+    var milestoneFlashActiveTimer = 0;
+    var milestoneFlashTimer = 0;
+    var milestoneFlashOn = true;
+
     function resetGame() {
       player = {
         y: GROUND_Y, vy: 0, w: 30, h: 40, onGround: true, runFrame: 0, runTimer: 0, lastMilestone: -1,
@@ -544,6 +561,10 @@
       distance = 0;
       nextSpawnAt = 420;
       state = 'idle';
+      milestoneFlashActiveTimer = 0;
+      milestoneFlashTimer = 0;
+      milestoneFlashOn = true;
+      if (scoreEl) scoreEl.classList.remove('is-flash-off');
       updateHud();
     }
 
@@ -686,6 +707,24 @@
     }
 
     function update(dt) {
+      if (milestoneFlashActiveTimer > 0) {
+        // Purely a visual callout on the score digits - gameplay (player,
+        // obstacles, speed) keeps running normally underneath the whole
+        // time, so this never pauses anything below, it only drives the
+        // blink timing (see updateHud() for the frozen-display half of it).
+        milestoneFlashActiveTimer -= dt;
+        milestoneFlashTimer -= dt;
+        if (milestoneFlashTimer <= 0) {
+          milestoneFlashTimer += MILESTONE_FLASH_INTERVAL;
+          milestoneFlashOn = !milestoneFlashOn;
+          if (scoreEl) scoreEl.classList.toggle('is-flash-off', !milestoneFlashOn);
+        }
+        if (milestoneFlashActiveTimer <= 0) {
+          milestoneFlashActiveTimer = 0;
+          if (scoreEl) scoreEl.classList.remove('is-flash-off');
+        }
+      }
+
       elapsed += dt;
       distance += speed * dt;
       score = distance / SCORE_DISTANCE_DIVISOR;
@@ -755,6 +794,13 @@
       if (milestone > 0 && milestone !== player.lastMilestone) {
         player.lastMilestone = milestone;
         playMilestoneChime();
+        // Show this exact crossing score right now, before the freeze-display
+        // guard in updateHud() kicks in - otherwise the last number painted
+        // would be whatever it read the frame before crossing the milestone.
+        if (scoreEl) scoreEl.textContent = pad(score);
+        milestoneFlashActiveTimer = MILESTONE_FLASH_SECONDS;
+        milestoneFlashTimer = MILESTONE_FLASH_INTERVAL;
+        milestoneFlashOn = true;
       }
     }
 
