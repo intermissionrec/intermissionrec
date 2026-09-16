@@ -184,6 +184,14 @@
       .error-404-band { padding: 56px 20px 72px; }
     }
 
+    /* Mobile: taller/more-vertical game canvas (matches the JS mobile logical
+       size below - both must stay in sync or the pixel art stretches). */
+    @media (max-width: 640px) {
+      #runnerCanvas {
+        aspect-ratio: 800 / 480;
+      }
+    }
+
     .runner-picker {
       display: flex;
       gap: 18px;
@@ -305,25 +313,32 @@
     var ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
 
-    var LOGICAL_W = 800, LOGICAL_H = 300;
+    // Mobile gets a taller world space (more vertical framing) instead of the
+    // desktop's wide/short one - keeps the same 800-wide world so obstacle
+    // spawn/gap/speed math is untouched, only the vertical canvas is taller.
+    // Must stay in sync with the "aspect-ratio: 800 / 480" mobile media query above.
+    var IS_MOBILE = window.matchMedia('(max-width: 640px)').matches;
+    var LOGICAL_W = 800, LOGICAL_H = IS_MOBILE ? 480 : 300;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = LOGICAL_W * dpr;
     canvas.height = LOGICAL_H * dpr;
     ctx.scale(dpr, dpr);
 
-    var GROUND_Y = 232;
+    // Same baseboard thickness as desktop (LOGICAL_H - GROUND_Y = 68); the extra
+    // mobile height all goes into headroom above the ground.
+    var GROUND_Y = IS_MOBILE ? LOGICAL_H - 68 : 232;
     var GRAVITY = 2200;
     // Tuned so each jump's peak height clears its intended obstacle with a modest
     // margin, instead of flying way higher than needed:
     //   - collision boxes are inset by 4px on every edge, so clearing an obstacle of
     //     height H only requires rising (H - 8) world units.
-    //   - monitor (h=24) needs a rise of ~16 -> light tap peaks at ~34 (comfortable
-    //     margin over the monitor, still short of the mic stand).
+    //   - monitor (h=24) needs a rise of ~16 -> light tap now peaks at ~14, just under
+    //     the monitor's clearance line, short of the mic stand.
     //   - mic stand (h=40) needs a rise of ~32 -> a held jump peaks at ~80 (clears both
     //     with room to spare).
     var JUMP_VELOCITY = -593;
-    var LIGHT_JUMP_VELOCITY = -386;
-    var SHORT_TAP_MAX = 0.25;
+    var LIGHT_JUMP_VELOCITY = -247;
+    var SHORT_TAP_MAX = 0.6;
     var FAST_FALL_GRAVITY_MULT = 1.6;
     var BASE_SPEED = 220;
     var MAX_SPEED = 620;
@@ -734,7 +749,10 @@
     // everything simply scales up around that point. Game logic (physics, spawn
     // positions, collisions) stays in the original 800x300 world space; only the picture
     // is zoomed.
-    var ZOOM = 1.4;
+    // Mobile gets a bigger zoom than desktop's 1.4 - the taller canvas has the
+    // headroom to support it, and it's what makes the character/obstacles read
+    // as "bigger" on phones instead of just "taller empty sky".
+    var ZOOM = IS_MOBILE ? 1.8 : 1.4;
     var ZOOM_PIVOT_X = PLAYER_X;
     var ZOOM_PIVOT_Y = GROUND_Y;
 
