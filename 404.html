@@ -190,7 +190,7 @@
        narrow phones instead of overflowing past the game frame. */
     @media (max-width: 640px) {
       #runnerCanvas {
-        aspect-ratio: 640 / 800;
+        aspect-ratio: 640 / 640;
       }
       .error-404-overlay {
         padding: 14px;
@@ -330,18 +330,21 @@
     // Mobile gets a taller world space (more vertical framing) instead of the
     // desktop's wide/short one - keeps the same 800-wide world so obstacle
     // spawn/gap/speed math is untouched, only the vertical canvas is taller.
-    // Must stay in sync with the "aspect-ratio: 640 / 800" mobile media query above
-    // (800 / 1000 reduces to the same 0.8 ratio, keeping the 800-wide world intact).
+    // Must stay in sync with the "aspect-ratio: 640 / 640" mobile media query above
+    // (800 / 800 reduces to the same 1:1 ratio, keeping the 800-wide world intact).
     var IS_MOBILE = window.matchMedia('(max-width: 640px)').matches;
-    var LOGICAL_W = 800, LOGICAL_H = IS_MOBILE ? 1000 : 300;
+    var LOGICAL_W = 800, LOGICAL_H = IS_MOBILE ? 800 : 300;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = LOGICAL_W * dpr;
     canvas.height = LOGICAL_H * dpr;
     ctx.scale(dpr, dpr);
 
-    // Same baseboard thickness as desktop (LOGICAL_H - GROUND_Y = 68); the extra
-    // mobile height all goes into headroom above the ground.
-    var GROUND_Y = IS_MOBILE ? LOGICAL_H - 68 : 232;
+    // On the square mobile frame, dead-centering the ground *line* leaves the
+    // character (which stands on top of it, extending upward) looking too high -
+    // only the line itself was centered. Nudging the line down by half the
+    // character's on-screen height (~47 world px tall * 3.08 zoom) centers the
+    // character + line together instead of just the line.
+    var GROUND_Y = IS_MOBILE ? Math.round(LOGICAL_H / 2 + (47 * 3.08) / 2) : 232;
     var GRAVITY = 2200;
     // Tuned so each jump's peak height clears its intended obstacle with a modest
     // margin, instead of flying way higher than needed:
@@ -764,10 +767,11 @@
     // everything simply scales up around that point. Game logic (physics, spawn
     // positions, collisions) stays in the original 800x300 world space; only the picture
     // is zoomed.
-    // Mobile gets a bigger zoom than desktop's 1.4 - the taller canvas has the
+    // Mobile gets a bigger zoom than desktop - the taller/centered canvas has the
     // headroom to support it, and it's what makes the character/obstacles read
-    // as "bigger" on phones instead of just "taller empty sky".
-    var ZOOM = IS_MOBILE ? 2.2 : 1.4;
+    // as "bigger" on phones instead of just "taller empty sky". Desktop was
+    // zoomed out 20% (1.4 -> 1.12) to show more of the scene.
+    var ZOOM = IS_MOBILE ? 3.08 : 1.12;
     var ZOOM_PIVOT_X = PLAYER_X;
     var ZOOM_PIVOT_Y = GROUND_Y;
 
