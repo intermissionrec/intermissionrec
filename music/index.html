@@ -307,6 +307,11 @@
       if (!card) return;
       e.preventDefault();
 
+      if (card.classList.contains('spinner-card') && window.__spinnerJustDragged) {
+        window.__spinnerJustDragged = false;
+        return;
+      }
+
       if (card.classList.contains('spinner-card') && !card.classList.contains('is-active')) {
         if (window.__spinnerGoToCard) window.__spinnerGoToCard(card);
         return;
@@ -371,7 +376,10 @@
         // Radius scales with the stage's own current width, so the
         // wheel's proportions stay sensible across viewport sizes
         // rather than using one fixed pixel radius for every screen.
-        var radius = stage.clientWidth * 0.55;
+        // Smaller multiplier than a "true" circle would need, so the
+        // covers sit closer together around the ring instead of
+        // spreading out with big gaps between them.
+        var radius = stage.clientWidth * 0.32;
 
         cards.forEach(function (card, i) {
           var offset = wrappedOffset(i);
@@ -419,6 +427,81 @@
         if (Math.abs(dx) < 40) return;
         goTo(active + (dx < 0 ? 1 : -1));
       });
+
+      // Mouse drag-to-spin: press and drag left/right across the
+      // stage to rotate the wheel, one card per `dragThreshold`
+      // pixels of horizontal movement, so a long drag spins through
+      // several covers in one motion instead of just nudging one
+      // step like a click would. Mirrors the touch-swipe direction
+      // above (drag left => next, drag right => previous).
+      var isDragging = false;
+      var dragLastX = 0;
+      var dragAccum = 0;
+      var dragTotal = 0;
+
+      stage.addEventListener('mousedown', function (e) {
+        isDragging = true;
+        dragLastX = e.clientX;
+        dragAccum = 0;
+        dragTotal = 0;
+        stage.classList.add('is-dragging');
+        e.preventDefault();
+      });
+
+      window.addEventListener('mousemove', function (e) {
+        if (!isDragging) return;
+        var dx = e.clientX - dragLastX;
+        dragLastX = e.clientX;
+        dragAccum += dx;
+        dragTotal += Math.abs(dx);
+
+        var dragThreshold = 50;
+        while (Math.abs(dragAccum) >= dragThreshold) {
+          if (dragAccum > 0) {
+            goTo(active - 1);
+            dragAccum -= dragThreshold;
+          } else {
+            goTo(active + 1);
+            dragAccum += dragThreshold;
+          }
+        }
+      });
+
+      window.addEventListener('mouseup', function () {
+        if (!isDragging) return;
+        isDragging = false;
+        stage.classList.remove('is-dragging');
+        // A drag that moved more than a few pixels shouldn't also
+        // fire the click that opens/recenters the card under the
+        // cursor - the delegated click handler checks this flag.
+        window.__spinnerJustDragged = dragTotal > 6;
+      });
+
+      // Mouse-wheel-to-spin: scrolling while hovering the stage
+      // rotates the wheel instead of scrolling the page, so the
+      // wheel can be spun quickly without switching to drag/arrows.
+      var wheelAccum = 0;
+      var wheelIdleTimer = null;
+      stage.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        stage.classList.add('is-dragging'); // reuse the snappy-transition state
+        clearTimeout(wheelIdleTimer);
+        wheelIdleTimer = setTimeout(function () { stage.classList.remove('is-dragging'); }, 200);
+
+        var delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+        wheelAccum += delta;
+
+        var wheelThreshold = 60;
+        while (Math.abs(wheelAccum) >= wheelThreshold) {
+          if (wheelAccum > 0) {
+            goTo(active + 1);
+            wheelAccum -= wheelThreshold;
+          } else {
+            goTo(active - 1);
+            wheelAccum += wheelThreshold;
+          }
+        }
+      }, { passive: false });
 
       // The radius is derived from the stage's width, so a resize
       // (or an orientation change) needs a re-render to stay correct.

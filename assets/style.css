@@ -3749,7 +3749,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: clamp(20px, 5vw, 56px);
 }
 
 .spinner-stage {
@@ -3757,6 +3757,16 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   width: 100%;
   height: clamp(240px, 30vw, 380px);
   perspective: 1200px;
+  cursor: grab;
+  /* No default touch panning/scrolling on the stage itself - lets
+     a horizontal drag or wheel-scroll spin the wheel instead of the
+     browser trying to pan/scroll the page underneath the pointer. */
+  touch-action: none;
+  user-select: none;
+}
+
+.spinner-stage.is-dragging {
+  cursor: grabbing;
 }
 
 .spinner-card {
@@ -3774,6 +3784,13 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   transition: transform .5s cubic-bezier(.22, 1, .36, 1), opacity .5s ease;
   will-change: transform;
   cursor: pointer;
+}
+
+/* While actively dragging/scrolling the wheel, snap each step
+   immediately instead of easing over .5s, so rapid drags or wheel
+   flicks feel responsive rather than lagging behind the pointer. */
+.spinner-stage.is-dragging .spinner-card {
+  transition: transform .12s linear, opacity .12s ease;
 }
 
 .spinner-card.is-active {
