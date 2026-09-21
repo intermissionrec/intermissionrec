@@ -392,16 +392,31 @@
           var depth = Math.cos(rad); // 1 = facing the viewer, -1 = facing away
 
           card.classList.toggle('is-active', i === active);
-          card.style.opacity = String(0.35 + 0.65 * ((depth + 1) / 2));
+          // Gentler opacity falloff than before - the shading below
+          // is now what mainly reads as "depth", so cards don't also
+          // need to fade toward transparent to sell it.
+          card.style.opacity = String(0.6 + 0.4 * ((depth + 1) / 2));
           card.style.pointerEvents = depth > -0.5 ? 'auto' : 'none';
           card.style.zIndex = String(Math.round((depth + 1) * 500));
           // Shading on the sides of the wheel: a dark overlay
           // (painted via the --shade custom property, see CSS) that
           // grows the further a cover has rotated away from facing
-          // the viewer, on top of (not instead of) the opacity falloff.
-          card.style.setProperty('--shade', String(Math.max(0, (1 - depth) / 2) * 0.75));
+          // the viewer. A curved (not linear) ramp so cards just one
+          // slot over from center already read as visibly shaded,
+          // instead of barely darkening until they're almost edge-on.
+          var shadeBase = Math.max(0, (1 - depth) / 2);
+          card.style.setProperty('--shade', String(Math.pow(shadeBase, 0.6) * 0.7));
+          // The translateZ(-radius) before rotateY re-centers the
+          // whole ring in depth around the stage's own plane, instead
+          // of leaving the front card sitting at translateZ(+radius)
+          // - i.e. shoved almost all the way up to the camera relative
+          // to the 800px perspective. That mismatch (radius getting
+          // close to the perspective distance) is what was blowing the
+          // front cover up huge and warping it as it rotated through
+          // center - this keeps the front card at natural size and
+          // only the side/back cards recede into the distance.
           card.style.transform =
-            'translate(-50%, -50%) rotateY(' + theta + 'deg) translateZ(' + radius + 'px)';
+            'translate(-50%, -50%) translateZ(-' + radius + 'px) rotateY(' + theta + 'deg) translateZ(' + radius + 'px)';
         });
 
         dots.forEach(function (dot, i) { dot.classList.toggle('is-active', i === active); });
