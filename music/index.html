@@ -399,15 +399,17 @@
       }
 
       // Radius (and drag sensitivity, which depends on it) derived
-      // from the actual rendered card size plus a fixed ~60px gap
-      // between adjacent covers, rather than a fraction of the stage
-      // width - keeps spacing consistent instead of ballooning on
-      // wide screens. Re-measured on resize.
+      // from the actual rendered card size plus a gap between
+      // adjacent covers, rather than a fraction of the stage width -
+      // keeps spacing consistent instead of ballooning on wide
+      // screens. Re-measured on resize. Smaller gap on narrow/mobile
+      // viewports (40px less) - the full 60px gap pushed the side
+      // covers wide enough to overflow the screen horizontally.
       var radius = 300;
       var dragSensitivity = 0.15; // degrees rotated per pixel dragged
       function measure() {
         var cardSize = cards[0].getBoundingClientRect().width || 200;
-        var gap = 60;
+        var gap = window.innerWidth <= 768 ? 20 : 60;
         var halfStepRad = (angleStep / 2) * Math.PI / 180;
         radius = (cardSize + gap) / (2 * Math.sin(halfStepRad));
         dragSensitivity = angleStep / (cardSize + gap);
@@ -424,10 +426,10 @@
 
           card.classList.toggle('is-active', isActive);
           // The main/front cover stays fully visible; every side cover
-          // sits at a flat 50% opacity regardless of how far around it
+          // sits at a flat 70% opacity regardless of how far around it
           // is - the --shade darkening below is what carries the actual
           // depth falloff, opacity here is just "not the main one".
-          card.style.opacity = isActive ? '1' : '0.5';
+          card.style.opacity = isActive ? '1' : '0.7';
           card.style.pointerEvents = depth > -0.5 ? 'auto' : 'none';
           card.style.zIndex = String(Math.round((depth + 1) * 500));
           // Shading on the sides of the wheel: a dark overlay (painted

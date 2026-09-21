@@ -25,6 +25,12 @@ body {
   cursor: default;
   user-select: none;
   -webkit-user-select: none;
+  /* Site-wide safety net: the 3D music spinner (and anything else
+     absolutely-positioned past its own container's edge) can push
+     content wider than the viewport - this stops the page itself
+     from ever being sideways-scrollable/resizable because of it,
+     without having to hunt down every individual offender. */
+  overflow-x: hidden;
 }
 
 /* Form fields need to stay normally selectable/editable - the global
