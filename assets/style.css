@@ -3755,7 +3755,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 .spinner-stage {
   position: relative;
   width: 100%;
-  height: clamp(300px, 34vw, 460px);
+  height: clamp(540px, calc(34vw + 240px), 700px);
   /* Shorter than before on purpose - a smaller perspective value
      exaggerates the 3D foreshortening (near cards look bigger,
      far/side cards shrink and skew more), which is what makes the
@@ -3777,7 +3777,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: clamp(170px, 20vw, 280px);
+  width: clamp(410px, calc(20vw + 240px), 520px);
   aspect-ratio: 1;
   border-radius: 0;
   /* Hides a card once its rotation has carried it past edge-on, so
@@ -3866,6 +3866,10 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 @media (max-width: 768px) {
   .spinner-arrow { display: none; }
   .spinner-stage { height: clamp(220px, 62vw, 320px); }
+  /* The desktop +240px bump would be wider than the screen itself on
+     phones (the clamp's 410px floor alone exceeds most viewports) -
+     back off to the original mobile-appropriate sizing here. */
+  .spinner-card { width: clamp(130px, 55vw, 220px); }
 }
 
 /* ── Music page: per-artist releases, sorted the same way as the
