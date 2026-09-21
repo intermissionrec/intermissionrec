@@ -1,5 +1,5 @@
 :root {
-  --bg: #0a0a0a;
+  --bg: #060606;
   --bg-alt: #060606;
   --panel: #0d0d0d;
   --panel-2: #111111;
@@ -15,12 +15,17 @@
 * { box-sizing: border-box; }
 html {
   scroll-behavior: smooth;
-  /* Belt-and-suspenders alongside body's overflow-x:hidden below -
-     a fixed-position layer (like the smart-link modal) is sized
+  /* Belt-and-suspenders alongside body's overflow-x:clip below - a
+     fixed-position layer (like the smart-link modal) is sized
      relative to the viewport/html, not to body, so body's own
-     overflow-x:hidden alone doesn't always catch overflow coming
-     from one of those. */
-  overflow-x: hidden;
+     overflow-x alone doesn't always catch overflow coming from one
+     of those. `clip`, not `hidden`: `hidden` makes the browser treat
+     html/body as a scroll container, which broke .nav-wrap's
+     position: sticky header behavior on scroll (sticky needs its
+     nearest non-visible-overflow ancestor to still behave like the
+     plain viewport). `clip` suppresses the overflow the same way
+     without that side effect. */
+  overflow-x: clip;
 }
 body {
   margin: 0;
@@ -37,8 +42,10 @@ body {
      absolutely-positioned past its own container's edge) can push
      content wider than the viewport - this stops the page itself
      from ever being sideways-scrollable/resizable because of it,
-     without having to hunt down every individual offender. */
-  overflow-x: hidden;
+     without having to hunt down every individual offender. `clip`,
+     not `hidden` - see the matching note on `html` above for why
+     `hidden` here broke the sticky header on scroll. */
+  overflow-x: clip;
 }
 
 /* Form fields need to stay normally selectable/editable - the global
