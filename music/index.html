@@ -350,6 +350,20 @@
       var active = 0;
       var angleStep = 360 / cards.length;
 
+      // The wheel's actual continuous rotation, in degrees. This is
+      // the piece a "shortest-path-per-render" version was missing:
+      // each card's transform is simply its own fixed slot angle
+      // (i * angleStep) plus this one shared, ever-accumulating
+      // value, so a step always turns the wheel by exactly one
+      // angleStep in the direction it was already asked to go. Any
+      // approach that instead recomputes each card's angle from
+      // scratch (shortest wrap from the new active index) makes half
+      // the wheel silently flip which way it "should" turn whenever
+      // active crosses the halfway point, which reads as a weird
+      // snap/readjustment instead of a continuous spin - this avoids
+      // that entirely.
+      var rotation = 0;
+
       cards.forEach(function (card, i) {
         var dot = document.createElement('button');
         dot.type = 'button';
@@ -360,37 +374,32 @@
       });
       var dots = Array.prototype.slice.call(dotsWrap.querySelectorAll('.spinner-dot'));
 
-      // Shortest signed distance (in index steps) from `active` to i,
-      // wrapping around either end - this is what makes the wheel
-      // always spin the short way around to reach the clicked/dotted
-      // card, instead of sometimes doing nearly a full extra turn.
-      function wrappedOffset(i) {
-        var n = cards.length;
-        var raw = i - active;
-        if (raw > n / 2) raw -= n;
-        if (raw < -n / 2) raw += n;
-        return raw;
-      }
-
       function render() {
-        // Radius scales with the stage's own current width, so the
-        // wheel's proportions stay sensible across viewport sizes
-        // rather than using one fixed pixel radius for every screen.
-        // Smaller multiplier than a "true" circle would need, so the
-        // covers sit closer together around the ring instead of
-        // spreading out with big gaps between them.
-        var radius = stage.clientWidth * 0.32;
+        // Radius derived from the actual rendered card size plus a
+        // fixed ~60px gap between adjacent covers (measured as the
+        // straight-line distance between neighboring slots on the
+        // ring), rather than a fraction of the stage width - keeps
+        // the spacing consistent and modest instead of ballooning on
+        // wide screens.
+        var cardSize = cards[0].getBoundingClientRect().width || 200;
+        var gap = 60;
+        var halfStepRad = (angleStep / 2) * Math.PI / 180;
+        var radius = (cardSize + gap) / (2 * Math.sin(halfStepRad));
 
         cards.forEach(function (card, i) {
-          var offset = wrappedOffset(i);
-          var theta = offset * angleStep;
+          var theta = i * angleStep + rotation;
           var rad = theta * Math.PI / 180;
           var depth = Math.cos(rad); // 1 = facing the viewer, -1 = facing away
 
-          card.classList.toggle('is-active', offset === 0);
+          card.classList.toggle('is-active', i === active);
           card.style.opacity = String(0.35 + 0.65 * ((depth + 1) / 2));
           card.style.pointerEvents = depth > -0.5 ? 'auto' : 'none';
           card.style.zIndex = String(Math.round((depth + 1) * 500));
+          // Shading on the sides of the wheel: a dark overlay
+          // (painted via the --shade custom property, see CSS) that
+          // grows the further a cover has rotated away from facing
+          // the viewer, on top of (not instead of) the opacity falloff.
+          card.style.setProperty('--shade', String(Math.max(0, (1 - depth) / 2) * 0.75));
           card.style.transform =
             'translate(-50%, -50%) rotateY(' + theta + 'deg) translateZ(' + radius + 'px)';
         });
@@ -400,7 +409,18 @@
 
       function goTo(index) {
         var n = cards.length;
-        active = ((index % n) + n) % n;
+        index = ((index % n) + n) % n;
+        // Shortest signed distance (in index steps) from the current
+        // active card to the target, wrapping around either end, so
+        // a dot/arrow jump always turns the short way. rotation is
+        // then nudged by exactly that many steps - never reset or
+        // recomputed from an absolute angle - so it stays continuous
+        // with whatever the wheel was already doing.
+        var raw = index - active;
+        if (raw > n / 2) raw -= n;
+        if (raw < -n / 2) raw += n;
+        active = index;
+        rotation -= raw * angleStep;
         render();
       }
 

@@ -3755,8 +3755,12 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 .spinner-stage {
   position: relative;
   width: 100%;
-  height: clamp(240px, 30vw, 380px);
-  perspective: 1200px;
+  height: clamp(300px, 34vw, 460px);
+  /* Shorter than before on purpose - a smaller perspective value
+     exaggerates the 3D foreshortening (near cards look bigger,
+     far/side cards shrink and skew more), which is what makes the
+     wheel read as a real depth effect instead of a flat carousel. */
+  perspective: 800px;
   cursor: grab;
   /* No default touch panning/scrolling on the stage itself - lets
      a horizontal drag or wheel-scroll spin the wheel instead of the
@@ -3773,7 +3777,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: clamp(130px, 16vw, 220px);
+  width: clamp(170px, 20vw, 280px);
   aspect-ratio: 1;
   border-radius: 0;
   /* Hides a card once its rotation has carried it past edge-on, so
@@ -3786,6 +3790,26 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   cursor: pointer;
 }
 
+/* Shading on the sides of the wheel: a plain black overlay whose
+   opacity is driven by the --shade custom property (set per-card in
+   JS from how far it's rotated away from facing the viewer), so the
+   cards on either side of the front one darken like the curved
+   surface of a real cylinder rather than just fading out. Stacked on
+   top of the existing hover ::before dim layer, not replacing it. */
+.spinner-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: var(--shade, 0);
+  pointer-events: none;
+  transition: opacity .5s ease;
+}
+
+.spinner-stage.is-dragging .spinner-card::after {
+  transition: opacity .12s ease;
+}
+
 /* While actively dragging/scrolling the wheel, snap each step
    immediately instead of easing over .5s, so rapid drags or wheel
    flicks feel responsive rather than lagging behind the pointer. */
@@ -3795,6 +3819,13 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 
 .spinner-card.is-active {
   cursor: default;
+}
+
+/* Bigger, more legible title on hover than the base .music-title
+   size, specific to the spinner cards. */
+.spinner-card:hover .music-title,
+.spinner-card:focus-visible .music-title {
+  font-size: 1.4vw;
 }
 
 .spinner-arrow {
