@@ -425,7 +425,7 @@
           // sits at a flat 70% opacity regardless of how far around it
           // is - the --shade darkening below is what carries the actual
           // depth falloff, opacity here is just "not the main one".
-          card.style.opacity = isActive ? '1' : '0.7';
+          card.style.opacity = isActive ? '1' : '0.5';
           card.style.pointerEvents = depth > -0.5 ? 'auto' : 'none';
           card.style.zIndex = String(Math.round((depth + 1) * 500));
           // Shading on the sides of the wheel: a dark overlay (painted
