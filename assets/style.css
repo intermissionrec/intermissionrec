@@ -3862,10 +3862,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 }
 
 .spinner-dots {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
+  display: none;
 }
 
 .spinner-dot {
