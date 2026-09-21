@@ -3785,7 +3785,11 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
      of what makes this read as a solid wheel rather than a ring of
      flat panels. */
   backface-visibility: hidden;
-  transition: transform .5s cubic-bezier(.22, 1, .36, 1), opacity .5s ease;
+  /* No CSS transition on transform/opacity - both are now recomputed
+     every animation frame by the JS easing/momentum loop in
+     initSpinner() (music.html), so a CSS transition here would just
+     make the visible position lag half a step behind what the loop
+     already smoothed, rather than helping. */
   will-change: transform;
   cursor: pointer;
 }
@@ -3803,18 +3807,6 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   background: #000;
   opacity: var(--shade, 0);
   pointer-events: none;
-  transition: opacity .5s ease;
-}
-
-.spinner-stage.is-dragging .spinner-card::after {
-  transition: opacity .12s ease;
-}
-
-/* While actively dragging/scrolling the wheel, snap each step
-   immediately instead of easing over .5s, so rapid drags or wheel
-   flicks feel responsive rather than lagging behind the pointer. */
-.spinner-stage.is-dragging .spinner-card {
-  transition: transform .12s linear, opacity .12s ease;
 }
 
 .spinner-card.is-active {

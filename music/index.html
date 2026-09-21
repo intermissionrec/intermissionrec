@@ -332,159 +332,175 @@
     // An actual wheel: the 10 covers sit evenly spaced around a full
     // circle (36° apart), each rotated to face outward along its own
     // spot on the ring (rotateY(angle) translateZ(radius) - the
-    // classic 3D-carousel technique), so it genuinely reads as a
-    // spinning wheel rather than a flat stack of cards. Manual only
-    // (no autoplay): prev/next arrows, dots, clicking a side card,
-    // and swipe all rotate the wheel. Index 0 (the first card in the
-    // markup) starts facing front, which is always the latest release
-    // since the cards above are listed newest-first.
+    // classic 3D-carousel technique). Rewritten from a CSS-transition-
+    // per-step design to a single requestAnimationFrame loop driving
+    // one continuous `rotation` value every frame - see the big
+    // comment below for why: the transition-based version kept
+    // producing a "random readjustment" snap under fast repeated
+    // input, and a live per-frame loop is what actually fixes that
+    // class of bug rather than working around one more symptom of it.
+    // Manual only (no autoplay): prev/next arrows, dots, clicking a
+    // side card, swipe, mouse-drag and wheel-scroll all rotate it.
+    // Index 0 (the first card in the markup) starts facing front,
+    // which is always the latest release since the cards above are
+    // listed newest-first.
     function initSpinner() {
       var stage = document.getElementById('spinnerStage');
       if (!stage) return;
       var cards = Array.prototype.slice.call(stage.querySelectorAll('.spinner-card'));
       if (!cards.length) return;
+      var n = cards.length;
+      var angleStep = 360 / n;
 
       var dotsWrap = document.getElementById('spinnerDots');
       var prevBtn = document.querySelector('.spinner-arrow-prev');
       var nextBtn = document.querySelector('.spinner-arrow-next');
-      var active = 0;
-      var angleStep = 360 / cards.length;
-
-      // The wheel's actual continuous rotation, in degrees. This is
-      // the piece a "shortest-path-per-render" version was missing:
-      // each card's transform is simply its own fixed slot angle
-      // (i * angleStep) plus this one shared, ever-accumulating
-      // value, so a step always turns the wheel by exactly one
-      // angleStep in the direction it was already asked to go. Any
-      // approach that instead recomputes each card's angle from
-      // scratch (shortest wrap from the new active index) makes half
-      // the wheel silently flip which way it "should" turn whenever
-      // active crosses the halfway point, which reads as a weird
-      // snap/readjustment instead of a continuous spin - this avoids
-      // that entirely.
-      var rotation = 0;
 
       cards.forEach(function (card, i) {
         var dot = document.createElement('button');
         dot.type = 'button';
         dot.className = 'spinner-dot';
         dot.setAttribute('aria-label', card.getAttribute('aria-label') || ('Издание ' + (i + 1)));
-        dot.addEventListener('click', function () { goTo(i); });
+        dot.addEventListener('click', function () { goToIndex(i); });
         dotsWrap.appendChild(dot);
       });
       var dots = Array.prototype.slice.call(dotsWrap.querySelectorAll('.spinner-dot'));
 
-      function render() {
-        // Radius derived from the actual rendered card size plus a
-        // fixed ~60px gap between adjacent covers (measured as the
-        // straight-line distance between neighboring slots on the
-        // ring), rather than a fraction of the stage width - keeps
-        // the spacing consistent and modest instead of ballooning on
-        // wide screens.
+      function normalizeIndex(i) { return ((i % n) + n) % n; }
+
+      // ── Continuous state ────────────────────────────────────────
+      // `rotation` is what's actually drawn every frame. `targetRotation`
+      // is where arrow/dot/swipe input wants it to end up - the loop
+      // below eases `rotation` toward it each frame. This replaces the
+      // old design of setting a CSS transition and firing one goTo()
+      // per click: there, a second click before the first's .5s
+      // transition finished had to either restart it (producing a
+      // stutter/snap) or be queued and played as a separate discrete
+      // transition (still visibly a stop-start). Here every input just
+      // moves a number; the loop doesn't care how often or how fast
+      // that number changes, so it can never be "mid-transition" in a
+      // way a new input disrupts - it's simply always easing toward
+      // wherever it's currently pointed, one continuous motion.
+      var rotation = 0;
+      var targetRotation = 0;
+      var velocity = 0; // degrees/frame, used while coasting after a drag/scroll
+      var activeIndex = 0;
+      var isDragging = false;
+      var isCoasting = false;
+
+      var EASE = 0.18;
+      var FRICTION = 0.93;
+      var MIN_VELOCITY = 0.05;
+
+      function currentIndexFromRotation() {
+        return normalizeIndex(Math.round(-rotation / angleStep));
+      }
+
+      // Radius (and drag sensitivity, which depends on it) derived
+      // from the actual rendered card size plus a fixed ~60px gap
+      // between adjacent covers, rather than a fraction of the stage
+      // width - keeps spacing consistent instead of ballooning on
+      // wide screens. Re-measured on resize.
+      var radius = 300;
+      var dragSensitivity = 0.15; // degrees rotated per pixel dragged
+      function measure() {
         var cardSize = cards[0].getBoundingClientRect().width || 200;
         var gap = 60;
         var halfStepRad = (angleStep / 2) * Math.PI / 180;
-        var radius = (cardSize + gap) / (2 * Math.sin(halfStepRad));
+        radius = (cardSize + gap) / (2 * Math.sin(halfStepRad));
+        dragSensitivity = angleStep / (cardSize + gap);
+      }
+
+      function render() {
+        activeIndex = currentIndexFromRotation();
 
         cards.forEach(function (card, i) {
           var theta = i * angleStep + rotation;
           var rad = theta * Math.PI / 180;
           var depth = Math.cos(rad); // 1 = facing the viewer, -1 = facing away
+          var isActive = i === activeIndex;
 
-          card.classList.toggle('is-active', i === active);
-          // Gentler opacity falloff than before - the shading below
-          // is now what mainly reads as "depth", so cards don't also
-          // need to fade toward transparent to sell it.
+          card.classList.toggle('is-active', isActive);
+          // Gentler opacity falloff - the shading below is what mainly
+          // reads as "depth", so cards don't also need to fade toward
+          // transparent to sell it.
           card.style.opacity = String(0.6 + 0.4 * ((depth + 1) / 2));
           card.style.pointerEvents = depth > -0.5 ? 'auto' : 'none';
           card.style.zIndex = String(Math.round((depth + 1) * 500));
-          // Shading on the sides of the wheel: a dark overlay
-          // (painted via the --shade custom property, see CSS) that
-          // grows the further a cover has rotated away from facing
-          // the viewer. A curved (not linear) ramp so cards just one
-          // slot over from center already read as visibly shaded,
-          // instead of barely darkening until they're almost edge-on.
+          // Shading on the sides of the wheel: a dark overlay (painted
+          // via the --shade custom property, see CSS) that grows the
+          // further a cover has rotated away from facing the viewer -
+          // a curved (not linear) ramp so cards just one slot over
+          // already read as visibly shaded rather than needing to be
+          // nearly edge-on first.
           var shadeBase = Math.max(0, (1 - depth) / 2);
           card.style.setProperty('--shade', String(Math.pow(shadeBase, 0.6) * 0.7));
-          // The translateZ(-radius) before rotateY re-centers the
-          // whole ring in depth around the stage's own plane, instead
-          // of leaving the front card sitting at translateZ(+radius)
-          // - i.e. shoved almost all the way up to the camera relative
-          // to the 800px perspective. That mismatch (radius getting
-          // close to the perspective distance) is what was blowing the
-          // front cover up huge and warping it as it rotated through
-          // center - this keeps the front card at natural size and
-          // only the side/back cards recede into the distance.
+          // translateZ(-radius) before rotateY re-centers the whole
+          // ring in depth around the stage's own plane, instead of
+          // leaving the front card sitting at translateZ(+radius) -
+          // shoved almost up to the camera relative to the 800px
+          // perspective, which is what used to blow the front cover
+          // up huge and warp it as it rotated through center.
           card.style.transform =
             'translate(-50%, -50%) translateZ(-' + radius + 'px) rotateY(' + theta + 'deg) translateZ(' + radius + 'px)';
         });
 
-        dots.forEach(function (dot, i) { dot.classList.toggle('is-active', i === active); });
+        dots.forEach(function (dot, i) { dot.classList.toggle('is-active', i === activeIndex); });
       }
 
-      function goTo(index) {
-        var n = cards.length;
-        index = ((index % n) + n) % n;
-        // Shortest signed distance (in index steps) from the current
-        // active card to the target, wrapping around either end, so
-        // a dot/arrow jump always turns the short way. rotation is
-        // then nudged by exactly that many steps - never reset or
-        // recomputed from an absolute angle - so it stays continuous
-        // with whatever the wheel was already doing.
-        var raw = index - active;
-        if (raw > n / 2) raw -= n;
-        if (raw < -n / 2) raw += n;
-        active = index;
-        rotation -= raw * angleStep;
-        render();
+      // The rotation value (in whatever multiple of 360 it's drifted
+      // to after however many steps) nearest to `from` that places
+      // `index` at front - i.e. the shortest way to get there from
+      // wherever the wheel is currently headed, never the long way
+      // around.
+      function nearestTargetFor(index, from) {
+        var base = -index * angleStep;
+        var diff = ((base - from) % 360 + 540) % 360 - 180;
+        return from + diff;
       }
 
-      // Arrow clicks step one card at a time, but each step plays a
-      // full .5s CSS transition. Firing goTo() again mid-transition
-      // (e.g. someone clicking "next" a few times quickly) doesn't
-      // queue cleanly on its own - it restarts the transition from
-      // wherever it currently is toward a new target, so a burst of
-      // clicks never lets any single step actually finish. The wheel
-      // ends up lurching partway through several steps and then
-      // doing one big "catch-up" snap once the clicks stop - which
-      // is exactly what reads as a random readjustment rather than a
-      // real spin. Queuing one step at a time and only starting the
-      // next after the previous one's transition has genuinely
-      // finished (transitionend) fixes that: every click is still
-      // honored, but the wheel always completes a clean, full step
-      // before starting the next one.
-      var animating = false;
-      var awaitingSettle = false;
-      var queuedSteps = 0;
-
-      function performStep(delta) {
-        animating = true;
-        awaitingSettle = true;
-        goTo(active + delta);
+      // Absolute jump (dots, clicking a side card): shortest path from
+      // the currently-*targeted* rotation, not the live/easing one, so
+      // clicking a dot while a previous step is still easing in adds
+      // on top of that instead of restarting from mid-motion.
+      function goToIndex(index) {
+        index = normalizeIndex(index);
+        isCoasting = false;
+        velocity = 0;
+        targetRotation = nearestTargetFor(index, targetRotation);
       }
 
+      // Relative step (arrows/swipe): always exactly one more slot
+      // from wherever the target currently is, so any number of quick
+      // clicks just keeps extending the same smooth ease instead of
+      // interrupting/restarting anything.
       function stepBy(delta) {
-        if (animating) {
-          queuedSteps += delta;
-          return;
-        }
-        performStep(delta);
+        isCoasting = false;
+        velocity = 0;
+        targetRotation -= delta * angleStep;
       }
 
-      stage.addEventListener('transitionend', function (e) {
-        if (e.propertyName !== 'transform' || !awaitingSettle) return;
-        // Every card fires its own transitionend for the same step -
-        // awaitingSettle is cleared on the first one seen so the rest
-        // are ignored instead of each trying to advance the queue.
-        awaitingSettle = false;
-        if (queuedSteps !== 0) {
-          var next = queuedSteps > 0 ? 1 : -1;
-          queuedSteps -= next;
-          performStep(next);
+      function snapToNearest() {
+        targetRotation = nearestTargetFor(currentIndexFromRotation(), rotation);
+      }
+
+      function tick() {
+        if (isDragging) {
+          // rotation is being set directly by the pointer handlers below
+        } else if (isCoasting) {
+          rotation += velocity;
+          velocity *= FRICTION;
+          if (Math.abs(velocity) < MIN_VELOCITY) {
+            isCoasting = false;
+            snapToNearest();
+          }
         } else {
-          animating = false;
+          var diff = targetRotation - rotation;
+          rotation = Math.abs(diff) < 0.02 ? targetRotation : rotation + diff * EASE;
         }
-      });
+        render();
+        requestAnimationFrame(tick);
+      }
 
       prevBtn.addEventListener('click', function () { stepBy(-1); });
       nextBtn.addEventListener('click', function () { stepBy(1); });
@@ -494,37 +510,37 @@
       // opening the smart-link modal.
       window.__spinnerGoToCard = function (card) {
         var i = cards.indexOf(card);
-        if (i !== -1) goTo(i);
+        if (i !== -1) goToIndex(i);
       };
 
-      // Basic swipe support on top of the arrows/dots/click controls.
-      var startX = null;
+      // Touch swipe.
+      var touchStartX = null;
       stage.addEventListener('touchstart', function (e) {
-        startX = e.touches[0].clientX;
+        touchStartX = e.touches[0].clientX;
       }, { passive: true });
       stage.addEventListener('touchend', function (e) {
-        if (startX === null) return;
-        var dx = e.changedTouches[0].clientX - startX;
-        startX = null;
+        if (touchStartX === null) return;
+        var dx = e.changedTouches[0].clientX - touchStartX;
+        touchStartX = null;
         if (Math.abs(dx) < 40) return;
         stepBy(dx < 0 ? 1 : -1);
       });
 
-      // Mouse drag-to-spin: press and drag left/right across the
-      // stage to rotate the wheel, one card per `dragThreshold`
-      // pixels of horizontal movement, so a long drag spins through
-      // several covers in one motion instead of just nudging one
-      // step like a click would. Mirrors the touch-swipe direction
-      // above (drag left => next, drag right => previous).
-      var isDragging = false;
+      // Mouse drag-to-spin: while held, the wheel tracks the pointer
+      // directly (1 degree-per-pixel-ish, via dragSensitivity) rather
+      // than stepping in fixed increments, so it genuinely feels like
+      // grabbing and turning a wheel. Releasing it carries the last
+      // bit of pointer speed on as momentum (coasting, with friction),
+      // which then eases into the nearest card once it slows down -
+      // same idea as flicking a real dial.
       var dragLastX = 0;
-      var dragAccum = 0;
       var dragTotal = 0;
 
       stage.addEventListener('mousedown', function (e) {
         isDragging = true;
+        isCoasting = false;
+        velocity = 0;
         dragLastX = e.clientX;
-        dragAccum = 0;
         dragTotal = 0;
         stage.classList.add('is-dragging');
         e.preventDefault();
@@ -534,19 +550,10 @@
         if (!isDragging) return;
         var dx = e.clientX - dragLastX;
         dragLastX = e.clientX;
-        dragAccum += dx;
         dragTotal += Math.abs(dx);
-
-        var dragThreshold = 50;
-        while (Math.abs(dragAccum) >= dragThreshold) {
-          if (dragAccum > 0) {
-            goTo(active - 1);
-            dragAccum -= dragThreshold;
-          } else {
-            goTo(active + 1);
-            dragAccum += dragThreshold;
-          }
-        }
+        var delta = dx * dragSensitivity;
+        rotation += delta;
+        velocity = delta;
       });
 
       window.addEventListener('mouseup', function () {
@@ -557,43 +564,39 @@
         // fire the click that opens/recenters the card under the
         // cursor - the delegated click handler checks this flag.
         window.__spinnerJustDragged = dragTotal > 6;
+        if (Math.abs(velocity) > 0.6) {
+          isCoasting = true;
+        } else {
+          velocity = 0;
+          snapToNearest();
+        }
       });
 
-      // Mouse-wheel-to-spin: scrolling while hovering the stage
-      // rotates the wheel instead of scrolling the page, so the
-      // wheel can be spun quickly without switching to drag/arrows.
-      var wheelAccum = 0;
-      var wheelIdleTimer = null;
+      // Mouse-wheel-to-spin: scrolling while hovering the stage adds
+      // to the same momentum used by drag-release, instead of forcing
+      // one fixed step per scroll "tick" - a fast flick of the wheel
+      // spins several covers with real inertia, a gentle nudge barely
+      // moves it, same as the drag does.
+      var WHEEL_SENSITIVITY = 0.045;
+      var MAX_WHEEL_VELOCITY = angleStep * 0.9;
       stage.addEventListener('wheel', function (e) {
         e.preventDefault();
-        stage.classList.add('is-dragging'); // reuse the snappy-transition state
-        clearTimeout(wheelIdleTimer);
-        wheelIdleTimer = setTimeout(function () { stage.classList.remove('is-dragging'); }, 200);
-
+        isDragging = false;
+        isCoasting = true;
         var delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-        wheelAccum += delta;
-
-        var wheelThreshold = 60;
-        while (Math.abs(wheelAccum) >= wheelThreshold) {
-          if (wheelAccum > 0) {
-            goTo(active + 1);
-            wheelAccum -= wheelThreshold;
-          } else {
-            goTo(active - 1);
-            wheelAccum += wheelThreshold;
-          }
-        }
+        velocity -= delta * WHEEL_SENSITIVITY;
+        if (velocity > MAX_WHEEL_VELOCITY) velocity = MAX_WHEEL_VELOCITY;
+        if (velocity < -MAX_WHEEL_VELOCITY) velocity = -MAX_WHEEL_VELOCITY;
       }, { passive: false });
 
-      // The radius is derived from the stage's width, so a resize
-      // (or an orientation change) needs a re-render to stay correct.
       var resizeTimer = null;
       window.addEventListener('resize', function () {
         clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(render, 150);
+        resizeTimer = setTimeout(measure, 150);
       }, { passive: true });
 
-      render();
+      measure();
+      requestAnimationFrame(tick);
     }
     initSpinner();
 
