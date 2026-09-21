@@ -1287,14 +1287,14 @@ document.addEventListener('dragstart', (e) => {
 document.addEventListener('DOMContentLoaded', async () => {
   // Single source of truth for both the homepage's "latest releases"
   // row and its featured-release carousel: fetches music.html's own
-  // grid once and shares the result between both, so adding a
+  // spinner cards once and shares the result between both, so adding a
   // release only ever means editing music.html.
   async function fetchMusicPageCards() {
     const res = await fetch('./music/');
     if (!res.ok) throw new Error('Failed to load music page: ' + res.status);
     const html = await res.text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    const cards = doc.querySelectorAll('.music-grid .music-card');
+    const cards = doc.querySelectorAll('#spinnerStage .music-card');
     if (!cards.length) throw new Error('No releases found on music page');
     return cards;
   }

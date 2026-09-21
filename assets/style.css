@@ -1025,43 +1025,13 @@ html, body { height: 100%; }
   }
 
   body.music .page {
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  body.music main {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    overflow: hidden;
+    overflow: visible;
   }
 
   body.music .hero-logo {
     width: clamp(60px, 10vh, 112px);
     height: clamp(60px, 10vh, 112px);
   }
-
-  body.music .music-band {
-    height: 100%;
-    min-height: 0;
-  }
-
-  body.music .music-grid {
-    height: 100%;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap: 0;
-  }
-
-  body.music .music-card {
-    min-height: 0;
-  }
-
-  body.music .music-card:nth-child(even) { border-right: 1px solid var(--line); }
-  body.music .music-card:nth-child(5n) { border-right: none; }
-  body.music .music-card:nth-last-child(-n+2) { border-bottom: 1px solid var(--line); }
-  body.music .music-card:nth-last-child(-n+5) { border-bottom: none; }
 
   body.music .music-card:hover::before,
   body.music .music-card:focus-visible::before {
@@ -1194,15 +1164,10 @@ html, body { height: 100%; }
   width: 100%;
   background: var(--bg);
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: stretch;
   min-height: calc(100vh - 160px);
-}
-
-.music-grid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
 }
 
 .music-card {
@@ -3744,4 +3709,194 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   .blog-post-body {
     font-size: 16px;
   }
+}
+
+/* ── Music page: latest-releases coverflow spinner ───────────────
+   Reuses .music-card/.music-title (cover art + title overlay, hover
+   reveal) for visual consistency with the rest of the site -
+   .spinner-card only adds the coverflow positioning/sizing on top.
+   Manual-only (no autoplay): prev/next arrows, dots, swipe, and
+   clicking a side card all move the active index - see the inline
+   script at the bottom of music.html. Only the centered card's click
+   actually opens the smart-link modal. */
+.latest-spinner-band {
+  width: 100%;
+  padding: 64px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  background: var(--bg);
+}
+
+.latest-spinner-heading {
+  margin: 0;
+  width: min(100%, var(--content));
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.spinner-viewport {
+  position: relative;
+  width: 100%;
+  max-width: var(--content);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.spinner-stage {
+  position: relative;
+  width: 100%;
+  height: clamp(220px, 38vw, 420px);
+  perspective: 1400px;
+}
+
+.spinner-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(180px, 28vw, 340px);
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  transition: transform .45s cubic-bezier(.22, 1, .36, 1), opacity .45s ease;
+  will-change: transform;
+  cursor: pointer;
+}
+
+.spinner-card::before,
+.spinner-card .music-title {
+  border-radius: inherit;
+}
+
+.spinner-card.is-active {
+  cursor: default;
+}
+
+.spinner-arrow {
+  position: relative;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--panel-2);
+  color: var(--text);
+  cursor: pointer;
+  z-index: 6;
+  transition: background-color .2s ease;
+}
+
+.spinner-arrow:hover {
+  background-color: rgba(255,255,255,.08);
+}
+
+.spinner-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.spinner-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--muted-2);
+  cursor: pointer;
+  transition: background-color .2s ease, transform .2s ease;
+}
+
+.spinner-dot.is-active {
+  background: var(--text);
+  transform: scale(1.3);
+}
+
+@media (max-width: 768px) {
+  .spinner-arrow { display: none; }
+  .spinner-stage { height: clamp(220px, 62vw, 320px); }
+}
+
+/* ── Music page: per-artist releases, sorted the same way as the
+   artist quick-view modal on /artists/ (by rank, descending) - up to
+   4 per artist, one fixed row each. The row's own column count
+   matches however many releases that artist actually has
+   (--artist-row-cols, set in JS) so it never needs horizontal
+   scroll. ─────────────────────────────────────────────────────── */
+.artist-releases-band {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48px;
+  padding: 16px 20px 96px;
+  background: var(--bg);
+}
+
+.artist-releases-status {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.artist-release-row {
+  width: min(100%, var(--content));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.artist-release-row-heading {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+  font-weight: 700;
+}
+
+.artist-release-row-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--artist-row-cols, 4), 1fr);
+  gap: 16px;
+}
+
+.artist-row-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14px;
+}
+
+.artist-row-card::before,
+.artist-row-card .music-title {
+  border-radius: inherit;
+}
+
+.artist-row-card .music-title {
+  padding: 16px;
+  font-size: clamp(0.95rem, 1.4vw, 1.2rem);
+}
+
+@media (max-width: 768px) {
+  .artist-release-row-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Spinner/artist-row cards reuse .music-card for its cover/title
+   styling, but that base rule (further up this file, in the old
+   music-grid section) also adds a hard-edged border-right/
+   border-bottom meant for a tiled grid layout - these cards are
+   individual rounded tiles instead, so the border is turned back
+   off. Same specificity as that base rule (one class each) and
+   placed after it in the cascade, so this simply wins. */
+.spinner-card,
+.artist-row-card {
+  border-right: none;
+  border-bottom: none;
 }
