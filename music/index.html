@@ -323,11 +323,16 @@
       }
     });
 
-    // ── Latest-releases coverflow spinner ─────────────────────────
-    // Manual only (no autoplay): prev/next arrows, dots, clicking a
-    // side card, and swipe all move the active index. Index 0 (the
-    // first card in the markup) starts centered, which is always the
-    // latest release since the cards above are listed newest-first.
+    // ── Latest-releases circular spinner ────────────────────────────
+    // An actual wheel: the 10 covers sit evenly spaced around a full
+    // circle (36° apart), each rotated to face outward along its own
+    // spot on the ring (rotateY(angle) translateZ(radius) - the
+    // classic 3D-carousel technique), so it genuinely reads as a
+    // spinning wheel rather than a flat stack of cards. Manual only
+    // (no autoplay): prev/next arrows, dots, clicking a side card,
+    // and swipe all rotate the wheel. Index 0 (the first card in the
+    // markup) starts facing front, which is always the latest release
+    // since the cards above are listed newest-first.
     function initSpinner() {
       var stage = document.getElementById('spinnerStage');
       if (!stage) return;
@@ -338,6 +343,7 @@
       var prevBtn = document.querySelector('.spinner-arrow-prev');
       var nextBtn = document.querySelector('.spinner-arrow-next');
       var active = 0;
+      var angleStep = 360 / cards.length;
 
       cards.forEach(function (card, i) {
         var dot = document.createElement('button');
@@ -349,10 +355,10 @@
       });
       var dots = Array.prototype.slice.call(dotsWrap.querySelectorAll('.spinner-dot'));
 
-      // Shortest signed distance from `active` to i, wrapping around
-      // either end - this is what makes the wheel loop seamlessly
-      // instead of always spinning "the long way" once the active
-      // index nears either end of the array.
+      // Shortest signed distance (in index steps) from `active` to i,
+      // wrapping around either end - this is what makes the wheel
+      // always spin the short way around to reach the clicked/dotted
+      // card, instead of sometimes doing nearly a full extra turn.
       function wrappedOffset(i) {
         var n = cards.length;
         var raw = i - active;
@@ -361,30 +367,24 @@
         return raw;
       }
 
-      var VISIBLE_RANGE = 3;
-      var STEP_PX = 190;
-      var ANGLE_DEG = 42;
-
       function render() {
+        // Radius scales with the stage's own current width, so the
+        // wheel's proportions stay sensible across viewport sizes
+        // rather than using one fixed pixel radius for every screen.
+        var radius = stage.clientWidth * 0.55;
+
         cards.forEach(function (card, i) {
           var offset = wrappedOffset(i);
-          var abs = Math.abs(offset);
+          var theta = offset * angleStep;
+          var rad = theta * Math.PI / 180;
+          var depth = Math.cos(rad); // 1 = facing the viewer, -1 = facing away
+
           card.classList.toggle('is-active', offset === 0);
-
-          if (abs > VISIBLE_RANGE) {
-            card.style.opacity = '0';
-            card.style.pointerEvents = 'none';
-            card.style.transform = 'translate(-50%, -50%) translateX(' + ((offset > 0 ? 1 : -1) * STEP_PX * (VISIBLE_RANGE + 1)) + 'px) scale(.6)';
-            card.style.zIndex = '0';
-            return;
-          }
-
-          var scale = 1 - abs * 0.16;
-          card.style.opacity = String(1 - abs * 0.28);
-          card.style.pointerEvents = 'auto';
-          card.style.zIndex = String(10 - abs);
+          card.style.opacity = String(0.35 + 0.65 * ((depth + 1) / 2));
+          card.style.pointerEvents = depth > -0.5 ? 'auto' : 'none';
+          card.style.zIndex = String(Math.round((depth + 1) * 500));
           card.style.transform =
-            'translate(-50%, -50%) translateX(' + (offset * STEP_PX) + 'px) rotateY(' + (-offset * ANGLE_DEG) + 'deg) scale(' + scale + ')';
+            'translate(-50%, -50%) rotateY(' + theta + 'deg) translateZ(' + radius + 'px)';
         });
 
         dots.forEach(function (dot, i) { dot.classList.toggle('is-active', i === active); });
@@ -420,6 +420,14 @@
         goTo(active + (dx < 0 ? 1 : -1));
       });
 
+      // The radius is derived from the stage's width, so a resize
+      // (or an orientation change) needs a re-render to stay correct.
+      var resizeTimer = null;
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(render, 150);
+      }, { passive: true });
+
       render();
     }
     initSpinner();
@@ -447,18 +455,23 @@
         .then(function (html) {
           var doc = new DOMParser().parseFromString(html, 'text/html');
           return Array.prototype.slice.call(doc.querySelectorAll('.artist-tile')).map(function (tile) {
-            return tile.getAttribute('aria-label') || '';
-          }).filter(Boolean);
+            var logoImg = tile.querySelector('.artist-tile-logo');
+            return {
+              name: tile.getAttribute('aria-label') || '',
+              logo: logoImg ? logoImg.getAttribute('src') : ''
+            };
+          }).filter(function (a) { return a.name; });
         });
 
       Promise.all([manifestPromise, artistsPromise])
         .then(function (results) {
           var manifest = results[0];
-          var artistNames = results[1];
+          var artists = results[1];
 
           wrap.innerHTML = '';
 
-          artistNames.forEach(function (name) {
+          artists.forEach(function (artist) {
+            var name = artist.name;
             var releases = manifest
               .filter(function (entry) { return entry.mainArtist === name; })
               .sort(function (a, b) { return b.rank - a.rank; })
@@ -469,14 +482,25 @@
             var row = document.createElement('div');
             row.className = 'artist-release-row';
 
-            var heading = document.createElement('h3');
-            heading.className = 'artist-release-row-heading';
-            heading.textContent = name;
-            row.appendChild(heading);
+            // Uses the artist's own logo (same image as their tile on
+            // /artists/) instead of typesetting their name, when one
+            // is available - falls back to a plain text heading for
+            // any tile that has no logo image set.
+            if (artist.logo) {
+              var logoImg = document.createElement('img');
+              logoImg.className = 'artist-release-row-logo';
+              logoImg.src = artist.logo;
+              logoImg.alt = name;
+              row.appendChild(logoImg);
+            } else {
+              var heading = document.createElement('h3');
+              heading.className = 'artist-release-row-heading';
+              heading.textContent = name;
+              row.appendChild(heading);
+            }
 
             var grid = document.createElement('div');
             grid.className = 'artist-release-row-grid';
-            grid.style.setProperty('--artist-row-cols', releases.length);
 
             releases.forEach(function (rel) {
               var card = document.createElement('a');
