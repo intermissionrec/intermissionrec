@@ -3810,7 +3810,14 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 }
 
 .spinner-card.is-active {
-  cursor: default;
+  /* Was `cursor: default` - but the active/centered card is still
+     clickable (it's what opens the smart-link modal, per the
+     delegated click handler in music.html), so it needs the same
+     pointer cursor as every other card, not a "nothing happens here"
+     one. That mismatch was only ever visible on the very first
+     release, since index 0 is the only card that starts centered
+     before any interaction. */
+  cursor: pointer;
 }
 
 /* Bigger, more legible title on hover than the base .music-title
