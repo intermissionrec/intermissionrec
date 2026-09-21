@@ -402,14 +402,25 @@
       // from the actual rendered card size plus a gap between
       // adjacent covers, rather than a fraction of the stage width -
       // keeps spacing consistent instead of ballooning on wide
-      // screens. Re-measured on resize. Smaller gap on narrow/mobile
-      // viewports (40px less) - the full 60px gap pushed the side
-      // covers wide enough to overflow the screen horizontally.
+      // screens. Re-measured on resize.
+      //
+      // The gap itself scales with the stage's own current rendered
+      // width (clamped to a 20-60px range) instead of a hard
+      // `window.innerWidth <= 768` breakpoint. That matters here
+      // specifically because opening the smart-link modal sets
+      // `document.body.style.overflow = 'hidden'`, which on mobile
+      // browsers can shift the reported viewport dimensions (the URL
+      // bar collapsing/expanding, etc.) - a breakpoint check that only
+      // ever runs again on a `resize` event could read a momentarily
+      // different `window.innerWidth` and snap back to the wide 60px
+      // desktop gap. Tying it to the stage's actual layout width
+      // instead means it can only ever match what's really rendered,
+      // never drift out of sync with it.
       var radius = 300;
       var dragSensitivity = 0.15; // degrees rotated per pixel dragged
       function measure() {
         var cardSize = cards[0].getBoundingClientRect().width || 200;
-        var gap = window.innerWidth <= 768 ? 20 : 60;
+        var gap = Math.max(20, Math.min(60, stage.clientWidth * 0.05));
         var halfStepRad = (angleStep / 2) * Math.PI / 180;
         radius = (cardSize + gap) / (2 * Math.sin(halfStepRad));
         dragSensitivity = angleStep / (cardSize + gap);
