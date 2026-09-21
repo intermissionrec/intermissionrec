@@ -388,7 +388,9 @@
       var isDragging = false;
       var isCoasting = false;
 
-      var EASE = 0.18;
+      // Lower EASE = slower to close the gap each frame = a longer,
+      // smoother glide into each step instead of a quick snap.
+      var EASE = 0.08;
       var FRICTION = 0.93;
       var MIN_VELOCITY = 0.05;
 
@@ -422,7 +424,7 @@
 
           card.classList.toggle('is-active', isActive);
           // The main/front cover stays fully visible; every side cover
-          // sits at a flat 70% opacity regardless of how far around it
+          // sits at a flat 50% opacity regardless of how far around it
           // is - the --shade darkening below is what carries the actual
           // depth falloff, opacity here is just "not the main one".
           card.style.opacity = isActive ? '1' : '0.5';
