@@ -340,7 +340,8 @@
     // input, and a live per-frame loop is what actually fixes that
     // class of bug rather than working around one more symptom of it.
     // Manual only (no autoplay): prev/next arrows, dots, clicking a
-    // side card, swipe, mouse-drag and wheel-scroll all rotate it.
+    // side card, swipe, and mouse-drag all rotate it. Mouse-wheel
+    // scrolling deliberately does not - see the note further down.
     // Index 0 (the first card in the markup) starts facing front,
     // which is always the latest release since the cards above are
     // listed newest-first.
@@ -588,22 +589,10 @@
         }
       });
 
-      // Mouse-wheel-to-spin: scrolling while hovering the stage adds
-      // to the same momentum used by drag-release, instead of forcing
-      // one fixed step per scroll "tick" - a fast flick of the wheel
-      // spins several covers with real inertia, a gentle nudge barely
-      // moves it, same as the drag does.
-      var WHEEL_SENSITIVITY = 0.045;
-      var MAX_WHEEL_VELOCITY = angleStep * 0.9;
-      stage.addEventListener('wheel', function (e) {
-        e.preventDefault();
-        isDragging = false;
-        isCoasting = true;
-        var delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-        velocity -= delta * WHEEL_SENSITIVITY;
-        if (velocity > MAX_WHEEL_VELOCITY) velocity = MAX_WHEEL_VELOCITY;
-        if (velocity < -MAX_WHEEL_VELOCITY) velocity = -MAX_WHEEL_VELOCITY;
-      }, { passive: false });
+      // Mouse-wheel scrolling over the stage is intentionally left
+      // alone (no listener here) - it just scrolls the page like
+      // anywhere else, rather than spinning the wheel. Prev/next
+      // arrows, dots, dragging, and swipe still rotate it.
 
       var resizeTimer = null;
       window.addEventListener('resize', function () {
