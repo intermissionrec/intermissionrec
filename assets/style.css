@@ -3755,7 +3755,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 .spinner-stage {
   position: relative;
   width: 100%;
-  height: clamp(540px, calc(34vw + 240px), 700px);
+  height: clamp(540px, calc(34vw + 240px), 540px);
   /* Shorter than before on purpose - a smaller perspective value
      exaggerates the 3D foreshortening (near cards look bigger,
      far/side cards shrink and skew more), which is what makes the
