@@ -439,8 +439,55 @@
         render();
       }
 
-      prevBtn.addEventListener('click', function () { goTo(active - 1); });
-      nextBtn.addEventListener('click', function () { goTo(active + 1); });
+      // Arrow clicks step one card at a time, but each step plays a
+      // full .5s CSS transition. Firing goTo() again mid-transition
+      // (e.g. someone clicking "next" a few times quickly) doesn't
+      // queue cleanly on its own - it restarts the transition from
+      // wherever it currently is toward a new target, so a burst of
+      // clicks never lets any single step actually finish. The wheel
+      // ends up lurching partway through several steps and then
+      // doing one big "catch-up" snap once the clicks stop - which
+      // is exactly what reads as a random readjustment rather than a
+      // real spin. Queuing one step at a time and only starting the
+      // next after the previous one's transition has genuinely
+      // finished (transitionend) fixes that: every click is still
+      // honored, but the wheel always completes a clean, full step
+      // before starting the next one.
+      var animating = false;
+      var awaitingSettle = false;
+      var queuedSteps = 0;
+
+      function performStep(delta) {
+        animating = true;
+        awaitingSettle = true;
+        goTo(active + delta);
+      }
+
+      function stepBy(delta) {
+        if (animating) {
+          queuedSteps += delta;
+          return;
+        }
+        performStep(delta);
+      }
+
+      stage.addEventListener('transitionend', function (e) {
+        if (e.propertyName !== 'transform' || !awaitingSettle) return;
+        // Every card fires its own transitionend for the same step -
+        // awaitingSettle is cleared on the first one seen so the rest
+        // are ignored instead of each trying to advance the queue.
+        awaitingSettle = false;
+        if (queuedSteps !== 0) {
+          var next = queuedSteps > 0 ? 1 : -1;
+          queuedSteps -= next;
+          performStep(next);
+        } else {
+          animating = false;
+        }
+      });
+
+      prevBtn.addEventListener('click', function () { stepBy(-1); });
+      nextBtn.addEventListener('click', function () { stepBy(1); });
 
       // Exposed for the delegated click handler above, so clicking a
       // visible-but-not-centered card brings it to center instead of
@@ -460,7 +507,7 @@
         var dx = e.changedTouches[0].clientX - startX;
         startX = null;
         if (Math.abs(dx) < 40) return;
-        goTo(active + (dx < 0 ? 1 : -1));
+        stepBy(dx < 0 ? 1 : -1);
       });
 
       // Mouse drag-to-spin: press and drag left/right across the
