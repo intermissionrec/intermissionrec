@@ -3903,28 +3903,33 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 
 /* ── Music page: per-artist releases, sorted the same way as the
    artist quick-view modal on /artists/ (by rank, descending) - up to
-   4 per artist, one fixed row each. The grid always reserves 4 equal
-   columns (never fewer), so an artist with under 4 releases gets
-   covers at the exact same size as a full row, left-to-right, with
-   the leftover columns simply left blank rather than stretching the
-   covers to fill the row. ─────────────────────────────────────────── */
+   4 per artist, one fixed row each. Laid out the same way as the
+   homepage's latest-releases band (.home-latest-band etc., above):
+   full viewport width, covers sitting flush against each other with
+   only a hairline border between them rather than a gap, instead of
+   staying inside the page's normal centered --content column. Each
+   cover keeps its own fixed size regardless of how many an artist
+   has (flex: 0 0 auto, not a stretching grid), so an artist with
+   fewer than 4 releases just ends the row early instead of having
+   its covers stretched to fill 4 slots. ───────────────────────────── */
 .artist-releases-band {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 48px;
-  padding: 16px 20px 96px;
+  padding: 16px 0 96px;
   background: var(--bg);
 }
 
 .artist-releases-status {
   color: var(--muted);
   font-size: 15px;
+  padding: 0 20px;
 }
 
 .artist-release-row {
-  width: min(100%, var(--content));
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -3932,6 +3937,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 
 .artist-release-row-heading {
   margin: 0;
+  padding: 0 20px;
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(1.3rem, 2.2vw, 1.8rem);
   font-weight: 700;
@@ -3941,6 +3947,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
    name text whenever their /artists/ tile has one set. */
 .artist-release-row-logo {
   display: block;
+  margin: 0 20px;
   max-width: 220px;
   max-height: 42px;
   object-fit: contain;
@@ -3948,16 +3955,40 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 }
 
 .artist-release-row-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  display: flex;
+  width: 100%;
+  /* Lets the row scroll horizontally on narrow screens instead of
+     overflowing/clipping, if the covers at their fixed size don't
+     all fit - same fixed-size-cover idea as desktop, just reachable
+     by swipe there instead of always fitting in view. */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .artist-row-card {
   position: relative;
-  width: 100%;
+  flex: 0 0 auto;
+  width: clamp(200px, 22vw, 300px);
   aspect-ratio: 1;
   border-radius: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: none;
+}
+
+/* .music-card's own base rule (further up this file) drops the
+   right/bottom border on even-indexed/last-two cards for its old
+   tiled-grid layout, via :nth-child selectors that outrank a plain
+   .artist-row-card rule on specificity alone regardless of cascade
+   order. Matching that specificity here (one class + one
+   pseudo-class each) is what lets this actually win and keep every
+   cover's divider consistent in the flex row instead of every other
+   one silently losing it. */
+.artist-row-card:nth-child(even) {
+  border-right: 1px solid var(--line);
+}
+
+.artist-row-card:nth-last-child(-n+2) {
+  border-bottom: none;
 }
 
 .artist-row-card .music-title {
@@ -3966,20 +3997,22 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 }
 
 @media (max-width: 768px) {
-  .artist-release-row-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .artist-row-card {
+    width: clamp(160px, 55vw, 260px);
   }
 }
 
-/* Spinner/artist-row cards reuse .music-card for its cover/title
-   styling, but that base rule (further up this file, in the old
-   music-grid section) also adds a hard-edged border-right/
-   border-bottom meant for a tiled grid layout - these cards sit in
-   their own grid/wheel instead, so the border is turned back off.
-   Same specificity as that base rule (one class each) and placed
-   after it in the cascade, so this simply wins. */
-.spinner-card,
-.artist-row-card {
+/* The spinner card reuses .music-card for its cover/title styling,
+   but that base rule (further up this file, in the old music-grid
+   section) also adds a hard-edged border-right/border-bottom meant
+   for a tiled grid layout - the spinner sits in its own 3D wheel
+   instead, so the border is turned back off here. Same specificity
+   as that base rule (one class each) and placed after it in the
+   cascade, so this simply wins. .artist-row-card is deliberately
+   NOT included here any more - it wants that border-right, as the
+   hairline divider between glued-together covers (see its own rule
+   above). */
+.spinner-card {
   border-right: none;
   border-bottom: none;
 }
