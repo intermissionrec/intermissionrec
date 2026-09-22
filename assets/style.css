@@ -3907,11 +3907,11 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
    homepage's latest-releases band (.home-latest-band etc., above):
    full viewport width, covers sitting flush against each other with
    only a hairline border between them rather than a gap, instead of
-   staying inside the page's normal centered --content column. Each
-   cover keeps its own fixed size regardless of how many an artist
-   has (flex: 0 0 auto, not a stretching grid), so an artist with
-   fewer than 4 releases just ends the row early instead of having
-   its covers stretched to fill 4 slots. ───────────────────────────── */
+   staying inside the page's normal centered --content column. Covers
+   stretch to fill the full row width (flex: 1 1 0, no fixed width) -
+   aspect-ratio: 1 then grows/shrinks the height to match automatically
+   - so an artist with fewer than 4 releases gets fewer, wider covers
+   rather than a row that stops short or scrolls. ───────────────────── */
 .artist-releases-band {
   width: 100%;
   display: flex;
@@ -3935,40 +3935,43 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   gap: 16px;
 }
 
+/* A lighter #0a0a0a panel behind the artist's logo/name, so the row
+   heading reads as its own distinct block against the #060606 page
+   background instead of blending straight into it. */
 .artist-release-row-heading {
   margin: 0;
-  padding: 0 20px;
+  padding: 14px 20px;
+  background: #0a0a0a;
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(1.3rem, 2.2vw, 1.8rem);
   font-weight: 700;
 }
 
 /* The artist's own logo, used as the row heading in place of typeset
-   name text whenever their /artists/ tile has one set. */
+   name text whenever their /artists/ tile has one set. Same #0a0a0a
+   panel treatment as the text heading above, for the same sense of
+   separation from the page background. */
 .artist-release-row-logo {
   display: block;
-  margin: 0 20px;
+  margin: 0;
+  padding: 14px 20px;
+  background: #0a0a0a;
   max-width: 220px;
   max-height: 42px;
   object-fit: contain;
   object-position: left center;
+  box-sizing: content-box;
 }
 
 .artist-release-row-grid {
   display: flex;
   width: 100%;
-  /* Lets the row scroll horizontally on narrow screens instead of
-     overflowing/clipping, if the covers at their fixed size don't
-     all fit - same fixed-size-cover idea as desktop, just reachable
-     by swipe there instead of always fitting in view. */
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .artist-row-card {
   position: relative;
-  flex: 0 0 auto;
-  width: clamp(200px, 22vw, 300px);
+  flex: 1 1 0;
+  min-width: 0;
   aspect-ratio: 1;
   border-radius: 0;
   border-right: 1px solid var(--line);
@@ -3997,8 +4000,11 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 }
 
 @media (max-width: 768px) {
+  /* Still stretches full-width (flex: 1 1 0 from the base rule above),
+     just capped so a lone/short row's covers don't blow up huge on a
+     narrow phone screen. */
   .artist-row-card {
-    width: clamp(160px, 55vw, 260px);
+    max-width: 260px;
   }
 }
 

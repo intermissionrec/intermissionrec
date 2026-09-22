@@ -664,6 +664,14 @@
               logoImg.className = 'artist-release-row-logo';
               logoImg.src = artist.logo;
               logoImg.alt = name;
+              // Leta Siren's logo file sits a bit higher inside its own
+              // image than the other artists' logos do, so it reads as
+              // slightly misaligned next to theirs - nudged down 8px to
+              // compensate. Targeted at just this one artist rather than
+              // a general logo-vertical-align tweak.
+              if (name === 'Leta Siren') {
+                logoImg.style.marginTop = '8px';
+              }
               row.appendChild(logoImg);
             } else {
               var heading = document.createElement('h3');
