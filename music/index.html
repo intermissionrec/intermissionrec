@@ -685,6 +685,10 @@
               // Targeted per-artist rather than a general tweak.
               if (name === 'Leta Siren') {
                 logoImg.style.transform = 'translateY(6px)';
+                // Leta Siren's logo file itself renders smaller than the
+                // others at the shared 42px max-height, so it gets a
+                // taller cap (48px) just for this one artist.
+                logoImg.style.maxHeight = '48px';
               } else if (name === 'игра на думи') {
                 logoImg.style.transform = 'translateY(4px)';
               }
