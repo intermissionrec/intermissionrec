@@ -672,15 +672,21 @@
               logoImg.className = 'artist-release-row-logo';
               logoImg.src = artist.logo;
               logoImg.alt = name;
-              // Leta Siren's logo file sits a bit higher inside its own
-              // image than the other artists' logos do, so it reads as
-              // slightly misaligned next to theirs. Shifts just the
-              // rendered image content down 8px via transform (doesn't
-              // affect layout/box height, unlike margin) rather than
-              // moving the whole logo bar/section. Targeted at just this
-              // one artist rather than a general logo-vertical-align tweak.
+              // A couple of logo files sit a bit higher inside their own
+              // image than the others do, so they read as slightly
+              // misaligned next to the rest. Shifts just the rendered
+              // image content down via transform (doesn't affect
+              // layout/box height, unlike margin) rather than moving the
+              // whole logo bar/section. Targeted per-artist rather than
+              // a general logo-vertical-align tweak.
               if (name === 'Leta Siren') {
                 logoImg.style.transform = 'translateY(8px)';
+                // Leta Siren's bar also gets a smaller top padding than
+                // every other artist's (14px - 8px = 6px), just for this
+                // one wrap - not a site-wide padding change.
+                logoWrap.style.paddingTop = '6px';
+              } else if (name === 'игра на думи') {
+                logoImg.style.transform = 'translateY(4px)';
               }
               logoWrap.appendChild(logoImg);
               row.appendChild(logoWrap);
