@@ -666,11 +666,13 @@
               logoImg.alt = name;
               // Leta Siren's logo file sits a bit higher inside its own
               // image than the other artists' logos do, so it reads as
-              // slightly misaligned next to theirs - nudged down 8px to
-              // compensate. Targeted at just this one artist rather than
-              // a general logo-vertical-align tweak.
+              // slightly misaligned next to theirs. Shifts just the
+              // rendered image content down 8px via transform (doesn't
+              // affect layout/box height, unlike margin) rather than
+              // moving the whole logo bar/section. Targeted at just this
+              // one artist rather than a general logo-vertical-align tweak.
               if (name === 'Leta Siren') {
-                logoImg.style.marginTop = '8px';
+                logoImg.style.transform = 'translateY(8px)';
               }
               row.appendChild(logoImg);
             } else {
