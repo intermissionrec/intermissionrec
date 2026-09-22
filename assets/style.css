@@ -3750,7 +3750,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
    matching the rest of the site's cards. */
 .latest-spinner-band {
   width: 100%;
-  padding: 72px 20px 72px;
+  padding: 72px 20px 84px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3922,7 +3922,6 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   flex-direction: column;
   align-items: center;
   gap: 0;
-  padding: 16px 0 96px;
   background: var(--bg);
 }
 
