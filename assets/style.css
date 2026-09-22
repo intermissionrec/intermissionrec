@@ -3954,20 +3954,24 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 }
 
 /* The artist's own logo, used as the row heading in place of typeset
-   name text whenever their /artists/ tile has one set. Same #0a0a0a
-   full-width panel as the text heading above. Fixed height
-   (padding + the logo's own max height) rather than max-height alone,
-   since box-sizing: border-box needs an explicit height to keep the
-   logo image itself at a consistent size regardless of the bar's
-   full-bleed width. */
-.artist-release-row-logo {
-  display: block;
+   name text whenever their /artists/ tile has one set. The #0a0a0a
+   bar itself (this wrapper) stretches full width same as the text
+   heading above; the <img> inside keeps its own original fixed size
+   (below) rather than stretching with it, so a wide logo doesn't
+   render larger than it used to. */
+.artist-release-row-logo-wrap {
+  display: flex;
+  align-items: center;
   width: 100%;
-  height: 70px;
   box-sizing: border-box;
-  margin: 0;
   padding: 14px 20px;
   background: #0a0a0a;
+}
+
+.artist-release-row-logo {
+  display: block;
+  max-width: 220px;
+  max-height: 42px;
   object-fit: contain;
   object-position: left center;
 }

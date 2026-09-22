@@ -660,6 +660,14 @@
             // is available - falls back to a plain text heading for
             // any tile that has no logo image set.
             if (artist.logo) {
+              // A separate full-width wrapper carries the #0a0a0a bar
+              // background; the <img> itself keeps its original fixed
+              // max-width/max-height so wide logos (e.g. игра на думи's)
+              // render at their normal size instead of stretching to
+              // fill the now-full-width bar.
+              var logoWrap = document.createElement('div');
+              logoWrap.className = 'artist-release-row-logo-wrap';
+
               var logoImg = document.createElement('img');
               logoImg.className = 'artist-release-row-logo';
               logoImg.src = artist.logo;
@@ -674,7 +682,8 @@
               if (name === 'Leta Siren') {
                 logoImg.style.transform = 'translateY(8px)';
               }
-              row.appendChild(logoImg);
+              logoWrap.appendChild(logoImg);
+              row.appendChild(logoWrap);
             } else {
               var heading = document.createElement('h3');
               heading.className = 'artist-release-row-heading';
