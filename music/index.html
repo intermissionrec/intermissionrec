@@ -702,10 +702,11 @@
             }
 
             var grid = document.createElement('div');
-            // Fewer than a full set of 4: keep covers at their natural
-            // fixed size (.is-partial in style.css) instead of
-            // stretching 1-3 of them to fill the entire row width.
-            grid.className = 'artist-release-row-grid' + (releases.length < 4 ? ' is-partial' : '');
+            // A 4-column CSS grid (style.css) sizes every cover the same
+            // regardless of how many an artist has - a row with fewer
+            // than 4 just leaves the remaining column(s) empty, no
+            // per-count class needed here any more.
+            grid.className = 'artist-release-row-grid';
 
             releases.forEach(function (rel) {
               var card = document.createElement('a');

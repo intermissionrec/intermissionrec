@@ -3750,7 +3750,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
    matching the rest of the site's cards. */
 .latest-spinner-band {
   width: 100%;
-  padding: 72px 20px 84px;
+  padding: 72px 20px 72px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3907,15 +3907,17 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
    homepage's latest-releases band (.home-latest-band etc., above):
    full viewport width, covers sitting flush against each other with
    only a hairline border between them rather than a gap, instead of
-   staying inside the page's normal centered --content column. A row
-   with a full set of 4 covers stretches them to fill the row (flex:
-   1 1 0, no fixed width - aspect-ratio: 1 grows/shrinks the height to
-   match). A row with fewer than 4 (the ".is-partial" modifier, added
-   in JS) keeps covers at their natural fixed size instead, so a
-   short row doesn't blow 1-2 covers up to fill the whole width. No
-   gap between the logo/name bar and its own covers, and none between
-   one artist's section and the next - the #0a0a0a bar is what
-   separates them visually instead. ───────────────────────────────── */
+   staying inside the page's normal centered --content column. Uses a
+   4-column CSS grid (2 on mobile) rather than a stretching flex row,
+   so every cover is always the SAME size regardless of how many an
+   artist has - a row with just 1-3 releases simply leaves the
+   remaining grid column(s) empty instead of either stretching its
+   covers to fill the gap or shrinking them down to a separate,
+   smaller fixed size (both were tried; both made a short row's covers
+   read as a different size than a full row's, right next to each
+   other on the same page). No gap between the logo/name bar and its
+   own covers, and none between one artist's section and the next -
+   the #0a0a0a bar is what separates them visually instead. ────────── */
 .artist-releases-band {
   width: 100%;
   display: flex;
@@ -3981,26 +3983,17 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 }
 
 .artist-release-row-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   width: 100%;
 }
 
 .artist-row-card {
   position: relative;
-  flex: 1 1 0;
-  min-width: 0;
   aspect-ratio: 1;
   border-radius: 0;
   border-right: 1px solid var(--line);
   border-bottom: none;
-}
-
-/* Fewer than 4 releases: don't stretch the covers to fill the row,
-   keep them at the same fixed size a full row's covers would be -
-   the row just ends early instead of blowing 1-3 covers up huge. */
-.artist-release-row-grid.is-partial .artist-row-card {
-  flex: 0 0 auto;
-  width: clamp(200px, 22vw, 300px);
 }
 
 /* .music-card's own base rule (further up this file) drops the
@@ -4025,15 +4018,12 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 }
 
 @media (max-width: 768px) {
-  /* Still stretches full-width (flex: 1 1 0 from the base rule above),
-     just capped so a full row's covers don't blow up huge on a
-     narrow phone screen. */
-  .artist-row-card {
-    max-width: 260px;
-  }
-
-  .artist-release-row-grid.is-partial .artist-row-card {
-    width: clamp(160px, 55vw, 260px);
+  /* 2 columns instead of 4 - four across would make each cover too
+     small to read on a phone screen. A full 4-release row wraps into
+     2 rows of 2; a shorter row still leaves any remaining column(s)
+     empty rather than stretching, same as desktop. */
+  .artist-release-row-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
