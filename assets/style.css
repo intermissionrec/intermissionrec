@@ -3750,7 +3750,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
    matching the rest of the site's cards. */
 .latest-spinner-band {
   width: 100%;
-  padding: 64px 20px 48px;
+  padding: 72px 20px 72px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3946,7 +3946,11 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
    direction) rather than only wrapping its own content. */
 .artist-release-row-heading {
   margin: 0;
-  padding: 14px 20px;
+  height: 70px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
   background: #0a0a0a;
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(1.3rem, 2.2vw, 1.8rem);
@@ -3963,8 +3967,9 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   display: flex;
   align-items: center;
   width: 100%;
+  height: 70px;
   box-sizing: border-box;
-  padding: 14px 20px;
+  padding: 0 20px;
   background: #0a0a0a;
 }
 

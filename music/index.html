@@ -672,19 +672,19 @@
               logoImg.className = 'artist-release-row-logo';
               logoImg.src = artist.logo;
               logoImg.alt = name;
-              // A couple of logo files sit a bit higher inside their own
-              // image than the others do, so they read as slightly
-              // misaligned next to the rest. Shifts just the rendered
-              // image content down via transform (doesn't affect
-              // layout/box height, unlike margin) rather than moving the
-              // whole logo bar/section. Targeted per-artist rather than
-              // a general logo-vertical-align tweak.
+              // Every wrap is a fixed, identical 70px tall and centers
+              // its logo/heading via flex align-items (in style.css), so
+              // all artist bars line up the same height regardless of
+              // which one has a logo vs. plain text. A couple of logo
+              // files still sit a bit higher inside their own image than
+              // the others do even once centered, so they read as
+              // slightly misaligned next to the rest - shifts just the
+              // rendered image content down via transform (on top of the
+              // shared centering, doesn't affect layout/box height like
+              // margin or padding would) rather than moving the whole bar.
+              // Targeted per-artist rather than a general tweak.
               if (name === 'Leta Siren') {
                 logoImg.style.transform = 'translateY(8px)';
-                // Leta Siren's bar also gets a smaller top padding than
-                // every other artist's (14px - 8px = 6px), just for this
-                // one wrap - not a site-wide padding change.
-                logoWrap.style.paddingTop = '6px';
               } else if (name === 'игра на думи') {
                 logoImg.style.transform = 'translateY(4px)';
               }
