@@ -39,8 +39,89 @@
       <section class="music-band" id="music">
         <div class="latest-band">
           <h2 class="latest-heading">Най-нови издания</h2>
+
+          <!-- Curated list, managed from the release publisher app's Music tab.
+               First card = big hero, the other nine fill the 3x3 grid beside it. -->
           <div class="latest-feature" id="latestFeature">
-            <p class="artist-releases-status">Зареждане...</p>
+          <a class="music-card latest-card"
+            href="https://intermissionrec.com/do-kraq/"
+            rel="noopener noreferrer"
+            aria-label="До края"
+            style="--track-image: url('../assets/images/covers/20260905184800-do-kraya.jpg')">
+            <span class="music-title"><span class="latest-title">До края</span></span>
+          </a>
+
+          <a class="music-card latest-card"
+            href="https://intermissionrec.com/cold-summer/"
+            rel="noopener noreferrer"
+            aria-label="cold summer"
+            style="--track-image: url('../assets/images/covers/20260731000930-cold-summer.jpg')">
+            <span class="music-title"><span class="latest-title">cold summer</span></span>
+          </a>
+
+          <a class="music-card latest-card"
+            href="https://intermissionrec.com/bandolero/"
+            rel="noopener noreferrer"
+            aria-label="BANDOLERO"
+            style="--track-image: url('../assets/images/covers/20260724031341-bandolero.jpg')">
+            <span class="music-title"><span class="latest-title">BANDOLERO</span></span>
+          </a>
+
+          <a class="music-card latest-card"
+            href="https://intermissionrec.com/vsichko/"
+            rel="noopener noreferrer"
+            aria-label="всичко"
+            style="--track-image: url('../assets/images/covers/20260724031458-release.jpg')">
+            <span class="music-title"><span class="latest-title">всичко</span></span>
+          </a>
+
+          <a class="music-card latest-card"
+            href="https://intermissionrec.com/nepoznati-ulici/"
+            rel="noopener noreferrer"
+            aria-label="непознати улици"
+            style="--track-image: url('../assets/images/covers/20260724031515-release.jpg')">
+            <span class="music-title"><span class="latest-title">непознати улици</span></span>
+          </a>
+
+          <a class="music-card latest-card"
+            href="https://intermissionrec.com/redbul/"
+            rel="noopener noreferrer"
+            aria-label="редбул"
+            style="--track-image: url('../assets/images/covers/20260724031534-release.jpg')">
+            <span class="music-title"><span class="latest-title">редбул</span></span>
+          </a>
+
+          <a class="music-card latest-card"
+            href="https://intermissionrec.com/belya/"
+            rel="noopener noreferrer"
+            aria-label="БЕЛЯ"
+            style="--track-image: url('../assets/images/covers/20260724031545-release.jpg')">
+            <span class="music-title"><span class="latest-title">БЕЛЯ</span></span>
+          </a>
+
+          <a class="music-card latest-card"
+            href="https://intermissionrec.com/bez-snimki/"
+            rel="noopener noreferrer"
+            aria-label="БЕЗ СНИМКИ"
+            style="--track-image: url('../assets/images/covers/20260824202020-bez-snimki.jpg')">
+            <span class="music-title"><span class="latest-title">БЕЗ СНИМКИ</span></span>
+          </a>
+
+          <a class="music-card latest-card"
+            href="https://intermissionrec.com/koi-go-prai/"
+            rel="noopener noreferrer"
+            aria-label="КОЙ ГО ПРАЙ"
+            style="--track-image: url('../assets/images/covers/20260724031604-release.jpg')">
+            <span class="music-title"><span class="latest-title">КОЙ ГО ПРАЙ</span></span>
+          </a>
+
+          <a class="music-card latest-card"
+            href="https://intermissionrec.com/legato/"
+            rel="noopener noreferrer"
+            aria-label="LEGATO"
+            style="--track-image: url('../assets/images/covers/20260724031612-legato.jpg')">
+            <span class="music-title"><span class="latest-title">LEGATO</span></span>
+          </a>
           </div>
         </div>
 
@@ -171,10 +252,10 @@
     }
 
     // Prefetches every smart-link card currently in the DOM - called
-    // once the latest-releases feature has rendered, and again once
+    // once after the latest-releases cards are in the page, and again once
     // the artist rows finish loading (see buildArtistReleaseRows
-    // below), since those cards don't exist yet at the time of the
-    // first call.
+    // below), since most of the page's cards don't exist yet at the
+    // time of the first call.
     function prefetchAllSmartLinks() {
       document.querySelectorAll('.music-card').forEach(function (card) {
         var url = card.getAttribute('href');
@@ -207,9 +288,9 @@
     }
 
     // Delegated (not bound per-card) so this keeps working for every
-    // card added later - the latest-releases feature and the artist
-    // rows below are built asynchronously, well after this script
-    // runs. Every .music-card opens the smart-link modal.
+    // card added later - the artist rows below are built
+    // asynchronously, well after this script runs. Every
+    // .music-card opens the smart-link modal.
     document.addEventListener('click', function (e) {
       var card = e.target.closest('.music-card');
       if (!card) return;
@@ -227,74 +308,45 @@
       }
     });
 
-    // ── Latest releases: newest as a hero + the next nine in a 3x3 ──
-    // Built from the same smartlinks.json manifest the artist rows use
-    // (sorted by rank, newest first), so publishing a smart link updates
-    // this section on its own - nothing in the page is hand-edited.
-    // Cards keep the .music-card class so the delegated click handler
-    // above opens the smart-link modal for them.
+    // ── Latest releases: artist names ───────────────────────────────
+    // WHICH releases appear here (and in what order) is decided only by
+    // the cards in the markup above, edited from the publisher app's
+    // Music tab - publishing a new smart link never changes it, so a
+    // link generated ahead of release stays off this page until you add
+    // it yourself. The manifest is used purely as a lookup: any card
+    // that doesn't already carry an artist line gets one, matched by
+    // its URL.
     var manifestPromise = fetch('../assets/data/smartlinks.json')
       .then(function (res) {
         if (!res.ok) throw new Error('Failed to load smartlinks manifest');
         return res.json();
       });
 
-    function buildLatestFeature() {
-      var wrap = document.getElementById('latestFeature');
-      if (!wrap) return;
-
-      manifestPromise.then(function (manifest) {
-        var latest = manifest.slice()
-          .sort(function (a, b) { return b.rank - a.rank; })
-          .slice(0, 10);
-
-        if (!latest.length) {
-          wrap.innerHTML = '<p class="artist-releases-status">Все още няма издания.</p>';
-          return;
-        }
-
-        function makeCard(rel, isHero) {
-          var artistName = rel.artist || rel.mainArtist || '';
-          var card = document.createElement('a');
-          card.className = 'music-card latest-card' + (isHero ? ' latest-card--hero' : '');
-          card.href = rel.url;
-          card.rel = 'noopener noreferrer';
-          card.setAttribute('aria-label', (rel.title || '') + (artistName ? ' - ' + artistName : ''));
-          card.style.setProperty('--track-image', "url('" + rel.cover + "')");
-
-          var titleWrap = document.createElement('span');
-          titleWrap.className = 'music-title';
-
-          var t = document.createElement('span');
-          t.className = 'latest-title';
-          t.textContent = rel.title || '';
-          titleWrap.appendChild(t);
-
-          if (artistName) {
-            var a = document.createElement('span');
-            a.className = 'latest-artist';
-            a.textContent = artistName;
-            titleWrap.appendChild(a);
-          }
-
-          card.appendChild(titleWrap);
-          return card;
-        }
-
-        wrap.innerHTML = '';
-        wrap.appendChild(makeCard(latest[0], true));
-
-        var rest = document.createElement('div');
-        rest.className = 'latest-rest';
-        latest.slice(1).forEach(function (rel) { rest.appendChild(makeCard(rel, false)); });
-        wrap.appendChild(rest);
-
-        prefetchAllSmartLinks();
-      }).catch(function () {
-        wrap.innerHTML = '<p class="artist-releases-status">Грешка при зареждане на най-новите издания.</p>';
-      });
+    function linkKey(url) {
+      return String(url || '').trim().toLowerCase().replace(/\/+$/, '');
     }
-    buildLatestFeature();
+
+    manifestPromise.then(function (manifest) {
+      var artistByUrl = {};
+      manifest.forEach(function (entry) {
+        var name = entry.artist || entry.mainArtist;
+        if (entry.url && name) artistByUrl[linkKey(entry.url)] = name;
+      });
+
+      document.querySelectorAll('#latestFeature .latest-card').forEach(function (card) {
+        var titleWrap = card.querySelector('.music-title');
+        if (!titleWrap || titleWrap.querySelector('.latest-artist')) return;
+        var name = artistByUrl[linkKey(card.getAttribute('href'))];
+        if (!name) return;
+        var span = document.createElement('span');
+        span.className = 'latest-artist';
+        span.textContent = name;
+        titleWrap.appendChild(span);
+        card.setAttribute('aria-label', (card.getAttribute('aria-label') || '') + ' - ' + name);
+      });
+    }).catch(function () {
+      // no manifest - cards just show the title without an artist line
+    });
 
     // ── Per-artist release rows ────────────────────────────────────
     // Sorted the exact same way as the artist quick-view modal on
@@ -331,7 +383,7 @@
           artists.forEach(function (artist) {
             var name = artist.name;
             var releases = manifest
-              .filter(function (entry) { return entry.mainArtist === name; })
+              .filter(function (entry) { return entry.mainArtist === name && !entry.notReleased; })
               .sort(function (a, b) { return b.rank - a.rank; })
               .slice(0, 4);
 

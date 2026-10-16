@@ -4043,10 +4043,13 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 }
 
 /* ── Music page: latest 10 releases - newest as a hero, next nine in a 3x3 ──
-   Cards are plain .music-card elements (so the smart-link modal and cover/
-   title base styling still apply), built from smartlinks.json in music.html.
-   Hover: the hovered cover dims just enough to read the title + artist over
-   it, and every OTHER card drops to --latest-dim so the hovered one reads as
+   A flat list of 10 .music-card links in #latestFeature, edited from the
+   publisher app's Music tab (card 1 = newest). Layout is pure CSS: a 6-column
+   grid where the first card spans 3 columns x 3 rows (the hero) and the other
+   nine auto-fill the 3 remaining columns. Cards keep .music-card, so the
+   smart-link modal and the cover/title base styling still apply.
+   Hover: the hovered cover dims just enough to read its title + artist, and
+   every OTHER card drops to --latest-dim so the hovered one reads as
    highlighted. Tweak the two variables below to taste. */
 .latest-band {
   width: 100%;
@@ -4073,17 +4076,12 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   width: 100%;
   max-width: var(--content);  /* set to none for full-bleed like the artist rows */
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
-.latest-rest {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-/* .latest-card.music-card ties the specificity of .music-card:nth-child()
-   border rules above and comes later, so the grid-style borders are off and a
-   hairline outline separates the covers instead. */
+/* .latest-card.music-card ties the specificity of the .music-card:nth-child()
+   border rules further up and comes later, so the old tiled-grid borders are
+   off and a hairline outline separates the covers instead. */
 .latest-card.music-card {
   aspect-ratio: 1;
   border: 0;
@@ -4091,6 +4089,12 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   outline: 1px solid var(--line);
   outline-offset: -1px;
   transition: opacity .3s ease;
+}
+
+.latest-card.music-card:first-child {
+  grid-column: 1 / span 3;
+  grid-row: 1 / span 3;
+  aspect-ratio: auto;   /* height comes from the three square rows it spans */
 }
 
 .latest-card .music-title {
@@ -4105,7 +4109,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   text-shadow: 0 1px 12px rgba(0, 0, 0, .45);
 }
 
-.latest-card--hero .music-title {
+.latest-card:first-child .music-title {
   gap: 10px;
   padding: 28px;
   font-size: clamp(1.3rem, 2.6vw, 2.4rem);
@@ -4140,7 +4144,13 @@ body.music .latest-feature .latest-card:focus-visible .music-title {
 
 @media (max-width: 768px) {
   .latest-band { padding: 48px 20px; }
-  .latest-feature { grid-template-columns: minmax(0, 1fr); }
-  .latest-card--hero .music-title { padding: 20px; }
+  /* phones: hero on top at full width, the nine below in rows of three */
+  .latest-feature { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .latest-card.music-card:first-child {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    aspect-ratio: 1;
+  }
+  .latest-card:first-child .music-title { padding: 20px; }
   .latest-card .music-title { padding: 10px; }
 }
