@@ -37,102 +37,11 @@
 
     <main>
       <section class="music-band" id="music">
-        <div class="latest-spinner-band">
-          <h2 class="latest-spinner-heading">Най-нови издания</h2>
-
-          <div class="spinner-viewport">
-            <button type="button" class="spinner-arrow spinner-arrow-prev" aria-label="Предишно издание">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            </button>
-
-            <div class="spinner-stage" id="spinnerStage">
-              <a class="music-card spinner-card"
-                href="https://intermissionrec.com/do-kraq/"
-                rel="noopener noreferrer"
-                aria-label="До края"
-                style="--track-image: url('../assets/images/covers/20260905184800-do-kraya.jpg')">
-                <span class="music-title">До края</span>
-              </a>
-
-              <a class="music-card spinner-card"
-                href="https://intermissionrec.com/cold-summer/"
-                rel="noopener noreferrer"
-                aria-label="cold summer"
-                style="--track-image: url('../assets/images/covers/20260731000930-cold-summer.jpg')">
-                <span class="music-title">cold summer</span>
-              </a>
-
-              <a class="music-card spinner-card"
-                href="https://intermissionrec.com/bandolero/"
-                rel="noopener noreferrer"
-                aria-label="BANDOLERO"
-                style="--track-image: url('../assets/images/covers/20260724031341-bandolero.jpg')">
-                <span class="music-title">BANDOLERO</span>
-              </a>
-
-              <a class="music-card spinner-card"
-                href="https://intermissionrec.com/vsichko/"
-                rel="noopener noreferrer"
-                aria-label="всичко"
-                style="--track-image: url('../assets/images/covers/20260724031458-release.jpg')">
-                <span class="music-title">всичко</span>
-              </a>
-
-              <a class="music-card spinner-card"
-                href="https://intermissionrec.com/nepoznati-ulici/"
-                rel="noopener noreferrer"
-                aria-label="непознати улици"
-                style="--track-image: url('../assets/images/covers/20260724031515-release.jpg')">
-                <span class="music-title">непознати улици</span>
-              </a>
-
-              <a class="music-card spinner-card"
-                href="https://intermissionrec.com/redbul/"
-                rel="noopener noreferrer"
-                aria-label="редбул"
-                style="--track-image: url('../assets/images/covers/20260724031534-release.jpg')">
-                <span class="music-title">редбул</span>
-              </a>
-
-              <a class="music-card spinner-card"
-                href="https://intermissionrec.com/belya/"
-                rel="noopener noreferrer"
-                aria-label="БЕЛЯ"
-                style="--track-image: url('../assets/images/covers/20260724031545-release.jpg')">
-                <span class="music-title">БЕЛЯ</span>
-              </a>
-
-              <a class="music-card spinner-card"
-                href="https://intermissionrec.com/bez-snimki/"
-                rel="noopener noreferrer"
-                aria-label="БЕЗ СНИМКИ"
-                style="--track-image: url('../assets/images/covers/20260824202020-bez-snimki.jpg')">
-                <span class="music-title">БЕЗ СНИМКИ</span>
-              </a>
-
-              <a class="music-card spinner-card"
-                href="https://intermissionrec.com/koi-go-prai/"
-                rel="noopener noreferrer"
-                aria-label="КОЙ ГО ПРАЙ"
-                style="--track-image: url('../assets/images/covers/20260724031604-release.jpg')">
-                <span class="music-title">КОЙ ГО ПРАЙ</span>
-              </a>
-
-              <a class="music-card spinner-card"
-                href="https://intermissionrec.com/legato/"
-                rel="noopener noreferrer"
-                aria-label="LEGATO"
-                style="--track-image: url('../assets/images/covers/20260724031612-legato.jpg')">
-                <span class="music-title">LEGATO</span>
-              </a>
-            </div>
-
-            <button type="button" class="spinner-arrow spinner-arrow-next" aria-label="Следващо издание">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </button>
+        <div class="latest-band">
+          <h2 class="latest-heading">Най-нови издания</h2>
+          <div class="latest-feature" id="latestFeature">
+            <p class="artist-releases-status">Зареждане...</p>
           </div>
-
-          <div class="spinner-dots" id="spinnerDots"></div>
         </div>
 
         <div class="artist-releases-band" id="artistReleasesBand">
@@ -190,6 +99,7 @@
     var linksEl = document.getElementById('slModalLinks');
 
     var prefetchCache = {};
+    var prefetching = {};
 
     function renderModal(html) {
       var doc = new DOMParser().parseFromString(html, 'text/html');
@@ -261,14 +171,15 @@
     }
 
     // Prefetches every smart-link card currently in the DOM - called
-    // once after the initial spinner cards are ready, and again once
+    // once the latest-releases feature has rendered, and again once
     // the artist rows finish loading (see buildArtistReleaseRows
-    // below), since most of the page's cards don't exist yet at the
-    // time of the first call.
+    // below), since those cards don't exist yet at the time of the
+    // first call.
     function prefetchAllSmartLinks() {
       document.querySelectorAll('.music-card').forEach(function (card) {
         var url = card.getAttribute('href');
-        if (!url || prefetchCache[url]) return;
+        if (!url || prefetchCache[url] || prefetching[url]) return;
+        prefetching[url] = true;
         fetch(url)
           .then(function (res) {
             if (!res.ok) throw new Error('Failed to load');
@@ -296,26 +207,14 @@
     }
 
     // Delegated (not bound per-card) so this keeps working for every
-    // card added later - the artist rows below are built
-    // asynchronously, well after this script runs. A click on a
-    // spinner card that ISN'T currently centered re-centers it
-    // instead of opening the modal (see the coverflow controller
-    // below); every other .music-card opens the modal exactly as
-    // before.
+    // card added later - the latest-releases feature and the artist
+    // rows below are built asynchronously, well after this script
+    // runs. Every .music-card opens the smart-link modal.
     document.addEventListener('click', function (e) {
       var card = e.target.closest('.music-card');
       if (!card) return;
       e.preventDefault();
 
-      if (card.classList.contains('spinner-card') && window.__spinnerJustDragged) {
-        window.__spinnerJustDragged = false;
-        return;
-      }
-
-      if (card.classList.contains('spinner-card') && !card.classList.contains('is-active')) {
-        if (window.__spinnerGoToCard) window.__spinnerGoToCard(card);
-        return;
-      }
       openModal(card.getAttribute('href'));
     });
 
@@ -328,282 +227,74 @@
       }
     });
 
-    // ── Latest-releases circular spinner ────────────────────────────
-    // An actual wheel: the 10 covers sit evenly spaced around a full
-    // circle (36° apart), each rotated to face outward along its own
-    // spot on the ring (rotateY(angle) translateZ(radius) - the
-    // classic 3D-carousel technique). Rewritten from a CSS-transition-
-    // per-step design to a single requestAnimationFrame loop driving
-    // one continuous `rotation` value every frame - see the big
-    // comment below for why: the transition-based version kept
-    // producing a "random readjustment" snap under fast repeated
-    // input, and a live per-frame loop is what actually fixes that
-    // class of bug rather than working around one more symptom of it.
-    // Manual only (no autoplay): prev/next arrows, dots, clicking a
-    // side card, swipe, and mouse-drag all rotate it. Mouse-wheel
-    // scrolling deliberately does not - see the note further down.
-    // Index 0 (the first card in the markup) starts facing front,
-    // which is always the latest release since the cards above are
-    // listed newest-first.
-    function initSpinner() {
-      var stage = document.getElementById('spinnerStage');
-      if (!stage) return;
-      var cards = Array.prototype.slice.call(stage.querySelectorAll('.spinner-card'));
-      if (!cards.length) return;
-      var n = cards.length;
-      var angleStep = 360 / n;
-
-      var dotsWrap = document.getElementById('spinnerDots');
-      var prevBtn = document.querySelector('.spinner-arrow-prev');
-      var nextBtn = document.querySelector('.spinner-arrow-next');
-
-      cards.forEach(function (card, i) {
-        var dot = document.createElement('button');
-        dot.type = 'button';
-        dot.className = 'spinner-dot';
-        dot.setAttribute('aria-label', card.getAttribute('aria-label') || ('Издание ' + (i + 1)));
-        dot.addEventListener('click', function () { goToIndex(i); });
-        dotsWrap.appendChild(dot);
+    // ── Latest releases: newest as a hero + the next nine in a 3x3 ──
+    // Built from the same smartlinks.json manifest the artist rows use
+    // (sorted by rank, newest first), so publishing a smart link updates
+    // this section on its own - nothing in the page is hand-edited.
+    // Cards keep the .music-card class so the delegated click handler
+    // above opens the smart-link modal for them.
+    var manifestPromise = fetch('../assets/data/smartlinks.json')
+      .then(function (res) {
+        if (!res.ok) throw new Error('Failed to load smartlinks manifest');
+        return res.json();
       });
-      var dots = Array.prototype.slice.call(dotsWrap.querySelectorAll('.spinner-dot'));
 
-      function normalizeIndex(i) { return ((i % n) + n) % n; }
+    function buildLatestFeature() {
+      var wrap = document.getElementById('latestFeature');
+      if (!wrap) return;
 
-      // ── Continuous state ────────────────────────────────────────
-      // `rotation` is what's actually drawn every frame. `targetRotation`
-      // is where arrow/dot/swipe input wants it to end up - the loop
-      // below eases `rotation` toward it each frame. This replaces the
-      // old design of setting a CSS transition and firing one goTo()
-      // per click: there, a second click before the first's .5s
-      // transition finished had to either restart it (producing a
-      // stutter/snap) or be queued and played as a separate discrete
-      // transition (still visibly a stop-start). Here every input just
-      // moves a number; the loop doesn't care how often or how fast
-      // that number changes, so it can never be "mid-transition" in a
-      // way a new input disrupts - it's simply always easing toward
-      // wherever it's currently pointed, one continuous motion.
-      var rotation = 0;
-      var targetRotation = 0;
-      var velocity = 0; // degrees/frame, used while coasting after a drag/scroll
-      var activeIndex = 0;
-      var isDragging = false;
-      var isCoasting = false;
+      manifestPromise.then(function (manifest) {
+        var latest = manifest.slice()
+          .sort(function (a, b) { return b.rank - a.rank; })
+          .slice(0, 10);
 
-      // Lower EASE = slower to close the gap each frame = a longer,
-      // smoother glide into each step instead of a quick snap.
-      var EASE = 0.08;
-      var FRICTION = 0.93;
-      var MIN_VELOCITY = 0.05;
+        if (!latest.length) {
+          wrap.innerHTML = '<p class="artist-releases-status">Все още няма издания.</p>';
+          return;
+        }
 
-      function currentIndexFromRotation() {
-        return normalizeIndex(Math.round(-rotation / angleStep));
-      }
+        function makeCard(rel, isHero) {
+          var artistName = rel.artist || rel.mainArtist || '';
+          var card = document.createElement('a');
+          card.className = 'music-card latest-card' + (isHero ? ' latest-card--hero' : '');
+          card.href = rel.url;
+          card.rel = 'noopener noreferrer';
+          card.setAttribute('aria-label', (rel.title || '') + (artistName ? ' - ' + artistName : ''));
+          card.style.setProperty('--track-image', "url('" + rel.cover + "')");
 
-      // Radius (and drag sensitivity, which depends on it) derived
-      // from the actual rendered card size plus a gap between
-      // adjacent covers, rather than a fraction of the stage width -
-      // keeps spacing consistent instead of ballooning on wide
-      // screens. Re-measured on resize.
-      //
-      // The gap itself scales with the stage's own current rendered
-      // width (clamped to a 20-60px range) instead of a hard
-      // `window.innerWidth <= 768` breakpoint. That matters here
-      // specifically because opening the smart-link modal sets
-      // `document.body.style.overflow = 'hidden'`, which on mobile
-      // browsers can shift the reported viewport dimensions (the URL
-      // bar collapsing/expanding, etc.) - a breakpoint check that only
-      // ever runs again on a `resize` event could read a momentarily
-      // different `window.innerWidth` and snap back to the wide 60px
-      // desktop gap. Tying it to the stage's actual layout width
-      // instead means it can only ever match what's really rendered,
-      // never drift out of sync with it.
-      var radius = 300;
-      var dragSensitivity = 0.15; // degrees rotated per pixel dragged
-      function measure() {
-        var cardSize = cards[0].getBoundingClientRect().width || 200;
-        var gap = Math.max(20, Math.min(60, stage.clientWidth * 0.05));
-        var halfStepRad = (angleStep / 2) * Math.PI / 180;
-        radius = (cardSize + gap) / (2 * Math.sin(halfStepRad));
-        dragSensitivity = angleStep / (cardSize + gap);
-      }
+          var titleWrap = document.createElement('span');
+          titleWrap.className = 'music-title';
 
-      function render() {
-        activeIndex = currentIndexFromRotation();
+          var t = document.createElement('span');
+          t.className = 'latest-title';
+          t.textContent = rel.title || '';
+          titleWrap.appendChild(t);
 
-        cards.forEach(function (card, i) {
-          var theta = i * angleStep + rotation;
-          var rad = theta * Math.PI / 180;
-          var depth = Math.cos(rad); // 1 = facing the viewer, -1 = facing away
-          var isActive = i === activeIndex;
-
-          card.classList.toggle('is-active', isActive);
-          // The main/front cover stays fully visible; every side cover
-          // sits at a flat 70% opacity regardless of how far around it
-          // is - the --shade darkening below is what carries the actual
-          // depth falloff, opacity here is just "not the main one".
-          card.style.opacity = isActive ? '1' : '0.7';
-          card.style.pointerEvents = depth > -0.5 ? 'auto' : 'none';
-          card.style.zIndex = String(Math.round((depth + 1) * 500));
-          // Shading on the sides of the wheel: a dark overlay (painted
-          // via the --shade custom property, see CSS) that grows the
-          // further a cover has rotated away from facing the viewer -
-          // a curved (not linear) ramp so cards just one slot over
-          // already read as visibly shaded rather than needing to be
-          // nearly edge-on first.
-          var shadeBase = Math.max(0, (1 - depth) / 2);
-          card.style.setProperty('--shade', String(Math.pow(shadeBase, 0.6) * 0.7));
-          // translateZ(-radius) before rotateY re-centers the whole
-          // ring in depth around the stage's own plane, instead of
-          // leaving the front card sitting at translateZ(+radius) -
-          // shoved almost up to the camera relative to the 800px
-          // perspective, which is what used to blow the front cover
-          // up huge and warp it as it rotated through center.
-          card.style.transform =
-            'translate(-50%, -50%) translateZ(-' + radius + 'px) rotateY(' + theta + 'deg) translateZ(' + radius + 'px)';
-        });
-
-        dots.forEach(function (dot, i) { dot.classList.toggle('is-active', i === activeIndex); });
-      }
-
-      // The rotation value (in whatever multiple of 360 it's drifted
-      // to after however many steps) nearest to `from` that places
-      // `index` at front - i.e. the shortest way to get there from
-      // wherever the wheel is currently headed, never the long way
-      // around.
-      function nearestTargetFor(index, from) {
-        var base = -index * angleStep;
-        var diff = ((base - from) % 360 + 540) % 360 - 180;
-        return from + diff;
-      }
-
-      // Absolute jump (dots, clicking a side card): shortest path from
-      // the currently-*targeted* rotation, not the live/easing one, so
-      // clicking a dot while a previous step is still easing in adds
-      // on top of that instead of restarting from mid-motion.
-      function goToIndex(index) {
-        index = normalizeIndex(index);
-        isCoasting = false;
-        velocity = 0;
-        targetRotation = nearestTargetFor(index, targetRotation);
-      }
-
-      // Relative step (arrows/swipe): always exactly one more slot
-      // from wherever the target currently is, so any number of quick
-      // clicks just keeps extending the same smooth ease instead of
-      // interrupting/restarting anything.
-      function stepBy(delta) {
-        isCoasting = false;
-        velocity = 0;
-        targetRotation -= delta * angleStep;
-      }
-
-      function snapToNearest() {
-        targetRotation = nearestTargetFor(currentIndexFromRotation(), rotation);
-      }
-
-      function tick() {
-        if (isDragging) {
-          // rotation is being set directly by the pointer handlers below
-        } else if (isCoasting) {
-          rotation += velocity;
-          velocity *= FRICTION;
-          if (Math.abs(velocity) < MIN_VELOCITY) {
-            isCoasting = false;
-            snapToNearest();
+          if (artistName) {
+            var a = document.createElement('span');
+            a.className = 'latest-artist';
+            a.textContent = artistName;
+            titleWrap.appendChild(a);
           }
-        } else {
-          var diff = targetRotation - rotation;
-          rotation = Math.abs(diff) < 0.02 ? targetRotation : rotation + diff * EASE;
+
+          card.appendChild(titleWrap);
+          return card;
         }
-        render();
-        requestAnimationFrame(tick);
-      }
 
-      prevBtn.addEventListener('click', function () { stepBy(-1); });
-      nextBtn.addEventListener('click', function () { stepBy(1); });
+        wrap.innerHTML = '';
+        wrap.appendChild(makeCard(latest[0], true));
 
-      // Exposed for the delegated click handler above, so clicking a
-      // visible-but-not-centered card brings it to center instead of
-      // opening the smart-link modal.
-      window.__spinnerGoToCard = function (card) {
-        var i = cards.indexOf(card);
-        if (i !== -1) goToIndex(i);
-      };
+        var rest = document.createElement('div');
+        rest.className = 'latest-rest';
+        latest.slice(1).forEach(function (rel) { rest.appendChild(makeCard(rel, false)); });
+        wrap.appendChild(rest);
 
-      // Touch swipe.
-      var touchStartX = null;
-      stage.addEventListener('touchstart', function (e) {
-        touchStartX = e.touches[0].clientX;
-      }, { passive: true });
-      stage.addEventListener('touchend', function (e) {
-        if (touchStartX === null) return;
-        var dx = e.changedTouches[0].clientX - touchStartX;
-        touchStartX = null;
-        if (Math.abs(dx) < 40) return;
-        stepBy(dx < 0 ? 1 : -1);
+        prefetchAllSmartLinks();
+      }).catch(function () {
+        wrap.innerHTML = '<p class="artist-releases-status">Грешка при зареждане на най-новите издания.</p>';
       });
-
-      // Mouse drag-to-spin: while held, the wheel tracks the pointer
-      // directly (1 degree-per-pixel-ish, via dragSensitivity) rather
-      // than stepping in fixed increments, so it genuinely feels like
-      // grabbing and turning a wheel. Releasing it carries the last
-      // bit of pointer speed on as momentum (coasting, with friction),
-      // which then eases into the nearest card once it slows down -
-      // same idea as flicking a real dial.
-      var dragLastX = 0;
-      var dragTotal = 0;
-
-      stage.addEventListener('mousedown', function (e) {
-        isDragging = true;
-        isCoasting = false;
-        velocity = 0;
-        dragLastX = e.clientX;
-        dragTotal = 0;
-        stage.classList.add('is-dragging');
-        e.preventDefault();
-      });
-
-      window.addEventListener('mousemove', function (e) {
-        if (!isDragging) return;
-        var dx = e.clientX - dragLastX;
-        dragLastX = e.clientX;
-        dragTotal += Math.abs(dx);
-        var delta = dx * dragSensitivity;
-        rotation += delta;
-        velocity = delta;
-      });
-
-      window.addEventListener('mouseup', function () {
-        if (!isDragging) return;
-        isDragging = false;
-        stage.classList.remove('is-dragging');
-        // A drag that moved more than a few pixels shouldn't also
-        // fire the click that opens/recenters the card under the
-        // cursor - the delegated click handler checks this flag.
-        window.__spinnerJustDragged = dragTotal > 6;
-        if (Math.abs(velocity) > 0.6) {
-          isCoasting = true;
-        } else {
-          velocity = 0;
-          snapToNearest();
-        }
-      });
-
-      // Mouse-wheel scrolling over the stage is intentionally left
-      // alone (no listener here) - it just scrolls the page like
-      // anywhere else, rather than spinning the wheel. Prev/next
-      // arrows, dots, dragging, and swipe still rotate it.
-
-      var resizeTimer = null;
-      window.addEventListener('resize', function () {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(measure, 150);
-      }, { passive: true });
-
-      measure();
-      requestAnimationFrame(tick);
     }
-    initSpinner();
+    buildLatestFeature();
 
     // ── Per-artist release rows ────────────────────────────────────
     // Sorted the exact same way as the artist quick-view modal on
@@ -613,12 +304,6 @@
     function buildArtistReleaseRows() {
       var wrap = document.getElementById('artistReleasesBand');
       if (!wrap) return;
-
-      var manifestPromise = fetch('../assets/data/smartlinks.json')
-        .then(function (res) {
-          if (!res.ok) throw new Error('Failed to load smartlinks manifest');
-          return res.json();
-        });
 
       var artistsPromise = fetch('../artists/')
         .then(function (res) {

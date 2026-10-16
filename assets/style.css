@@ -4041,3 +4041,106 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   border-right: none;
   border-bottom: none;
 }
+
+/* ── Music page: latest 10 releases - newest as a hero, next nine in a 3x3 ──
+   Cards are plain .music-card elements (so the smart-link modal and cover/
+   title base styling still apply), built from smartlinks.json in music.html.
+   Hover: the hovered cover dims just enough to read the title + artist over
+   it, and every OTHER card drops to --latest-dim so the hovered one reads as
+   highlighted. Tweak the two variables below to taste. */
+.latest-band {
+  width: 100%;
+  padding: 72px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  background: var(--bg);
+}
+
+.latest-heading {
+  margin: 0;
+  width: min(100%, var(--content));
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.latest-feature {
+  --latest-dim: .22;          /* opacity of the non-hovered cards */
+  --latest-hover-cover: .5;   /* opacity of the hovered cover (text sits on it) */
+  width: 100%;
+  max-width: var(--content);  /* set to none for full-bleed like the artist rows */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.latest-rest {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* .latest-card.music-card ties the specificity of .music-card:nth-child()
+   border rules above and comes later, so the grid-style borders are off and a
+   hairline outline separates the covers instead. */
+.latest-card.music-card {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 0;
+  outline: 1px solid var(--line);
+  outline-offset: -1px;
+  transition: opacity .3s ease;
+}
+
+.latest-card .music-title {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  font-size: clamp(0.8rem, 1.3vw, 1.1rem);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, .45);
+}
+
+.latest-card--hero .music-title {
+  gap: 10px;
+  padding: 28px;
+  font-size: clamp(1.3rem, 2.6vw, 2.4rem);
+}
+
+.latest-artist {
+  font-family: 'Rubik', sans-serif;
+  font-size: .62em;
+  font-weight: 400;
+  letter-spacing: .01em;
+  color: var(--muted);
+}
+
+body.music .latest-feature .latest-card:hover::before,
+body.music .latest-feature .latest-card:focus-visible::before {
+  opacity: var(--latest-hover-cover);
+}
+
+body.music .latest-feature .latest-card:hover .music-title,
+body.music .latest-feature .latest-card:focus-visible .music-title {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .latest-feature:has(.latest-card:hover) .latest-card:not(:hover) {
+    opacity: var(--latest-dim);
+  }
+  .latest-feature:has(.latest-card:focus-visible) .latest-card:not(:focus-visible) {
+    opacity: var(--latest-dim);
+  }
+}
+
+@media (max-width: 768px) {
+  .latest-band { padding: 48px 20px; }
+  .latest-feature { grid-template-columns: minmax(0, 1fr); }
+  .latest-card--hero .music-title { padding: 20px; }
+  .latest-card .music-title { padding: 10px; }
+}
