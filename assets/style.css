@@ -376,7 +376,7 @@ button.hero-icon:focus-visible {
 
   .nav-links {
     pointer-events: auto;
-    padding: 0 6px;
+    padding: 0 12px;
     gap: 2px;
   }
 
@@ -386,7 +386,7 @@ button.hero-icon:focus-visible {
     align-items: center;
     justify-content: center;
     height: 34px;
-    padding: 0 14px;
+    padding: 0 6px;
     border-radius: 9px;
     font-family: var(--font-nav);
     font-size: 13px;
