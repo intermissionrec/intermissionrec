@@ -38,7 +38,7 @@ body {
   min-height: 100vh;
   background: #060606;
   color: var(--text);
-  font-family: 'Nunito Sans', system-ui, sans-serif;
+  font-family: 'Rubik', sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   cursor: default;
@@ -711,7 +711,7 @@ main {
   padding: 0;
   margin-right: 18px;
   color: #555;
-  font-family: 'Nunito Sans', system-ui, sans-serif;
+  font-family: 'Rubik', sans-serif;
   font-size: 14px;
   cursor: pointer;
   transition: color .2s ease;
@@ -779,7 +779,7 @@ main {
   border: 1px solid var(--line);
   border-radius: 12px;
   color: var(--text);
-  font-family: 'Nunito Sans', system-ui, sans-serif;
+  font-family: 'Rubik', sans-serif;
   font-size: 16px;
 }
 
@@ -952,7 +952,7 @@ main {
   border: 1px solid var(--line);
   border-radius: 12px;
   color: var(--text);
-  font-family: 'Nunito Sans', system-ui, sans-serif;
+  font-family: 'Rubik', sans-serif;
   font-size: 16px;
   resize: vertical;
 }
@@ -1466,7 +1466,7 @@ html, body { height: 100%; }
   border: 1px solid var(--line);
   border-radius: 12px;
   color: var(--text);
-  font-family: 'Nunito Sans', system-ui, sans-serif;
+  font-family: 'Rubik', sans-serif;
   font-size: 16px;
 }
 
@@ -2124,7 +2124,7 @@ body.magazin-product .magazin-band {
   border: 1px solid var(--line);
   border-radius: 12px;
   color: var(--text);
-  font-family: 'Nunito Sans', system-ui, sans-serif;
+  font-family: 'Rubik', sans-serif;
   font-size: 14px;
 }
 
@@ -3441,7 +3441,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 /* ── Footer: blog link (sits next to the Бюлетин trigger) ─────── */
 .footer-blog-link {
   color: #555;
-  font-family: 'Nunito Sans', system-ui, sans-serif;
+  font-family: 'Rubik', sans-serif;
   font-size: 14px;
   margin-right: 18px;
   transition: color .2s ease;
@@ -3583,7 +3583,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   align-items: center;
   gap: 6px;
   color: var(--text);
-  font-family: 'Nunito Sans', system-ui, sans-serif;
+  font-family: 'Rubik', sans-serif;
   font-size: 15px;
   font-weight: 500;
   transition: color .2s ease;
@@ -3596,7 +3596,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 
 .blog-pagination-status {
   color: var(--muted);
-  font-family: 'Nunito Sans', system-ui, sans-serif;
+  font-family: 'Rubik', sans-serif;
   font-size: 14px;
 }
 
@@ -4176,7 +4176,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 }
 
 .latest-artist {
-  font-family: 'Nunito Sans', system-ui, sans-serif;
+  font-family: 'Rubik', sans-serif;
   font-size: .62em;
   font-weight: 400;
   letter-spacing: .01em;
