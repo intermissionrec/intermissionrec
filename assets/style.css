@@ -16,6 +16,7 @@
   --header-h: 140px;
   --logo-size: 96px;
   --header-pad-x: clamp(20px, 3vw, 45px);
+  --font-nav: 'Jost', 'Rubik', sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -387,6 +388,7 @@ button.hero-icon:focus-visible {
     height: 34px;
     padding: 0 14px;
     border-radius: 9px;
+    font-family: var(--font-nav);
     font-size: 13px;
     font-weight: 400;
     letter-spacing: 0.04em;
@@ -3337,6 +3339,7 @@ img {
   /* Closed / closing: links sit slightly to the left, faded out. They
      leave right-to-left (last item first), quickly. */
   .nav-wrap .nav a {
+    font-family: var(--font-nav);
     font-size: 26px;
     font-weight: 400;
     letter-spacing: 0.08em;
