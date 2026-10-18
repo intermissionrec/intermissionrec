@@ -364,7 +364,7 @@ div[data-include*="header.html"]::before {
     border-radius: 9px;
     font-size: 13px;
     font-weight: 400;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     white-space: nowrap;
   }
