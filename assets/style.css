@@ -396,11 +396,6 @@ button.hero-icon:focus-visible {
     white-space: nowrap;
   }
 
-  .nav-links a:hover,
-  .nav-links a:focus-visible {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
   .nav-links a.is-active {
     background: rgba(255, 255, 255, 0.14);
   }
@@ -434,11 +429,6 @@ button.hero-icon:focus-visible {
     width: 32px;
     height: 34px;
     border-radius: 9px;
-  }
-
-  .hero-actions .hero-icon:hover,
-  .hero-actions .hero-icon:focus-visible {
-    background: rgba(255, 255, 255, 0.12);
   }
 
   .nav-cart.has-items .nav-cart-count {
