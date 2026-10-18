@@ -33,7 +33,7 @@
   var HUE_BUCKETS = 24;         // colours are grouped into this many hue slices
   var MIN_COLORFULNESS = 0.04;  // below this the image counts as grey (logo goes white/near-black)
   var MIN_SATURATION = 0.55;    // the picked colour is pushed up to at least this vividness
-  var MIN_CONTRAST = 4;         // contrast ratio to reach against the image behind the logo (3 = bare minimum, 4.5 = text-grade)
+  var MIN_CONTRAST = 4.5;         // contrast ratio to reach against the image behind the logo (3 = bare minimum, 4.5 = text-grade)
   var MIN_LIGHTNESS = 0.08;     // how dark the logo may get
   var MAX_LIGHTNESS = 0.94;     // how light the logo may get
   var HEADER_SCRIM = 0.26;      // how much the header's own dark fade dims the image behind the logo at the top of the page
