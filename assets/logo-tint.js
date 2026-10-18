@@ -45,8 +45,8 @@
   var WASH_SATURATION_MIN = 0.4;  // the logo's colour keeps the slide's saturation, held between these two:
   var WASH_SATURATION_MAX = 0.8;  //   min = always a hint of colour, max = never too candy-bright
   var FADE_FRACTION = 0.55;     // share of the feature band's height over which it fades to white
-  var LIGHT_BG_DARKEN = 0.5;    // strength of the black overlay on the logo over fully bright areas (0.5 = 50% black)
-  var LIGHT_BG_SATURATION = 0.25; // extra colour added back on bright areas, so the darkened logo doesn't turn grey (0 = none)
+  var LIGHT_BG_DARKEN = 0.4;    // strength of the black overlay on the logo over fully bright areas (0.5 = 50% black)
+  var LIGHT_BG_SATURATION = 0.4; // extra colour added back on bright areas, so the darkened logo doesn't turn grey (0 = none)
   var LIGHT_BG_START = 0.15;    // brightness behind the logo (0-1) where that darkening begins...
   var LIGHT_BG_FULL = 0.32;     // ...and where it reaches full strength
   var HEADER_SCRIM = 0.26;      // how much the header's own dark fade dims the image behind the logo at the top of the page
