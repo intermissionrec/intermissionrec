@@ -20,6 +20,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="./assets/head.js"></script>
   <link rel="stylesheet" href="./assets/style.css">
+  <style>
+    /* Homepage only: fade the bottom of each feature slide into the
+       page background so the carousel melts into "Последни издания".
+       Sits on the slide's ::after (so it stays under the slide text and
+       moves with the slide). Eased stops rather than a straight ramp, so
+       there's no visible edge where the fade begins: solid #060606 at the
+       very bottom, fully clear 55% of the way up. Overrides the older
+       legibility scrim in style.css (this one is darker at the bottom,
+       so the title and description stay readable). */
+    body.home .feature-slide::after {
+      background: linear-gradient(
+        to top,
+        #060606 0%,
+        rgba(6, 6, 6, 0.972) 5.5%,
+        rgba(6, 6, 6, 0.896) 11%,
+        rgba(6, 6, 6, 0.784) 16.5%,
+        rgba(6, 6, 6, 0.648) 22%,
+        rgba(6, 6, 6, 0.5) 27.5%,
+        rgba(6, 6, 6, 0.352) 33%,
+        rgba(6, 6, 6, 0.216) 38.5%,
+        rgba(6, 6, 6, 0.104) 44%,
+        rgba(6, 6, 6, 0.028) 49.5%,
+        rgba(6, 6, 6, 0) 55%
+      );
+    }
+
+    /* Makes the "Последни издания" band the same #060606 the gradient
+       ends on, so the join is seamless (style.css has it at #0F0F0F).
+       Delete this rule to keep the lighter band - then also change the
+       gradient above to end on #0F0F0F instead. */
+    body.home .home-latest-band {
+      background: #060606;
+    }
+  </style>
   <script type="importmap">
   {
     "imports": {
