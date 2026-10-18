@@ -21,7 +21,7 @@
   const fonts = document.createElement("link");
   fonts.rel = "stylesheet";
   fonts.href =
-    "https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Rubik:wght@400;500;700&display=swap";
+    "https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Nunito+Sans:wght@200..900&display=swap";
   head.appendChild(fonts);
 
   // Favicons
