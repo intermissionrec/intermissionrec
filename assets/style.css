@@ -425,13 +425,13 @@ button.hero-icon:focus-visible {
 
   /* Right pill: newsletter + cart, a touch lighter than the links pill. */
   .hero-actions {
-    padding: 0 6px;
+    padding: 0 14px;
     gap: 2px;
     background: rgba(255, 255, 255, 0.08);
   }
 
   .hero-actions .hero-icon {
-    width: 38px;
+    width: 32px;
     height: 34px;
     border-radius: 9px;
   }
