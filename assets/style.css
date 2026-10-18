@@ -13,8 +13,8 @@
   /* Header sizing - the sticky header's layout height and logo size.
      Mobile overrides both in the max-width: 919.98px block at the
      bottom of the file. */
-  --header-h: 96px;
-  --logo-size: 72px;
+  --header-h: 108px;
+  --logo-size: 84px;
   --header-pad-x: clamp(20px, 3vw, 45px);
 }
 
@@ -107,9 +107,10 @@ body.nav-open .page {
 }
 
 /* ── Site header ───────────────────────────────────────────────────
-   Three-part floating header: a glass pill of page links on the left,
-   the logo centered, and a second glass pill (Discord + cart) on the
-   right. It stays pinned to the top of the viewport on every page.
+   Desktop: a glass pill of page links (+ a Discord icon) on the left,
+   the logo centered, and a glass cart pill on the right. Mobile: one
+   glass pill holding hamburger + Discord (left), logo (center) and
+   cart (right). Pinned to the top of the viewport on every page.
 
    Why sticky and not fixed: .page carries `filter: blur(0px)` (used
    for the modal/menu blur), and any filter makes .page the containing
@@ -117,14 +118,17 @@ body.nav-open .page {
    with the page. Sticky inside .page's full-height flex column works.
 
    Structure (header.html): the data-include wrapper holds .hero (the
-   logo bar, which reserves --header-h of layout space) and .nav-wrap
-   (the pills). relocateNavWrap() in script.js may move .nav-wrap out
-   to be the wrapper's next sibling inside .page - both layouts work,
-   because on desktop .nav-wrap is itself sticky and pulls up over the
-   logo bar with a negative top margin (so both pin to top: 0 together).
-   The bar has no background of its own: a soft gradient scrim (.hero's
-   ::before) fades in over the first 160px of scrolling so page content
-   passing underneath stays out of the way of the logo and pills. */
+   logo bar - it also holds the cart and, on mobile, the hamburger and
+   a second Discord link) and .nav-wrap (the links pill, which becomes
+   the fullscreen menu on mobile). relocateNavWrap() in script.js may
+   move .nav-wrap out to be the wrapper's next sibling inside .page -
+   both layouts work, because on desktop .nav-wrap is itself sticky and
+   pulls up over the logo bar with a negative top margin (so both pin
+   to top: 0 together).
+   The bar has no background of its own: a long, eased gradient scrim
+   (the wrapper's ::before, reaching past the bar) fades in over the
+   first 160px of scrolling so page content passing underneath never
+   meets a hard edge. */
 div[data-include*="header.html"] {
   display: block;
   position: sticky;
@@ -135,27 +139,29 @@ div[data-include*="header.html"] {
   flex-shrink: 0;
 }
 
-.hero {
-  position: relative;
-  isolation: isolate;
-  width: 100%;
-  height: var(--header-h);
-  display: grid;
-  place-items: center;
-  padding: 0 20px;
-  flex-shrink: 0;
-}
-
-.hero::before {
+div[data-include*="header.html"]::before {
   content: '';
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(100% + 56px);
   z-index: -1;
   pointer-events: none;
+  /* Eased (smoothstep-shaped) fade rather than a straight linear ramp,
+     so there's no visible band where the darkening stops. */
   background: linear-gradient(
     to bottom,
-    rgba(6, 6, 6, 0.92) 0%,
-    rgba(6, 6, 6, 0.8) 55%,
+    rgba(6, 6, 6, 0.90) 0%,
+    rgba(6, 6, 6, 0.875) 10%,
+    rgba(6, 6, 6, 0.81) 20%,
+    rgba(6, 6, 6, 0.71) 30%,
+    rgba(6, 6, 6, 0.58) 40%,
+    rgba(6, 6, 6, 0.45) 50%,
+    rgba(6, 6, 6, 0.32) 60%,
+    rgba(6, 6, 6, 0.19) 70%,
+    rgba(6, 6, 6, 0.09) 80%,
+    rgba(6, 6, 6, 0.025) 90%,
     rgba(6, 6, 6, 0) 100%
   );
 }
@@ -165,7 +171,7 @@ div[data-include*="header.html"] {
    page) and firms up as you scroll. Everywhere else it's simply always
    on at full strength. */
 @supports (animation-timeline: scroll()) {
-  .hero::before {
+  div[data-include*="header.html"]::before {
     opacity: 0.4;
     animation: header-scrim linear both;
     animation-timeline: scroll(root);
@@ -176,6 +182,16 @@ div[data-include*="header.html"] {
 @keyframes header-scrim {
   from { opacity: 0.4; }
   to { opacity: 1; }
+}
+
+.hero {
+  position: relative;
+  width: 100%;
+  height: var(--header-h);
+  display: grid;
+  place-items: center;
+  padding: 0 20px;
+  flex-shrink: 0;
 }
 
 .hero-logo-link {
@@ -204,13 +220,73 @@ div[data-include*="header.html"] {
 }
 
 .hero-logo-link:focus-visible,
-.nav a:focus-visible {
+.nav a:focus-visible,
+.hero-icon:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.75);
   outline-offset: 3px;
 }
 
-/* Shared nav styling. Pill chrome is desktop-only (below); the mobile
-   menu at the bottom of the file restyles these same links as a
+/* Icon links that live in the logo bar (cart; Discord on mobile). */
+.hero-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.78);
+  transition: color .2s ease, background-color .2s ease;
+}
+
+.hero-icon:hover,
+.hero-icon:focus-visible,
+.hero-icon.is-active {
+  color: #fff;
+}
+
+.hero-icon svg {
+  flex-shrink: 0;
+}
+
+/* Cart count: only shown once there's something in the cart
+   (.has-items is toggled by updateNavCartCount() in script.js). */
+.nav-cart-count {
+  display: none;
+}
+
+.nav-cart.has-items .nav-cart-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #fff;
+  color: #060606;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Icon-only; the text stays available to screen readers. */
+.nav-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Shared nav-link styling. Pill chrome is desktop-only (below); the
+   mobile menu at the bottom of the file restyles these same links as a
    fullscreen vertical list. */
 .nav-wrap {
   width: 100%;
@@ -221,8 +297,7 @@ div[data-include*="header.html"] {
 }
 
 .nav,
-.nav-links,
-.nav-actions {
+.nav-links {
   display: flex;
   align-items: center;
 }
@@ -238,38 +313,10 @@ div[data-include*="header.html"] {
   color: #fff;
 }
 
-.nav a.nav-discord,
-.nav a.nav-cart {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.nav a.nav-discord svg,
-.nav a.nav-cart svg {
-  flex-shrink: 0;
-}
-
-/* Cart count: only shown once there's something in the cart
-   (.has-items is toggled by updateNavCartCount() in script.js). */
-.nav-cart-count {
+/* The mobile-only Discord link in the logo bar. */
+.hero-discord,
+.mobile-nav-toggle {
   display: none;
-}
-
-.nav a.nav-cart.has-items .nav-cart-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 8px;
-  background: #fff;
-  color: #060606;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
 }
 
 @media (min-width: 920px) {
@@ -280,23 +327,19 @@ div[data-include*="header.html"] {
     height: var(--header-h);
     margin-top: calc(var(--header-h) * -1);
     padding: 0 var(--header-pad-x);
+    justify-content: flex-start;
     /* The bar spans the full width, so clicks must fall through to the
-       logo underneath - only the pills themselves take pointer events. */
+       logo underneath - only the pill itself takes pointer events. */
     pointer-events: none;
   }
 
   .nav {
-    width: 100%;
-    justify-content: space-between;
     pointer-events: none;
   }
 
   .nav-links,
-  .nav-actions {
-    pointer-events: auto;
+  .nav-cart {
     height: 46px;
-    padding: 0 6px;
-    gap: 2px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 14px;
     background: rgba(22, 22, 24, 0.5);
@@ -305,22 +348,20 @@ div[data-include*="header.html"] {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
-  /* The right-hand pill is a touch lighter than the left one, the same
-     way the reference layout tints it differently from the link pill. */
-  .nav-actions {
-    background: rgba(255, 255, 255, 0.08);
+  .nav-links {
+    pointer-events: auto;
+    padding: 0 6px;
+    gap: 2px;
   }
 
-  .nav a {
+  .nav-links a {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     height: 34px;
-    border-radius: 9px;
-  }
-
-  .nav-links a {
     padding: 0 14px;
+    border-radius: 9px;
     font-size: 13px;
     font-weight: 500;
     letter-spacing: 0.12em;
@@ -328,36 +369,47 @@ div[data-include*="header.html"] {
     white-space: nowrap;
   }
 
-  .nav-actions a {
-    width: 38px;
-  }
-
-  .nav a:hover,
-  .nav a:focus-visible {
+  .nav-links a:hover,
+  .nav-links a:focus-visible {
     background: rgba(255, 255, 255, 0.1);
   }
 
-  .nav a.is-active {
+  .nav-links a.is-active {
     background: rgba(255, 255, 255, 0.14);
   }
 
-  /* Icon-only on desktop; the text stays available to screen readers. */
-  .nav-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
+  /* Discord: an icon at the end of the link pill, set off by a thin
+     divider. */
+  .nav-links a.nav-discord {
+    width: 38px;
     padding: 0;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-    border: 0;
+    margin-left: 6px;
   }
 
-  .nav a.nav-cart.has-items .nav-cart-count {
+  .nav-links a.nav-discord::before {
+    content: '';
     position: absolute;
-    top: -1px;
-    right: -1px;
+    left: -4px;
+    top: 7px;
+    bottom: 7px;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Cart: its own lighter glass pill at the right edge of the bar. */
+  .nav-cart {
+    right: var(--header-pad-x);
+    width: 56px;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .nav-cart:hover {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .nav-cart.has-items .nav-cart-count {
+    top: 5px;
+    right: 7px;
   }
 }
 
@@ -3102,57 +3154,74 @@ img {
 }
 
 /* ── Mobile header + menu ──────────────────────────────────────────
-   Below 920px the header is just the logo with a glass hamburger
-   button on the right; .nav-wrap (relocated by setupMobileNav in
-   script.js) becomes the fullscreen menu. Desktop (>=920px) never
-   shows the toggle/backdrop. */
-.mobile-nav-toggle,
+   Below 920px the whole logo bar is one glass pill: hamburger and
+   Discord on the left, logo in the middle, cart on the right.
+   .nav-wrap (relocated by setupMobileNav in script.js) becomes the
+   fullscreen menu. Desktop (>=920px) never shows the toggle/backdrop. */
 .mobile-nav-backdrop {
   display: none;
 }
 
 @media (max-width: 919.98px) {
   :root {
-    --header-h: 80px;
-    --logo-size: 56px;
+    /* 100px pill + 8px of air above and below it. */
+    --header-h: 116px;
   }
 
-  .mobile-nav-toggle {
+  .hero {
+    width: calc(100% - 24px);
+    height: calc(var(--header-h) - 16px);
+    margin: 8px 12px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 28px;
+    background: rgba(22, 22, 24, 0.5);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    backdrop-filter: blur(16px) saturate(150%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* Absolutely positioned so the layout doesn't depend on DOM order
+     (script.js moves the toggle out of and back into .hero). */
+  .mobile-nav-toggle,
+  .hero-discord,
+  .nav-cart {
     display: flex;
     align-items: center;
     justify-content: center;
     position: absolute;
     top: 50%;
-    right: 16px;
     transform: translateY(-50%);
     width: 44px;
     height: 44px;
     padding: 0;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 14px;
-    background: rgba(22, 22, 24, 0.5);
-    -webkit-backdrop-filter: blur(16px) saturate(150%);
-    backdrop-filter: blur(16px) saturate(150%);
-    color: var(--text);
+    border: none;
+    border-radius: 12px;
+    background: none;
+    color: rgba(255, 255, 255, 0.9);
     cursor: pointer;
-    z-index: 90;
   }
+
+  .mobile-nav-toggle { left: 12px; z-index: 90; }
+  .hero-discord { left: 58px; }
+  .nav-cart { right: 12px; }
 
   .mobile-nav-toggle:focus-visible {
     outline: 2px solid rgba(255, 255, 255, 0.75);
-    outline-offset: 3px;
+    outline-offset: 2px;
   }
 
   /* Raised above the mobile nav overlay (200) specifically while the
      menu is open, using the aria-expanded state the JS already
      toggles - otherwise the button's own lowered z-index (needed to
      sit behind the artist/music modals) would put it behind the
-     menu's backdrop too, making it unclickable to close. Vertically
-     centered on the header bar, same spot as when it's closed. */
+     menu's backdrop too, making it unclickable to close. It stays
+     exactly where the hamburger was (left edge of the pill, vertically
+     centered on it). */
   .mobile-nav-toggle[aria-expanded="true"] {
     position: fixed;
-    top: calc((var(--header-h) - 44px) / 2);
-    right: 16px;
+    top: calc(var(--header-h) / 2 - 22px);
+    left: 24px;
     transform: none;
     z-index: 202;
   }
@@ -3174,6 +3243,11 @@ img {
 
   .mobile-nav-toggle[aria-expanded="true"] line:nth-child(3) {
     transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .nav-cart.has-items .nav-cart-count {
+    top: 2px;
+    right: 2px;
   }
 
   .mobile-nav-backdrop {
@@ -3212,25 +3286,14 @@ img {
   }
 
   .nav-wrap .nav {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 40px;
     min-height: auto;
     padding-left: 32px;
   }
 
-  .nav-wrap .nav-links,
-  .nav-wrap .nav-actions {
+  .nav-wrap .nav-links {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .nav-wrap .nav-links {
     gap: 22px;
-  }
-
-  .nav-wrap .nav-actions {
-    gap: 20px;
   }
 
   .nav-wrap .nav a {
@@ -3241,15 +3304,14 @@ img {
     color: rgba(255, 255, 255, 0.85);
   }
 
-  .nav-wrap .nav a.nav-discord,
-  .nav-wrap .nav a.nav-cart {
-    font-size: 17px;
-    letter-spacing: 0.1em;
-  }
-
   .nav-wrap .nav a:hover,
   .nav-wrap .nav a.is-active {
     color: #fff;
+  }
+
+  /* Discord lives in the header pill on mobile, not in the menu. */
+  .nav-wrap .nav-links a.nav-discord {
+    display: none;
   }
 }
 
