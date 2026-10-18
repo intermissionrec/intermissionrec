@@ -3273,7 +3273,7 @@ img {
     background: none;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: left;
     z-index: 200;
     opacity: 0;
     visibility: hidden;
