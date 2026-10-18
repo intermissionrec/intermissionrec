@@ -219,6 +219,48 @@ div[data-include*="header.html"]::before {
   display: none !important;
 }
 
+/* Homepage logo tint. assets/logo-tint.js (homepage only) samples the
+   current feature slide's image, picks its most prominent colour and
+   sets --logo-tint on <html>; --logo-tint-amount (1 at the top of the
+   page, fading to 0 as you scroll past the feature slides) blends it
+   back to the standard white. The white logo PNG is used as a mask
+   over a coloured box, so any colour works. Nothing below applies
+   until the script adds .logo-tint-ready, so if the script or the mask
+   image fails the normal white <img> stays as it is. */
+@property --logo-tint {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #ffffff;
+}
+
+@property --logo-tint-amount {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+:root {
+  transition: --logo-tint .8s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    transition: none;
+  }
+}
+
+@supports (color: color-mix(in srgb, red 50%, white)) {
+  html.logo-tint-ready body.home .hero-logo-wrap {
+    background-color: color-mix(in srgb, var(--logo-tint) calc(var(--logo-tint-amount) * 100%), #fff);
+    -webkit-mask: var(--logo-mask-url) center / contain no-repeat;
+    mask: var(--logo-mask-url) center / contain no-repeat;
+  }
+
+  html.logo-tint-ready body.home .hero-logo {
+    opacity: 0 !important;
+  }
+}
+
 .hero-logo-link:focus-visible,
 .nav a:focus-visible,
 .hero-icon:focus-visible {
@@ -444,6 +486,24 @@ main {
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* Pages start at the very top of the viewport, underneath the
+   transparent sticky header, instead of below it. <main> is pulled up
+   by the header's height and given the same amount of padding back, so
+   ordinary pages (text, forms, grids) lay out exactly where they did
+   and nothing hides behind the header; pages that want full-bleed
+   imagery opt out of the padding below and run all the way to the top.
+   The homepage does its own version of this on .feature-band. To let
+   another page's first section run under the header, add its body class
+   to the opt-out rule. */
+body:not(.home) main {
+  margin-top: calc(var(--header-h) * -1);
+  padding-top: var(--header-h);
+}
+
+body.artists main {
+  padding-top: 0;
 }
 
 .feature-band {
