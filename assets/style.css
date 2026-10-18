@@ -10,6 +10,12 @@
   --radius: 20px;
   --content: 1200px;
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  /* Header sizing - the sticky header's layout height and logo size.
+     Mobile overrides both in the max-width: 919.98px block at the
+     bottom of the file. */
+  --header-h: 96px;
+  --logo-size: 72px;
+  --header-pad-x: clamp(20px, 3vw, 45px);
 }
 
 * { box-sizing: border-box; }
@@ -78,6 +84,11 @@ img { display: block; max-width: 100%; height: auto; }
   flex-direction: column;
   align-items: center;
   overflow: hidden;
+  /* `clip` still clips, but (unlike `hidden`) doesn't turn .page into a
+     scroll container, which would stop the sticky header from pinning
+     on any page that doesn't override this to `visible` below. Browsers
+     without `clip` support keep the `hidden` line above. */
+  overflow: clip;
   filter: blur(0px);
   transition: filter .25s ease;
 }
@@ -95,52 +106,86 @@ body.nav-open .page {
   width: 100%;
 }
 
-/* Desktop: the header's data-include wrapper only ever holds .hero
-   now - relocateNavWrap() in script.js pulls .nav-wrap straight out of
-   it and makes it a direct sibling inside .page instead, right after
-   this wrapper, the moment the header/nav fragment finishes loading.
-   That relocation is what makes .nav-wrap's OWN sticky positioning
-   (see its rule further down) actually hold for the whole page's
-   scroll length: a stickily-positioned element can only stay stuck
-   for as long as its own immediate parent's box is still in view, and
-   this wrapper is only ever as tall as .hero itself once .hero isn't
-   sticky anymore - nowhere near enough room. .page (a flex column
-   that grows the full height of the page's content) gives it that
-   room, exactly like making the *whole* wrapper the sticky element
-   used to before this variant. .hero itself scrolls away normally
-   with the page, unaffected by any of this.
-   Mobile keeps the older "whole header pinned from the very top"
-   behavior (wrapper itself made sticky again under the
-   max-width: 919.98px query below) since .nav-wrap is relocated a
-   second time there, off into the fullscreen mobile menu (see
-   setupMobileNav in script.js), and isn't shown as an inline bar at
-   all. */
+/* ── Site header ───────────────────────────────────────────────────
+   Three-part floating header: a glass pill of page links on the left,
+   the logo centered, and a second glass pill (Discord + cart) on the
+   right. It stays pinned to the top of the viewport on every page.
+
+   Why sticky and not fixed: .page carries `filter: blur(0px)` (used
+   for the modal/menu blur), and any filter makes .page the containing
+   block for position: fixed descendants - so fixed would scroll away
+   with the page. Sticky inside .page's full-height flex column works.
+
+   Structure (header.html): the data-include wrapper holds .hero (the
+   logo bar, which reserves --header-h of layout space) and .nav-wrap
+   (the pills). relocateNavWrap() in script.js may move .nav-wrap out
+   to be the wrapper's next sibling inside .page - both layouts work,
+   because on desktop .nav-wrap is itself sticky and pulls up over the
+   logo bar with a negative top margin (so both pin to top: 0 together).
+   The bar has no background of its own: a soft gradient scrim (.hero's
+   ::before) fades in over the first 160px of scrolling so page content
+   passing underneath stays out of the way of the logo and pills. */
 div[data-include*="header.html"] {
   display: block;
-  margin: 0 auto;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  min-height: var(--header-h);
+  flex-shrink: 0;
 }
 
 .hero {
   position: relative;
+  isolation: isolate;
   width: 100%;
+  height: var(--header-h);
   display: grid;
   place-items: center;
-  padding: 20px 20px 19px;
-  background: rgba(10, 10, 10, 0.92);
-  backdrop-filter: blur(10px);
-  /* Stacked above .nav-wrap (z-index: 10, see the min-width: 920px
-     rule below) rather than z-index: auto, specifically so that while
-     scrolling back up - the moment .nav-wrap is still pinned via
-     position: sticky and briefly overlaps .hero as .hero scrolls back
-     into place beneath it - .hero's own opaque, blurred background
-     paints over that overlap instead of .nav-wrap sitting visibly on
-     top of it. Reads as .nav-wrap tucking away under the header
-     rather than overlaying it. */
-  z-index: 11;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(6, 6, 6, 0.92) 0%,
+    rgba(6, 6, 6, 0.8) 55%,
+    rgba(6, 6, 6, 0) 100%
+  );
+}
+
+/* Where scroll-driven animations are supported the scrim starts faint
+   (so a full-bleed hero image reads almost untouched at the top of the
+   page) and firms up as you scroll. Everywhere else it's simply always
+   on at full strength. */
+@supports (animation-timeline: scroll()) {
+  .hero::before {
+    opacity: 0.4;
+    animation: header-scrim linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 160px;
+  }
+}
+
+@keyframes header-scrim {
+  from { opacity: 0.4; }
+  to { opacity: 1; }
 }
 
 .hero-logo-link {
   display: inline-flex;
+  border-radius: 16px;
+}
+
+.hero-logo {
+  width: var(--logo-size);
+  height: var(--logo-size);
 }
 
 .hero-logo-wrap {
@@ -158,259 +203,164 @@ div[data-include*="header.html"] {
   transition: opacity 120ms ease;
 }
 
+.hero-logo-link:focus-visible,
+.nav a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.75);
+  outline-offset: 3px;
+}
+
+/* Shared nav styling. Pill chrome is desktop-only (below); the mobile
+   menu at the bottom of the file restyles these same links as a
+   fullscreen vertical list. */
 .nav-wrap {
   width: 100%;
-  background: rgba(15, 15, 15, 0.92);
-  backdrop-filter: blur(10px);
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0px 20px;
-  /* Positioned so .nav-cart (see below) can pin itself to this bar's
-     own right edge via position: absolute, regardless of where the
-     narrower, centered .nav content box happens to sit inside it. */
-  position: relative;
 }
 
-/* Small stand-in logo, left of the links, for once .hero's own big
-   one has scrolled out of view - see the min-width: 920px rule below
-   for where it's actually shown and how it reveals itself. Hidden
-   outright below the desktop breakpoint since mobile's .nav-wrap
-   becomes a fullscreen vertical menu (see the max-width: 919.98px
-   overrides further down) rather than a horizontal bar - a logo
-   alongside the stacked links doesn't apply there. */
-.nav-logo-link {
-  display: none;
-}
-
-/* Desktop-only: .nav-wrap is the sticky element itself here (instead
-   of the whole header/nav data-include wrapper - see the comment on
-   div[data-include*="header.html"] above, and relocateNavWrap() in
-   script.js, which is what actually gives this rule a tall enough
-   parent to stick against). Because it's sticky rather than fixed, it
-   only starts pinning to the top once .hero has fully scrolled past -
-   position: sticky's own native "stick once it would otherwise scroll
-   above top: 0" behavior, no JS needed for the timing itself, only
-   for relocating .nav-wrap's parent beforehand. Sticky still
-   establishes a positioning context for absolutely-positioned
-   descendants exactly like position: relative did above, so .nav-cart
-   is unaffected. The bar itself is visible right from the top of the
-   page, same as it always was - but at rest (not yet scrolled past
-   .hero) it looks exactly like the base/mobile styling: no logo,
-   links centered in the bar. Only once .hero has fully scrolled away
-   (body.nav-stuck, toggled by setupNavStuckObserver in script.js) do
-   the logo appear and the links shift to sit left-aligned right next
-   to it - gap: 30px between them - instead of staying centered;
-   .nav-cart keeps pinning to the bar's own right edge via its own
-   absolute positioning regardless of either state. */
-@media (min-width: 920px) {
-  .nav-wrap {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    box-shadow: none;
-    transition: box-shadow .3s ease;
-  }
-
-  .nav-logo {
-    width: 40px;
-    height: 40px;
-    display: block;
-  }
-
-  body.nav-stuck .nav-wrap {
-    justify-content: flex-start;
-    gap: 30px;
-  }
-
-  body.nav-stuck .nav-logo-link {
-    display: inline-flex;
-    flex: 0 0 auto;
-  }
-
-  body.nav-stuck .nav {
-    width: auto;
-    justify-content: flex-start;
-  }
-}
-
-/* Mobile: shadow on the whole pinned header (hero+hamburger) once
-   scrolled past the very top - body.scrolled, toggled by scrollY
-   in script.js's updateScrolledState(). Desktop uses a separate
-   body.nav-stuck class instead (see the min-width: 920px rule
-   below), timed to when .nav-wrap itself actually sticks rather than
-   a fixed scroll distance. */
-@media (max-width: 919.98px) {
-  body.scrolled div[data-include*="header.html"] {
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  }
-}
-
-/* Desktop: shadow once .nav-wrap has actually pinned to the top -
-   body.nav-stuck, toggled by an IntersectionObserver watching .hero
-   in script.js (setupNavStuckObserver), so it lines up exactly with
-   when .nav-wrap's own sticky positioning kicks in. */
-@media (min-width: 920px) {
-  body.nav-stuck .nav-wrap {
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  }
-}
-
-.nav {
-  width: min(100%, var(--content));
+.nav,
+.nav-links,
+.nav-actions {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 20px;
-  min-height: 50px;
 }
 
 .nav a {
-  color: #606060;
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 2;
-  letter-spacing: -0.01em;
-  transition: color .2s ease;
+  color: rgba(255, 255, 255, 0.72);
+  transition: color .2s ease, background-color .2s ease;
 }
 
 .nav a:hover,
 .nav a:focus-visible,
 .nav a.is-active {
-  color: #8c8c8c;
-  outline: none;
+  color: #fff;
 }
 
-/* Desktop: the logo and links sit fully visible right from the top of
-   the page (the bar itself is visible immediately too - see the
-   sticky .nav-wrap rule above), same as the site originally worked.
-   Once .nav-wrap actually pins to the top (body.nav-stuck - see
-   setupNavStuckObserver in script.js, watching .hero), the wipe
-   REPLAYS - clip-path (not an opacity fade) snaps each one back to
-   fully hidden and immediately re-reveals it left edge to right edge,
-   with .nav-cart left out entirely since it stays visible/functional
-   throughout regardless of scroll position. animation-fill-mode: both
-   is what makes this work with a resting state of "visible": the
-   "backwards" half snaps the element to the animation's own hidden
-   "from" state the instant body.nav-stuck is added (even during the
-   delay below), and "forwards" holds the revealed end state once it
-   finishes.
-   Scrolling back up plays a fast reverse wipe (body.nav-hiding, one
-   quick .15s motion, no stagger) the moment .hero comes back into
-   view - see setupNavStuckObserver in script.js, which holds
-   body.nav-stuck in place for that .15s so the left-aligned/logo
-   layout doesn't snap back to centered/no-logo until the wipe has
-   actually finished retracting. Doesn't need to hide the reflow via
-   trickery the way the reveal above does, because .hero itself sits
-   above .nav-wrap in stacking order the whole time this plays
-   (z-index: 11 vs. 10 - see .hero's own rule above): .nav-wrap is
-   still pinned via position: sticky and overlapping .hero as .hero
-   scrolls back into place, so .hero's opaque background already
-   covers most of it regardless - the nav-wrap is retracting *under*
-   the header, not on top of it. */
+.nav a.nav-discord,
+.nav a.nav-cart {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav a.nav-discord svg,
+.nav a.nav-cart svg {
+  flex-shrink: 0;
+}
+
+/* Cart count: only shown once there's something in the cart
+   (.has-items is toggled by updateNavCartCount() in script.js). */
+.nav-cart-count {
+  display: none;
+}
+
+.nav a.nav-cart.has-items .nav-cart-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #fff;
+  color: #060606;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 @media (min-width: 920px) {
-  .nav-logo-link,
-  .nav > a:not(.nav-cart) {
-    clip-path: inset(0 0 0 0);
+  .nav-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 51;
+    height: var(--header-h);
+    margin-top: calc(var(--header-h) * -1);
+    padding: 0 var(--header-pad-x);
+    /* The bar spans the full width, so clicks must fall through to the
+       logo underneath - only the pills themselves take pointer events. */
+    pointer-events: none;
   }
 
-  body.nav-stuck .nav-logo-link {
-    animation: nav-reveal .3s cubic-bezier(.22, 1, .36, 1) .15s both;
+  .nav {
+    width: 100%;
+    justify-content: space-between;
+    pointer-events: none;
   }
 
-  body.nav-stuck .nav > a:not(.nav-cart) {
-    animation: nav-reveal .3s cubic-bezier(.22, 1, .36, 1) both;
+  .nav-links,
+  .nav-actions {
+    pointer-events: auto;
+    height: 46px;
+    padding: 0 6px;
+    gap: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    background: rgba(22, 22, 24, 0.5);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    backdrop-filter: blur(16px) saturate(150%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
-  /* Staggered left-to-right cascade, in the links' own left-to-right
-     visual order (.nav is left-aligned now, so DOM order === reading
-     order) - each one starts its own reveal a beat after the last,
-     all of them starting only after the shared 0.15s "once stuck"
-     delay the logo above also uses. */
-  body.nav-stuck .nav > a:nth-child(1) { animation-delay: .20s; }
-  body.nav-stuck .nav > a:nth-child(2) { animation-delay: .25s; }
-  body.nav-stuck .nav > a:nth-child(3) { animation-delay: .30s; }
-  body.nav-stuck .nav > a:nth-child(4) { animation-delay: .35s; }
-  body.nav-stuck .nav > a:nth-child(5) { animation-delay: .40s; }
-  body.nav-stuck .nav > a:nth-child(6) { animation-delay: .45s; }
-
-  /* Fast retraction, the reverse of nav-reveal - one motion, no
-     stagger, since it's mostly happening underneath .hero anyway
-     (see the comment above) rather than something that needs to read
-     as its own showcase moment. */
-  body.nav-hiding .nav-logo-link,
-  body.nav-hiding .nav > a:not(.nav-cart) {
-    animation: nav-hide .15s ease both;
+  /* The right-hand pill is a touch lighter than the left one, the same
+     way the reference layout tints it differently from the link pill. */
+  .nav-actions {
+    background: rgba(255, 255, 255, 0.08);
   }
 
-  /* Once back in the resting/centered layout (no logo - see
-     .nav-logo-link's own display: none default), the links play the
-     same wipe the stuck cascade above uses, rather than just sitting
-     there already visible. body.nav-return-play is added in
-     setupNavStuckObserver in script.js right as nav-stuck/nav-hiding
-     are dropped (i.e. once the retraction above has actually
-     finished), and removed again the next time nav-stuck is added so
-     it's ready to replay each time you scroll back up.
-     Deliberately its own separate @keyframes (nav-reveal-return,
-     right below - visually identical to nav-reveal, just under a
-     different name) rather than reusing nav-reveal directly: since
-     body.nav-stuck and body.nav-return-play are never both present at
-     once, going straight from one to the other only actually changes
-     which element matches which rule, not the animation-name value
-     itself, if both rules point at the same keyframe name - and a CSS
-     animation whose name never changes value doesn't restart, it just
-     stays parked at the held "both" end state from whichever one
-     played first. Two distinctly-named (but identical) keyframes
-     sidesteps that entirely - the name always changes, so it always
-     restarts. */
-  body.nav-return-play .nav > a:not(.nav-cart) {
-    animation: nav-reveal-return .3s cubic-bezier(.22, 1, .36, 1) both;
+  .nav a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    border-radius: 9px;
   }
 
-  body.nav-return-play .nav > a:nth-child(1) { animation-delay: .05s; }
-  body.nav-return-play .nav > a:nth-child(2) { animation-delay: .10s; }
-  body.nav-return-play .nav > a:nth-child(3) { animation-delay: .15s; }
-  body.nav-return-play .nav > a:nth-child(4) { animation-delay: .20s; }
-  body.nav-return-play .nav > a:nth-child(5) { animation-delay: .25s; }
-  body.nav-return-play .nav > a:nth-child(6) { animation-delay: .30s; }
-}
+  .nav-links a {
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
 
-@keyframes nav-reveal {
-  from {
-    clip-path: inset(0 100% 0 0);
-    transform: translateX(-10px);
+  .nav-actions a {
+    width: 38px;
   }
-  to {
-    clip-path: inset(0 0 0 0);
-    transform: translateX(0);
-  }
-}
 
-/* Visually identical to nav-reveal above, just under its own name -
-   see the comment on body.nav-return-play above for why this needs
-   to be a distinct @keyframes rather than the same one reused. */
-@keyframes nav-reveal-return {
-  from {
-    clip-path: inset(0 100% 0 0);
-    transform: translateX(-10px);
+  .nav a:hover,
+  .nav a:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
   }
-  to {
-    clip-path: inset(0 0 0 0);
-    transform: translateX(0);
+
+  .nav a.is-active {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  /* Icon-only on desktop; the text stays available to screen readers. */
+  .nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .nav a.nav-cart.has-items .nav-cart-count {
+    position: absolute;
+    top: -1px;
+    right: -1px;
   }
 }
 
-/* Exact reverse of nav-reveal above. */
-@keyframes nav-hide {
-  from {
-    clip-path: inset(0 0 0 0);
-    transform: translateX(0);
-  }
-  to {
-    clip-path: inset(0 100% 0 0);
-    transform: translateX(-10px);
-  }
-}
 
 main {
   width: 100%;
@@ -589,7 +539,7 @@ main {
   justify-content: center;
   padding: 96px 20px;
   border-top: 1px solid var(--line);
-  scroll-margin-top: 84px;
+  scroll-margin-top: calc(var(--header-h) + 12px);
 }
 
 .content-section.alt { background: #080808; }
@@ -966,10 +916,6 @@ html, body { height: 100%; }
     overflow: hidden;
   }
 
-  body.smartlink .hero-logo {
-    width: clamp(60px, 10vh, 112px);
-    height: clamp(60px, 10vh, 112px);
-  }
 
   body.smartlink .feature-band {
     height: 100%;
@@ -1002,18 +948,18 @@ html, body { height: 100%; }
      (flex:1 1 auto, min-height:0, display:flex, flex-direction:
      column) - no homepage-specific override needed here anymore. */
 
+  /* The news carousel runs underneath the transparent sticky header
+     (negative top margin pulls it up under the header's reserved
+     space), so the hero image is full-bleed behind the pills. */
   body.home .feature-band {
     position: relative;
     overflow: hidden;
-    min-height: calc(100vh - 160px);
+    margin-top: calc(var(--header-h) * -1);
+    min-height: 100vh;
     padding: 0;
     display: block;
   }
 
-  body.home .hero-logo {
-    width: 96px;
-    height: 96px;
-  }
 
   body.home .cover-card {
     width: clamp(110px, 34vh, 451px);
@@ -1035,10 +981,6 @@ html, body { height: 100%; }
     overflow: hidden;
   }
 
-  body.artists .hero-logo {
-    width: clamp(60px, 10vh, 112px);
-    height: clamp(60px, 10vh, 112px);
-  }
 
   body.artists .artists-band {
     height: 100%;
@@ -1053,10 +995,6 @@ html, body { height: 100%; }
     overflow: visible;
   }
 
-  body.music .hero-logo {
-    width: clamp(60px, 10vh, 112px);
-    height: clamp(60px, 10vh, 112px);
-  }
 
   body.music .music-card:hover::before,
   body.music .music-card:focus-visible::before {
@@ -1080,10 +1018,6 @@ html, body { height: 100%; }
     overflow: hidden;
   }
 
-  body.contacts .hero-logo {
-    width: clamp(60px, 10vh, 96px);
-    height: clamp(60px, 10vh, 96px);
-  }
 
   body.contacts .content-section {
     height: 100%;
@@ -1121,22 +1055,6 @@ html, body { height: 100%; }
     overflow: visible;
   }
 
-  /* Mobile keeps the original "whole header (hero+hamburger) pinned
-     from the very top" behavior - .nav-wrap itself is relocated off
-     into the fullscreen mobile menu (see setupMobileNav in script.js)
-     and isn't shown as an inline bar here, so the desktop-only
-     nav-wrap-alone sticky behavior above doesn't apply. */
-  div[data-include*="header.html"] {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  .hero-logo {
-    width: 96px;
-    height: 96px;
-  }
-
   .contacts-columns {
     flex-direction: column;
     min-height: calc(100vh - 220px);
@@ -1153,19 +1071,12 @@ html, body { height: 100%; }
     text-align: center;
   }
 
-  .hero { padding: 35px 20px 30px; }
-  .nav-wrap { padding: 10px 20px 10px; }
-  .nav {
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-    min-height: auto;
-  }
   .feature-band { padding: 48px 20px; }
   body.home .feature-band {
     position: relative;
     overflow: hidden;
-    min-height: 80vh;
+    margin-top: calc(var(--header-h) * -1);
+    min-height: calc(80vh + var(--header-h));
     padding: 0;
     display: block;
   }
@@ -3178,68 +3089,8 @@ body.magazin-product .magazin-band {
   }
 
 }
-/* ── Discord nav icon alignment - no separate button styling, the
-   link itself still inherits all standard .nav a rules. Height is
-   set explicitly to 36px to match the effective line-box height the
-   other nav items get from line-height: 2 at 18px font-size, so the
-   Discord link's clickable area matches even though its icon is
-   smaller than that. */
-.nav a.nav-discord {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  line-height: 1;
-  height: 36px;
-}
-
-.nav a.nav-discord svg {
-  flex-shrink: 0;
-}
-
-/* ── Cart nav icon - site-wide, present on every page (not just
-   /magazin) via header.html. Deliberately NOT part of .nav's own
-   centered flex group - it's position: absolute, pinned to .nav-wrap's
-   own right edge (the actual full-width bar, not the narrower
-   min(100%, var(--content)) box .nav centers itself in), so it stays
-   put at the bar's true right end with a fixed 24px gap regardless of
-   viewport width, and the remaining links (Артисти..Discord) get
-   centered as their own group with no gap left behind for this one.
-   .nav itself is left position: static on purpose, so this reaches up
-   to .nav-wrap (the nearest positioned ancestor) instead of .nav.
-   Reset back to a normal in-flow stacked link on mobile below, where
-   the nav becomes a vertical list and there's no "bar edge" to pin
-   to. The badge count itself is kept in sync from localStorage by
-   updateNavCartCount() in script.js - same 'intermission_cart' key
-   /magazin's own cart script reads and writes. */
-.nav a.nav-cart {
-  position: absolute;
-  top: 50%;
-  right: 24px;
-  transform: translateY(-50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  line-height: 1;
-  height: 36px;
-}
-
-.nav a.nav-cart svg {
-  flex-shrink: 0;
-}
-
-.nav-cart-count {
-  font-size: 15px;
-  font-weight: 600;
-  min-width: 1ch;
-  text-align: center;
-}
-
-/* Brightens up once there's actually something in the cart - same
-   idea as .nav a.is-active, just triggered by cart contents instead
-   of scroll position. */
-.nav a.nav-cart.has-items {
-  color: var(--text);
-}
+/* Discord and cart icon styling now lives in the Site header section
+   near the top of this file. */
 
 /* ── Image protection (deterrent only, not true security - any
    image rendered in a browser can still be extracted via dev
@@ -3250,44 +3101,79 @@ img {
   user-select: none;
 }
 
-/* ── Mobile nav: floating toggle button + centered overlay menu ──
-   Replaces the old "stack nav links below logo" mobile behavior.
-   Desktop (>=920px) is completely unaffected - toggle/backdrop stay
-   hidden and .nav-wrap/.nav behave exactly as they already did. */
+/* ── Mobile header + menu ──────────────────────────────────────────
+   Below 920px the header is just the logo with a glass hamburger
+   button on the right; .nav-wrap (relocated by setupMobileNav in
+   script.js) becomes the fullscreen menu. Desktop (>=920px) never
+   shows the toggle/backdrop. */
 .mobile-nav-toggle,
 .mobile-nav-backdrop {
   display: none;
 }
 
 @media (max-width: 919.98px) {
+  :root {
+    --header-h: 80px;
+    --logo-size: 56px;
+  }
+
   .mobile-nav-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
     position: absolute;
     top: 50%;
-    right: 20px;
+    right: 16px;
     transform: translateY(-50%);
-    width: 32px;
-    height: 32px;
-    background: none;
-    border: none;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    background: rgba(22, 22, 24, 0.5);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    backdrop-filter: blur(16px) saturate(150%);
     color: var(--text);
     cursor: pointer;
     z-index: 90;
+  }
+
+  .mobile-nav-toggle:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.75);
+    outline-offset: 3px;
   }
 
   /* Raised above the mobile nav overlay (200) specifically while the
      menu is open, using the aria-expanded state the JS already
      toggles - otherwise the button's own lowered z-index (needed to
      sit behind the artist/music modals) would put it behind the
-     menu's backdrop too, making it unclickable to close. */
+     menu's backdrop too, making it unclickable to close. Vertically
+     centered on the header bar, same spot as when it's closed. */
   .mobile-nav-toggle[aria-expanded="true"] {
     position: fixed;
-    top: 65px;
-    right: 20px;
+    top: calc((var(--header-h) - 44px) / 2);
+    right: 16px;
     transform: none;
     z-index: 202;
+  }
+
+  /* Hamburger morphs into an X while the menu is open. */
+  .mobile-nav-toggle line {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform .25s ease, opacity .2s ease;
+  }
+
+  .mobile-nav-toggle[aria-expanded="true"] line:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  .mobile-nav-toggle[aria-expanded="true"] line:nth-child(2) {
+    opacity: 0;
+  }
+
+  .mobile-nav-toggle[aria-expanded="true"] line:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
   }
 
   .mobile-nav-backdrop {
@@ -3311,7 +3197,6 @@ img {
     inset: 0;
     padding: 0;
     background: none;
-    backdrop-filter: none;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3329,24 +3214,51 @@ img {
   .nav-wrap .nav {
     flex-direction: column;
     align-items: flex-start;
-    gap: 24px;
+    gap: 40px;
     min-height: auto;
-    padding-left: 24px;
+    padding-left: 32px;
+  }
+
+  .nav-wrap .nav-links,
+  .nav-wrap .nav-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-wrap .nav-links {
+    gap: 22px;
+  }
+
+  .nav-wrap .nav-actions {
+    gap: 20px;
   }
 
   .nav-wrap .nav a {
-    font-size: 22px;
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
   }
 
-  /* The mobile menu is a plain vertical stack (flex-direction: column),
-     with no "bar edge" to pin the cart link to - undo the desktop-only
-     absolute positioning so it just sits in the list like every other
-     link, in normal document flow. */
+  .nav-wrap .nav a.nav-discord,
   .nav-wrap .nav a.nav-cart {
-    position: static;
-    transform: none;
+    font-size: 17px;
+    letter-spacing: 0.1em;
+  }
+
+  .nav-wrap .nav a:hover,
+  .nav-wrap .nav a.is-active {
+    color: #fff;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav-toggle line {
+    transition: none;
+  }
+}
+
 
 .page-transition-overlay {
   position: fixed;
