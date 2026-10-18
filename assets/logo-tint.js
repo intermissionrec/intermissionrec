@@ -14,8 +14,10 @@
  *    point) and finds the dominant colour.
  *  - Washes that colour out (pushes its lightness up to WASH_LIGHTNESS and
  *    holds its saturation within WASH_SATURATION_MIN/MAX), then - where the
- *    picture behind the logo is bright - lays a translucent black over it
- *    (up to LIGHT_BG_DARKEN) so it doesn't disappear into light areas.
+ *    picture behind the logo is bright - darkens it (a translucent black
+ *    overlay of up to LIGHT_BG_DARKEN) and adds some saturation back
+ *    (LIGHT_BG_SATURATION) so it doesn't disappear into light areas or go grey.
+ *    Dark areas keep the plain washed-out colour.
  *  - Every slide's colour is worked out up front (all the images load in
  *    parallel), so when the carousel changes slide the colour starts
  *    changing at that same instant instead of after an image has loaded.
@@ -43,7 +45,8 @@
   var WASH_SATURATION_MIN = 0.4;  // the logo's colour keeps the slide's saturation, held between these two:
   var WASH_SATURATION_MAX = 0.8;  //   min = always a hint of colour, max = never too candy-bright
   var FADE_FRACTION = 0.55;     // share of the feature band's height over which it fades to white
-  var LIGHT_BG_DARKEN = 0.2;    // strength of the black overlay on the logo over fully bright areas (0.2 = 20% black)
+  var LIGHT_BG_DARKEN = 0.5;    // strength of the black overlay on the logo over fully bright areas (0.5 = 50% black)
+  var LIGHT_BG_SATURATION = 0.25; // extra colour added back on bright areas, so the darkened logo doesn't turn grey (0 = none)
   var LIGHT_BG_START = 0.15;    // brightness behind the logo (0-1) where that darkening begins...
   var LIGHT_BG_FULL = 0.32;     // ...and where it reaches full strength
   var HEADER_SCRIM = 0.26;      // how much the header's own dark fade dims the image behind the logo at the top of the page
@@ -89,6 +92,25 @@
       Math.round(hue(p, q, h) * 255),
       Math.round(hue(p, q, h - 1 / 3) * 255)
     ];
+  }
+
+  function rgbToHsv(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min, h = 0;
+    if (d !== 0) {
+      if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h /= 6;
+    }
+    return [h, max === 0 ? 0 : d / max, max];
+  }
+
+  function hsvToRgb(h, s, v) {
+    var i = Math.floor(h * 6), f = h * 6 - i;
+    var p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+    var rgb = [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i % 6];
+    return [Math.round(rgb[0] * 255), Math.round(rgb[1] * 255), Math.round(rgb[2] * 255)];
   }
 
   function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
@@ -339,15 +361,20 @@
     return 'rgb(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ')';
   }
 
-  // Bright area behind the logo -> a black overlay on the logo, easing in
-  // from LIGHT_BG_START to full LIGHT_BG_DARKEN strength at LIGHT_BG_FULL.
+  // Bright area behind the logo -> darker logo: a black overlay (up to
+  // LIGHT_BG_DARKEN) plus some saturation added back (LIGHT_BG_SATURATION,
+  // otherwise a pale colour just turns grey when it's darkened). Both ease
+  // in from LIGHT_BG_START to full strength at LIGHT_BG_FULL. Greys and
+  // white have no colour to add to, so they only get darker.
   function darkenForBrightBackground(color, bgLum) {
     var t = clamp((bgLum - LIGHT_BG_START) / (LIGHT_BG_FULL - LIGHT_BG_START), 0, 1);
-    var amount = LIGHT_BG_DARKEN * t * t * (3 - 2 * t);
-    if (amount <= 0) return color;
+    t = t * t * (3 - 2 * t);
+    if (t <= 0) return color;
     var rgb = parseColor(color);
-    var keep = 1 - amount;
-    return 'rgb(' + Math.round(rgb[0] * keep) + ', ' + Math.round(rgb[1] * keep) + ', ' + Math.round(rgb[2] * keep) + ')';
+    var hsv = rgbToHsv(rgb[0], rgb[1], rgb[2]);
+    var sat = hsv[1] > 0.03 ? clamp(hsv[1] + LIGHT_BG_SATURATION * t, 0, 1) : hsv[1];
+    var out = hsvToRgb(hsv[0], sat, hsv[2] * (1 - LIGHT_BG_DARKEN * t));
+    return 'rgb(' + out[0] + ', ' + out[1] + ', ' + out[2] + ')';
   }
 
   function colorForSlide(img, slide) {
