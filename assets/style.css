@@ -391,7 +391,7 @@ button.hero-icon:focus-visible {
     font-family: var(--font-nav);
     font-size: 13px;
     font-weight: 400;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     white-space: nowrap;
   }
