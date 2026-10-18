@@ -13,8 +13,8 @@
   /* Header sizing - the sticky header's layout height and logo size.
      Mobile overrides both in the max-width: 919.98px block at the
      bottom of the file. */
-  --header-h: 108px;
-  --logo-size: 84px;
+  --header-h: 140px;
+  --logo-size: 96px;
   --header-pad-x: clamp(20px, 3vw, 45px);
 }
 
