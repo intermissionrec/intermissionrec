@@ -202,6 +202,11 @@ div[data-include*="header.html"]::before {
 .hero-logo {
   width: var(--logo-size);
   height: var(--logo-size);
+  /* The hover spin (script.js swaps the <img> for the canvas below)
+     is switched off: the logo image always stays put and visible. */
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .hero-logo-wrap {
@@ -210,13 +215,7 @@ div[data-include*="header.html"]::before {
 }
 
 .hero-logo-canvas {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  transition: opacity 120ms ease;
+  display: none !important;
 }
 
 .hero-logo-link:focus-visible,
@@ -226,16 +225,42 @@ div[data-include*="header.html"]::before {
   outline-offset: 3px;
 }
 
-/* Icon links that live in the logo bar (cart; Discord on mobile). */
-.hero-icon {
+/* Right-hand group in the logo bar: newsletter + cart. */
+.hero-actions {
   position: absolute;
   top: 50%;
+  right: var(--header-pad-x);
   transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+}
+
+/* Icon links/buttons that live in the logo bar. */
+.hero-icon {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.78);
   transition: color .2s ease, background-color .2s ease;
+}
+
+/* The newsletter trigger is a <button> that also carries the footer's
+   .newsletter-trigger-btn class (that's what script.js hooks into to
+   open the newsletter modal), so its footer-link look is reset here. */
+button.hero-icon {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+}
+
+button.hero-icon:hover,
+button.hero-icon:focus-visible {
+  color: #fff;
 }
 
 .hero-icon:hover,
@@ -267,8 +292,8 @@ div[data-include*="header.html"]::before {
   border-radius: 8px;
   background: #fff;
   color: #060606;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 400;
   line-height: 1;
 }
 
@@ -314,8 +339,8 @@ div[data-include*="header.html"]::before {
 }
 
 /* The mobile-only Discord link in the logo bar. */
-.hero-discord,
-.mobile-nav-toggle {
+.mobile-nav-toggle,
+.nav-discord-text {
   display: none;
 }
 
@@ -338,7 +363,7 @@ div[data-include*="header.html"]::before {
   }
 
   .nav-links,
-  .nav-cart {
+  .hero-actions {
     height: 46px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 14px;
@@ -396,20 +421,27 @@ div[data-include*="header.html"]::before {
     background: rgba(255, 255, 255, 0.2);
   }
 
-  /* Cart: its own lighter glass pill at the right edge of the bar. */
-  .nav-cart {
-    right: var(--header-pad-x);
-    width: 56px;
+  /* Right pill: newsletter + cart, a touch lighter than the links pill. */
+  .hero-actions {
+    padding: 0 6px;
+    gap: 2px;
     background: rgba(255, 255, 255, 0.08);
   }
 
-  .nav-cart:hover {
-    background: rgba(255, 255, 255, 0.14);
+  .hero-actions .hero-icon {
+    width: 38px;
+    height: 34px;
+    border-radius: 9px;
+  }
+
+  .hero-actions .hero-icon:hover,
+  .hero-actions .hero-icon:focus-visible {
+    background: rgba(255, 255, 255, 0.12);
   }
 
   .nav-cart.has-items .nav-cart-count {
-    top: 5px;
-    right: 7px;
+    top: 1px;
+    right: 1px;
   }
 }
 
@@ -3154,8 +3186,8 @@ img {
 }
 
 /* ── Mobile header + menu ──────────────────────────────────────────
-   Below 920px the whole logo bar is one glass pill: hamburger and
-   Discord on the left, logo in the middle, cart on the right.
+   Below 920px the whole logo bar is one glass pill: hamburger on the
+   left, logo in the middle, newsletter + cart on the right.
    .nav-wrap (relocated by setupMobileNav in script.js) becomes the
    fullscreen menu. Desktop (>=920px) never shows the toggle/backdrop. */
 .mobile-nav-backdrop {
@@ -3166,6 +3198,7 @@ img {
   :root {
     /* 100px pill + 8px of air above and below it. */
     --header-h: 116px;
+    --logo-size: 84px;
   }
 
   .hero {
@@ -3181,17 +3214,11 @@ img {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
-  /* Absolutely positioned so the layout doesn't depend on DOM order
-     (script.js moves the toggle out of and back into .hero). */
   .mobile-nav-toggle,
-  .hero-discord,
-  .nav-cart {
+  .hero-actions .hero-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
     width: 44px;
     height: 44px;
     padding: 0;
@@ -3202,9 +3229,17 @@ img {
     cursor: pointer;
   }
 
-  .mobile-nav-toggle { left: 12px; z-index: 90; }
-  .hero-discord { left: 58px; }
-  .nav-cart { right: 12px; }
+  /* Absolutely positioned so the layout doesn't depend on DOM order
+     (script.js moves the toggle out of and back into .hero). */
+  .mobile-nav-toggle {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    z-index: 90;
+  }
+
+  .hero-actions { right: 12px; gap: 0; }
 
   .mobile-nav-toggle:focus-visible {
     outline: 2px solid rgba(255, 255, 255, 0.75);
@@ -3258,7 +3293,7 @@ img {
     z-index: 199;
     opacity: 0;
     visibility: hidden;
-    transition: opacity .25s ease, visibility .25s ease;
+    transition: opacity .4s ease, visibility .4s ease;
   }
 
   .mobile-nav-backdrop.is-open {
@@ -3266,6 +3301,10 @@ img {
     visibility: visible;
   }
 
+  /* The menu container itself never fades - the links animate - so
+     it only needs to stay visible until the exit animation finishes
+     (visibility flips after the delay below when closing, instantly
+     when opening). */
   .nav-wrap {
     position: fixed;
     inset: 0;
@@ -3275,14 +3314,13 @@ img {
     align-items: center;
     justify-content: left;
     z-index: 200;
-    opacity: 0;
     visibility: hidden;
-    transition: opacity .25s ease, visibility .25s ease;
+    transition: visibility 0s linear .45s;
   }
 
   .nav-wrap.is-open {
-    opacity: 1;
     visibility: visible;
+    transition-delay: 0s;
   }
 
   .nav-wrap .nav {
@@ -3296,12 +3334,40 @@ img {
     gap: 22px;
   }
 
+  /* Closed / closing: links sit slightly to the left, faded out. They
+     leave right-to-left (last item first), quickly. */
   .nav-wrap .nav a {
     font-size: 26px;
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.85);
+    opacity: 0;
+    transform: translateX(-28px);
+    transition:
+      opacity .25s ease,
+      transform .25s ease,
+      color .2s ease;
+    transition-delay: calc((5 - var(--i, 0)) * 30ms), calc((5 - var(--i, 0)) * 30ms), 0s;
+  }
+
+  .nav-wrap .nav-links a:nth-child(1) { --i: 0; }
+  .nav-wrap .nav-links a:nth-child(2) { --i: 1; }
+  .nav-wrap .nav-links a:nth-child(3) { --i: 2; }
+  .nav-wrap .nav-links a:nth-child(4) { --i: 3; }
+  .nav-wrap .nav-links a:nth-child(5) { --i: 4; }
+  .nav-wrap .nav-links a:nth-child(6) { --i: 5; }
+
+  /* Open: links slide in from the left and fade up one after another,
+     top to bottom. */
+  .nav-wrap.is-open .nav a {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity .5s cubic-bezier(.2, .7, .2, 1),
+      transform .55s cubic-bezier(.2, .7, .2, 1),
+      color .2s ease;
+    transition-delay: calc(120ms + var(--i, 0) * 70ms), calc(120ms + var(--i, 0) * 70ms), 0s;
   }
 
   .nav-wrap .nav a:hover,
@@ -3309,9 +3375,29 @@ img {
     color: #fff;
   }
 
-  /* Discord lives in the header pill on mobile, not in the menu. */
+  /* Discord sits in the menu (not in the header pill) as icon + label. */
   .nav-wrap .nav-links a.nav-discord {
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .nav-wrap .nav-links a.nav-discord svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .nav-wrap .nav-discord-text {
+    display: inline;
+  }
+}
+
+@media (max-width: 919.98px) and (prefers-reduced-motion: reduce) {
+  .nav-wrap .nav a,
+  .nav-wrap.is-open .nav a {
+    transform: none;
+    transition: opacity .2s ease, color .2s ease;
+    transition-delay: 0s;
   }
 }
 
