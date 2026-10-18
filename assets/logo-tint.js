@@ -13,7 +13,12 @@
  *    allowing for background-size: cover and the data-photo-x/y focal
  *    point) and finds the dominant colour.
  *  - Washes that colour out (pushes its lightness up to WASH_LIGHTNESS and
- *    holds its saturation within WASH_SATURATION_MIN/MAX).
+ *    holds its saturation within WASH_SATURATION_MIN/MAX), then - where the
+ *    picture behind the logo is bright - lays a translucent black over it
+ *    (up to LIGHT_BG_DARKEN) so it doesn't disappear into light areas.
+ *  - Every slide's colour is worked out up front (all the images load in
+ *    parallel), so when the carousel changes slide the colour starts
+ *    changing at that same instant instead of after an image has loaded.
  *  - Eases the logo from its current colour to the new one (a hue sweep
  *    through OKLCH, TRANSITION_MS long) by updating --logo-tint on <html>,
  *    and keeps --logo-tint-amount (1 at the top of the page -> 0 once
@@ -38,7 +43,11 @@
   var WASH_SATURATION_MIN = 0.4;  // the logo's colour keeps the slide's saturation, held between these two:
   var WASH_SATURATION_MAX = 0.8;  //   min = always a hint of colour, max = never too candy-bright
   var FADE_FRACTION = 0.55;     // share of the feature band's height over which it fades to white
-  var TRANSITION_MS = 1100;     // how long the colour takes to ease from one slide's colour to the next
+  var LIGHT_BG_DARKEN = 0.2;    // strength of the black overlay on the logo over fully bright areas (0.2 = 20% black)
+  var LIGHT_BG_START = 0.15;    // brightness behind the logo (0-1) where that darkening begins...
+  var LIGHT_BG_FULL = 0.32;     // ...and where it reaches full strength
+  var HEADER_SCRIM = 0.26;      // how much the header's own dark fade dims the image behind the logo at the top of the page
+  var TRANSITION_MS = 600;      // how long the colour takes to change from one slide's colour to the next
   var DESKTOP_QUERY = '(min-width: 920px)'; // keep in step with the header breakpoint in style.css
   var WHITE = '#ffffff';
 
@@ -87,6 +96,10 @@
   function channelToLinear(c) {
     c /= 255;
     return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  }
+  // WCAG relative luminance (0 = black, 1 = white) of an sRGB colour.
+  function luminance(r, g, b) {
+    return 0.2126 * channelToLinear(r) + 0.7152 * channelToLinear(g) + 0.0722 * channelToLinear(b);
   }
 
   // ── Animating from one colour to the next ───────────────────────
@@ -147,8 +160,8 @@
     return [255, 255, 255];
   }
 
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
   }
 
   var shown = [255, 255, 255]; // the colour currently on screen
@@ -172,7 +185,7 @@
       if (id !== tweenId) return; // a newer colour took over (starts from wherever this one got to)
       if (startTime === null) startTime = now;
       var t = clamp((now - startTime) / TRANSITION_MS, 0, 1);
-      paint(t >= 1 ? to : mixOklch(from, to, easeInOutCubic(t)));
+      paint(t >= 1 ? to : mixOklch(from, to, easeOutCubic(t)));
       if (t < 1) requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
@@ -284,6 +297,37 @@
     return rgbToHsl(tr / tw, tg / tw, tb / tw);
   }
 
+  // ── How bright is the picture right behind the logo? ────────────
+  // Where the logo sits inside the feature band, worked out from the
+  // header's CSS sizes (not measured from the page), so it doesn't depend
+  // on the header having loaded or on the scroll position.
+  function logoRegionInBand() {
+    var cs = getComputedStyle(root);
+    var size = parseFloat(cs.getPropertyValue('--logo-size')) || 96;
+    var headerH = parseFloat(cs.getPropertyValue('--header-h')) || 140;
+    return { x: (band.clientWidth - size) / 2, y: (headerH - size) / 2, w: size, h: size };
+  }
+
+  // Average relative luminance (0-1) of the picture behind the logo, as
+  // it looks with the header's own dark fade over it.
+  function backgroundLuminance(img, rect) {
+    var reg = logoRegionInBand();
+    var k = rect.sw / rect.bw;                  // image px per page px
+    var sx = clamp(rect.sx + reg.x * k, 0, img.naturalWidth - 1);
+    var sy = clamp(rect.sy + reg.y * k, 0, img.naturalHeight - 1);
+    var sw = Math.max(1, Math.min(reg.w * k, img.naturalWidth - sx));
+    var sh = Math.max(1, Math.min(reg.h * k, img.naturalHeight - sy));
+    var data = readPixels(img, sx, sy, sw, sh, 24, 24);
+    if (!data) return null;
+    var dim = 1 - HEADER_SCRIM, total = 0, n = 0;
+    for (var i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 200) continue;
+      total += luminance(data[i] * dim, data[i + 1] * dim, data[i + 2] * dim);
+      n++;
+    }
+    return n ? total / n : null;
+  }
+
   // ── Choosing the logo colour ────────────────────────────────────
   // Keep the picture's hue, but wash it out: high lightness, moderate
   // saturation. A grey picture has no hue to keep, so the logo stays
@@ -293,6 +337,24 @@
     var s = clamp(hsl[1], WASH_SATURATION_MIN, WASH_SATURATION_MAX);
     var rgb = hslToRgb(hsl[0], s, WASH_LIGHTNESS);
     return 'rgb(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ')';
+  }
+
+  // Bright area behind the logo -> a black overlay on the logo, easing in
+  // from LIGHT_BG_START to full LIGHT_BG_DARKEN strength at LIGHT_BG_FULL.
+  function darkenForBrightBackground(color, bgLum) {
+    var t = clamp((bgLum - LIGHT_BG_START) / (LIGHT_BG_FULL - LIGHT_BG_START), 0, 1);
+    var amount = LIGHT_BG_DARKEN * t * t * (3 - 2 * t);
+    if (amount <= 0) return color;
+    var rgb = parseColor(color);
+    var keep = 1 - amount;
+    return 'rgb(' + Math.round(rgb[0] * keep) + ', ' + Math.round(rgb[1] * keep) + ', ' + Math.round(rgb[2] * keep) + ')';
+  }
+
+  function colorForSlide(img, slide) {
+    var rect = visibleRect(img, slide);
+    var color = pickLogoColor(dominantHsl(img, rect));
+    var bgLum = backgroundLuminance(img, rect);
+    return bgLum === null ? color : darkenForBrightBackground(color, bgLum);
   }
 
   // ── Getting the logo ready (header.html loads after this runs) ──
@@ -322,20 +384,41 @@
 
   // ── Applying it ─────────────────────────────────────────────────
   var desktop = window.matchMedia(DESKTOP_QUERY);
+
+  // Every slide's logo colour is worked out up front: all the slide images
+  // load in parallel and are analysed once, so a slide change can start
+  // the colour change instantly instead of waiting on an image.
+  var colorCache = new Map();   // slide element -> logo colour
+  var buildPromise = null;
+  function buildCache() {
+    if (!buildPromise) {
+      var slides = Array.prototype.slice.call(carousel.querySelectorAll('.feature-slide'));
+      buildPromise = Promise.all(slides.map(function (slide) {
+        var url = slideImageUrl(slide);
+        return (url ? loadImage(url) : Promise.resolve(null)).then(function (img) {
+          colorCache.set(slide, img ? colorForSlide(img, slide) : WHITE);
+        });
+      }));
+    }
+    return buildPromise;
+  }
+
+  function show(slide) {
+    setLogoColor(colorCache.get(slide) || WHITE);
+    updateAmount();
+    waitForLogo();
+  }
+
   var token = 0;
   function refresh() {
     if (!desktop.matches) return;
     var slide = carousel.querySelector('.feature-slide.is-active') ||
       carousel.querySelector('.feature-slide');
     if (!slide) return;
-    var mine = ++token;
-    var url = slideImageUrl(slide);
-    (url ? loadImage(url) : Promise.resolve(null)).then(function (img) {
-      if (mine !== token || !desktop.matches) return; // superseded by a newer slide change, or left desktop
-      var color = img ? pickLogoColor(dominantHsl(img, visibleRect(img, slide))) : WHITE;
-      setLogoColor(color);
-      updateAmount();
-      waitForLogo();
+    if (colorCache.has(slide)) { show(slide); return; } // normal case: instant
+    var mine = ++token;                                  // first moments: wait for the images
+    buildCache().then(function () {
+      if (mine === token && desktop.matches) show(slide);
     });
   }
 
@@ -360,7 +443,12 @@
   var resizeTimer;
   window.addEventListener('resize', function () {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () { refresh(); updateAmount(); }, 200);
+    resizeTimer = setTimeout(function () {
+      if (!desktop.matches) return;
+      colorCache.clear();
+      buildPromise = null;
+      buildCache().then(function () { refresh(); updateAmount(); });
+    }, 200);
   });
 
   // Crossing the desktop breakpoint: switch the effect fully off (plain
