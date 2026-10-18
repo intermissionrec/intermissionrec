@@ -1,8 +1,10 @@
 /* logo-tint.js - homepage only.
  *
  * Tints the header logo with the most prominent colour of the feature
- * slide that's currently showing, and blends it back to the standard
- * white as the visitor scrolls down past the slides.
+ * slide that's currently showing - made darker or lighter, whichever
+ * keeps it readable against the part of the image sitting behind the
+ * logo - and blends it back to the standard white as the visitor
+ * scrolls down past the slides.
  *
  * How it works:
  *  - Watches the carousel for the .is-active slide changing (it only
@@ -10,9 +12,13 @@
  *    the carousel).
  *  - Samples the slide's image (the part of it that's actually visible,
  *    allowing for background-size: cover and the data-photo-x/y focal
- *    point), finds the dominant colour and sets --logo-tint on <html>.
- *  - Sets --logo-tint-amount (1 at the top of the page -> 0 once you've
- *    scrolled FADE_FRACTION of the way down the feature band).
+ *    point) and finds the dominant colour.
+ *  - Measures how bright the image is directly behind the logo. Bright
+ *    background -> the logo's colour is darkened; dark background -> it
+ *    is lightened, until there is enough contrast (MIN_CONTRAST).
+ *  - Sets --logo-tint on <html>, plus --logo-tint-amount (1 at the top of
+ *    the page -> 0 once you've scrolled FADE_FRACTION of the way down
+ *    the feature band).
  *  - The actual colouring and the smooth transitions live in style.css
  *    (search for "Homepage logo tint").
  *
@@ -25,12 +31,15 @@
   // ── Tunables ────────────────────────────────────────────────────
   var SAMPLE_WIDTH = 64;        // image is shrunk to this many px wide before sampling
   var HUE_BUCKETS = 24;         // colours are grouped into this many hue slices
-  var MIN_COLORFULNESS = 0.04;  // below this the image counts as grey -> logo stays white
-  var MIN_SATURATION = 0.55;    // the picked colour is pushed up to at least this vividness...
-  var MIN_LIGHTNESS = 0.62;     // ...and kept within this lightness range,
-  var MAX_LIGHTNESS = 0.80;     //    so the logo always reads against the dark image
+  var MIN_COLORFULNESS = 0.04;  // below this the image counts as grey (logo goes white/near-black)
+  var MIN_SATURATION = 0.55;    // the picked colour is pushed up to at least this vividness
+  var MIN_CONTRAST = 4;         // contrast ratio to reach against the image behind the logo (3 = bare minimum, 4.5 = text-grade)
+  var MIN_LIGHTNESS = 0.08;     // how dark the logo may get
+  var MAX_LIGHTNESS = 0.94;     // how light the logo may get
+  var HEADER_SCRIM = 0.26;      // how much the header's own dark fade dims the image behind the logo at the top of the page
   var FADE_FRACTION = 0.55;     // share of the feature band's height over which it fades to white
   var WHITE = '#ffffff';
+  var DARK = 'rgb(12, 12, 12)'; // logo colour on a bright grey image
 
   var root = document.documentElement;
   var carousel = document.querySelector('.feature-carousel');
@@ -74,6 +83,21 @@
 
   function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
 
+  // WCAG relative luminance (0 = black, 1 = white) of an sRGB colour.
+  function channelToLinear(c) {
+    c /= 255;
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  }
+  function luminance(r, g, b) {
+    return 0.2126 * channelToLinear(r) + 0.7152 * channelToLinear(g) + 0.0722 * channelToLinear(b);
+  }
+  function contrast(l1, l2) {
+    var hi = Math.max(l1, l2), lo = Math.min(l1, l2);
+    return (hi + 0.05) / (lo + 0.05);
+  }
+  // Below this luminance white text reads better than black, above it black does.
+  var CROSSOVER = Math.sqrt(1.05 * 0.05) - 0.05; // ~0.179
+
   // ── Finding the slide's image and its visible area ──────────────
   function slideImageUrl(slide) {
     var raw = getComputedStyle(slide).getPropertyValue('--feature-image') ||
@@ -110,28 +134,36 @@
       sx: (img.naturalWidth - sw) * focalPoint(slide, 'photoX'),
       sy: (img.naturalHeight - sh) * focalPoint(slide, 'photoY'),
       sw: sw,
-      sh: sh
+      sh: sh,
+      bw: bw,
+      bh: bh
     };
+  }
+
+  // Draws a region of the image into a small canvas and returns its pixels.
+  function readPixels(img, sx, sy, sw, sh, cw, ch) {
+    var canvas = document.createElement('canvas');
+    canvas.width = cw;
+    canvas.height = ch;
+    var ctx = canvas.getContext('2d', { willReadFrequently: true });
+    try {
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
+      return ctx.getImageData(0, 0, cw, ch).data;
+    } catch (e) {
+      return null; // e.g. cross-origin image blocks pixel access
+    }
   }
 
   // ── Dominant colour ─────────────────────────────────────────────
   // Every pixel votes for its hue slice, weighted by how vivid it is
   // (saturation, discounted near black/white), so "prominent" means
   // plenty of area AND real colour - big dark or grey areas don't win.
-  function dominantColor(img, rect) {
+  // Returns [h, s, l] or null when the image is basically grey.
+  function dominantHsl(img, rect) {
     var cw = SAMPLE_WIDTH;
     var ch = Math.max(1, Math.round(cw * rect.sh / rect.sw));
-    var canvas = document.createElement('canvas');
-    canvas.width = cw;
-    canvas.height = ch;
-    var ctx = canvas.getContext('2d', { willReadFrequently: true });
-    var data;
-    try {
-      ctx.drawImage(img, rect.sx, rect.sy, rect.sw, rect.sh, 0, 0, cw, ch);
-      data = ctx.getImageData(0, 0, cw, ch).data;
-    } catch (e) {
-      return null; // e.g. cross-origin image blocks pixel access
-    }
+    var data = readPixels(img, rect.sx, rect.sy, rect.sw, rect.sh, cw, ch);
+    if (!data) return null;
 
     var N = HUE_BUCKETS;
     var weight = new Array(N).fill(0);
@@ -169,12 +201,68 @@
       var idx = (best + o + N) % N;
       tw += weight[idx]; tr += rs[idx]; tg += gs[idx]; tb += bs[idx];
     });
-    var avg = rgbToHsl(tr / tw, tg / tw, tb / tw);
-    var rgb = hslToRgb(
-      avg[0],
-      Math.max(avg[1], MIN_SATURATION),
-      clamp(avg[2], MIN_LIGHTNESS, MAX_LIGHTNESS)
-    );
+    return rgbToHsl(tr / tw, tg / tw, tb / tw);
+  }
+
+  // ── How bright is the image right behind the logo? ──────────────
+  function logoRegionInBand() {
+    var bandBox = band.getBoundingClientRect();
+    var wrap = document.querySelector('.hero-logo-wrap');
+    var box = wrap && wrap.getBoundingClientRect();
+    if (box && box.width) {
+      return {
+        x: box.left - bandBox.left,
+        y: box.top - bandBox.top,
+        w: box.width,
+        h: box.height
+      };
+    }
+    // Header not loaded yet: assume the logo sits top-centre.
+    var size = parseFloat(getComputedStyle(root).getPropertyValue('--logo-size')) || 96;
+    return { x: (band.clientWidth - size) / 2, y: 20, w: size, h: size };
+  }
+
+  // Average relative luminance (0-1) of the picture behind the logo, as
+  // it looks with the header's own dark fade over it.
+  function backgroundLuminance(img, rect) {
+    var reg = logoRegionInBand();
+    var k = rect.sw / rect.bw;                  // image px per page px
+    var sx = clamp(rect.sx + reg.x * k, 0, img.naturalWidth - 1);
+    var sy = clamp(rect.sy + reg.y * k, 0, img.naturalHeight - 1);
+    var sw = Math.max(1, Math.min(reg.w * k, img.naturalWidth - sx));
+    var sh = Math.max(1, Math.min(reg.h * k, img.naturalHeight - sy));
+    var data = readPixels(img, sx, sy, sw, sh, 24, 24);
+    if (!data) return null;
+    var dim = 1 - HEADER_SCRIM, total = 0, n = 0;
+    for (var i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 200) continue;
+      total += luminance(data[i] * dim, data[i + 1] * dim, data[i + 2] * dim);
+      n++;
+    }
+    return n ? total / n : null;
+  }
+
+  // ── Choosing the logo colour ────────────────────────────────────
+  // Keep the picture's hue, then slide its lightness - darker on a bright
+  // background, lighter on a dark one - just far enough to reach
+  // MIN_CONTRAST. A grey picture has no hue to keep, so the logo goes
+  // plain white on dark pictures and near-black on bright ones.
+  function pickLogoColor(hsl, bgLum) {
+    var darker = bgLum > CROSSOVER;
+    if (!hsl) return darker ? DARK : WHITE;
+
+    var h = hsl[0];
+    var s = Math.max(hsl[1], MIN_SATURATION);
+    var l = clamp(hsl[2], MIN_LIGHTNESS, MAX_LIGHTNESS);
+    var step = darker ? -0.02 : 0.02;
+    var rgb = hslToRgb(h, s, l);
+
+    while (contrast(luminance(rgb[0], rgb[1], rgb[2]), bgLum) < MIN_CONTRAST) {
+      var next = l + step;
+      if (next < MIN_LIGHTNESS || next > MAX_LIGHTNESS) break;
+      l = next;
+      rgb = hslToRgb(h, s, l);
+    }
     return 'rgb(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ')';
   }
 
@@ -213,8 +301,13 @@
     var url = slideImageUrl(slide);
     (url ? loadImage(url) : Promise.resolve(null)).then(function (img) {
       if (mine !== token) return; // a newer slide change superseded this one
-      var color = img ? dominantColor(img, visibleRect(img, slide)) : null;
-      root.style.setProperty('--logo-tint', color || WHITE);
+      var color = WHITE;
+      if (img) {
+        var rect = visibleRect(img, slide);
+        var bgLum = backgroundLuminance(img, rect);
+        if (bgLum !== null) color = pickLogoColor(dominantHsl(img, rect), bgLum);
+      }
+      root.style.setProperty('--logo-tint', color);
       updateAmount();
       waitForLogo();
     });
