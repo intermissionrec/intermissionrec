@@ -766,7 +766,7 @@ body:not(.home) main {
   border: none;
   padding: 0;
   margin-right: 18px;
-  color: #555;
+  color: rgba(255, 255, 255, 0.72);
   font-family: var(--font-nav);
   font-size: 14px;
   letter-spacing: 0.06em;
@@ -775,7 +775,7 @@ body:not(.home) main {
 }
 
 .newsletter-trigger-btn:hover {
-  color: var(--text);
+  color: #fff;
 }
 
 .newsletter-modal-overlay {
@@ -912,7 +912,7 @@ body:not(.home) main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.72);
   transition: color .2s ease;
 }
 
@@ -935,7 +935,7 @@ body:not(.home) main {
 .copyright-right {
   right: 50px;
   font-family: var(--font-nav);
-  color: #555;
+  color: rgba(255, 255, 255, 0.72);
   font-size: 14px;
   letter-spacing: 0.06em;
   white-space: nowrap;
@@ -3541,7 +3541,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 
 /* ── Footer: blog link (sits next to the Бюлетин trigger) ─────── */
 .footer-blog-link {
-  color: #555;
+  color: rgba(255, 255, 255, 0.72);
   font-family: var(--font-nav);
   font-size: 14px;
   margin-right: 18px;
@@ -3549,7 +3549,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 }
 
 .footer-blog-link:hover {
-  color: var(--text);
+  color: #fff;
 }
 
 /* ── Blog: listing page (/blog) ────────────────────────────────
