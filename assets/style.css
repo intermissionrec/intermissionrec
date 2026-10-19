@@ -3107,10 +3107,10 @@ body.magazin-product .magazin-band {
   max-width: var(--logo-max-width, 216px);
   max-height: var(--logo-max-height, 64px);
   object-fit: contain;
-  object-position: center bottom;
+  object-position: center;
   /* Bottom-centre of the tile, 48px up from the bottom edge. */
   align-self: flex-end;
-  margin: 0 auto 48px;
+  margin: 0 auto 24px;
   opacity: 1;
   transition: opacity 0.3s ease;
 }
@@ -3120,6 +3120,40 @@ body.magazin-product .magazin-band {
 .artist-tile:hover .artist-tile-logo,
 .artist-tile:focus-visible .artist-tile-logo {
   opacity: 0.5;
+}
+
+/* Desktop: logos in the same row share one vertical centre line - the
+   middle of the row's tallest logo. Each roster row is two grid tracks:
+   a flexible one on top and, under it, one that's exactly as tall as the
+   tallest logo in that row (plus the 48px bottom margin). Every tile
+   spans both tracks and passes them through (subgrid), so each logo is
+   centred inside that shared track: the tallest sits 48px from the
+   bottom, the shorter ones centre on its midline. Without subgrid
+   support the plain flex layout above applies, which still centres each
+   logo in its own box. */
+@media (min-width: 920px) {
+  @supports (grid-template-rows: subgrid) {
+    .artists-roster-grid {
+      grid-auto-rows: 1fr auto;
+    }
+
+    .artist-tile {
+      display: grid;
+      grid-row: span 2;
+      grid-template-rows: subgrid;
+    }
+
+    .artist-tile-name {
+      grid-row: 1 / span 2;
+      align-self: center;
+    }
+
+    .artist-tile-logo {
+      grid-row: 2;
+      align-self: center;
+      margin: 0 auto 48px;
+    }
+  }
 }
 
 @media (max-width: 919.98px) {
