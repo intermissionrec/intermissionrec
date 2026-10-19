@@ -502,8 +502,12 @@ body:not(.home) main {
   padding-top: var(--header-h);
 }
 
-body.artists main {
-  padding-top: 0;
+/* Artists page: the tiles run underneath the header on desktop only
+   (on mobile the page starts below the header pill like every other page). */
+@media (min-width: 920px) {
+  body.artists main {
+    padding-top: 0;
+  }
 }
 
 .feature-band {
@@ -3103,7 +3107,10 @@ body.magazin-product .magazin-band {
   max-width: var(--logo-max-width, 216px);
   max-height: var(--logo-max-height, 64px);
   object-fit: contain;
-  object-position: left center;
+  object-position: center bottom;
+  /* Bottom-centre of the tile, 48px up from the bottom edge. */
+  align-self: flex-end;
+  margin: 0 auto 48px;
   opacity: 1;
   transition: opacity 0.3s ease;
 }
