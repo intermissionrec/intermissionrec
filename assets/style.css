@@ -769,6 +769,7 @@ body:not(.home) main {
   color: #555;
   font-family: var(--font-nav);
   font-size: 14px;
+  letter-spacing: 0.06em;
   cursor: pointer;
   transition: color .2s ease;
 }
@@ -936,7 +937,7 @@ body:not(.home) main {
   font-family: var(--font-nav);
   color: #555;
   font-size: 14px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.06em;
   white-space: nowrap;
 }
 
