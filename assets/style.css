@@ -767,7 +767,7 @@ body:not(.home) main {
   padding: 0;
   margin-right: 18px;
   color: #555;
-  font-family: 'Rubik', sans-serif;
+  font-family: var(--font-nav);
   font-size: 14px;
   cursor: pointer;
   transition: color .2s ease;
@@ -911,13 +911,18 @@ body:not(.home) main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  opacity: .95;
-  transition: transform .2s ease, opacity .2s ease;
+  color: rgba(255, 255, 255, 0.78);
+  transition: color .2s ease;
 }
 
-.social-left a:hover {
-  transform: translateY(-1px);
-  opacity: 1;
+.social-left a:hover,
+.social-left a:focus-visible {
+  color: #fff;
+}
+
+.social-left a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.75);
+  outline-offset: 3px;
 }
 
 .social-left img {
@@ -928,6 +933,7 @@ body:not(.home) main {
 
 .copyright-right {
   right: 50px;
+  font-family: var(--font-nav);
   color: #555;
   font-size: 14px;
   letter-spacing: -0.01em;
@@ -3108,7 +3114,7 @@ body.magazin-product .magazin-band {
   max-height: var(--logo-max-height, 64px);
   object-fit: contain;
   object-position: center;
-  /* Bottom-centre of the tile, 48px up from the bottom edge. */
+  /* Bottom-centre of the tile, 24px up from the bottom edge. */
   align-self: flex-end;
   margin: 0 auto 24px;
   opacity: 1;
@@ -3125,9 +3131,9 @@ body.magazin-product .magazin-band {
 /* Desktop: logos in the same row share one vertical centre line - the
    middle of the row's tallest logo. Each roster row is two grid tracks:
    a flexible one on top and, under it, one that's exactly as tall as the
-   tallest logo in that row (plus the 48px bottom margin). Every tile
+   tallest logo in that row (plus the 24px bottom margin). Every tile
    spans both tracks and passes them through (subgrid), so each logo is
-   centred inside that shared track: the tallest sits 48px from the
+   centred inside that shared track: the tallest sits 24px from the
    bottom, the shorter ones centre on its midline. Without subgrid
    support the plain flex layout above applies, which still centres each
    logo in its own box. */
@@ -3535,7 +3541,7 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
 /* ── Footer: blog link (sits next to the Бюлетин trigger) ─────── */
 .footer-blog-link {
   color: #555;
-  font-family: 'Rubik', sans-serif;
+  font-family: var(--font-nav);
   font-size: 14px;
   margin-right: 18px;
   transition: color .2s ease;
