@@ -770,6 +770,9 @@ body:not(.home) main {
   font-family: var(--font-nav);
   font-size: 14px;
   letter-spacing: 0.06em;
+  /* A <button> doesn't inherit text-transform from its parent (browsers
+     set it to none on buttons), so it has to be set here directly. */
+  text-transform: uppercase;
   cursor: pointer;
   transition: color .2s ease;
 }
@@ -938,6 +941,7 @@ body:not(.home) main {
   color: rgba(255, 255, 255, 0.72);
   font-size: 14px;
   letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -3544,6 +3548,8 @@ html:has(#pageTransitionOverlay:not(.transition-done)) {
   color: rgba(255, 255, 255, 0.72);
   font-family: var(--font-nav);
   font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   margin-right: 18px;
   transition: color .2s ease;
 }
