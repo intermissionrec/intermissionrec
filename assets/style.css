@@ -1409,7 +1409,7 @@ html, body { height: 100%; }
   inset: 0;
   background-image: var(--instagram-bg);
   background-size: cover;
-  filter: blur(6px);
+  filter: blur(4px);
   /* Anchors the cover-crop to the image's own top edge, so on very
      wide viewports (where cover crops top+bottom to fit) important
      content near the top of the screenshot is never cut off. */
