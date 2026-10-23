@@ -107,5 +107,15 @@
         "cover":  "https://intermissionrec.com/assets/images/links/do-kraq.jpg",
         "slug":  "do-kraq",
         "artist":  "Leta Siren"
+    },
+    {
+        "notReleased":  true,
+        "rank":  13,
+        "mainArtist":  "Vidrata",
+        "title":  "МИНАЛИ",
+        "url":  "https://intermissionrec.com/minali/",
+        "cover":  "https://intermissionrec.com/assets/images/links/minali.jpg",
+        "slug":  "minali",
+        "artist":  "Vidrata x Ichko"
     }
 ]
