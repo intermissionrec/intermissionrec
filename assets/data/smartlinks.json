@@ -109,7 +109,7 @@
         "artist":  "Leta Siren"
     },
     {
-        "notReleased":  true,
+        "notReleased":  false,
         "rank":  13,
         "mainArtist":  "Vidrata",
         "title":  "МИНАЛИ",
