@@ -974,12 +974,26 @@ body:not(.home) main {
   gap: 20px;
 }
 
+/* Mobile footer: Блог + Бюлетин share one centred row and the year/copyright
+   sits on a row of its own underneath (flex-basis: 100% on .year forces
+   the wrap). The trailing right margin on the button is dropped so the
+   pair stays truly centred. */
 .footer-bottom .copyright-right {
   position: static;
   transform: none;
-  width: 50%;
+  width: 100%;
+  flex-wrap: wrap;
   justify-content: center;
+  row-gap: 10px;
   text-align: center;
+}
+
+.footer-bottom .copyright-right .year {
+  flex: 0 0 100%;
+}
+
+.footer-bottom .newsletter-trigger-btn {
+  margin-right: 0;
 }
 
 .contacts-columns {
