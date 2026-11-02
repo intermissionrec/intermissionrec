@@ -454,7 +454,7 @@ button.hero-icon:focus-visible {
     width: 38px;
     padding: 0;
     margin-left: 6px;
-    margin-right: -6px;
+    margin-right: -4px;
   }
 
   .nav-links a.nav-promo-link::before {
