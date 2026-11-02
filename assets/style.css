@@ -442,15 +442,32 @@ button.hero-icon:focus-visible {
     background: rgba(255, 255, 255, 0.14);
   }
 
-  /* Discord and the promo link live in the right pill on desktop; their
-     copies in the link list below are only for the mobile menu. */
-  .nav-links a.nav-discord,
-  .nav-links a.nav-promo-link {
+  /* Discord lives in the right pill on desktop; its copy in the link list
+     is only for the mobile menu. */
+  .nav-links a.nav-discord {
     display: none;
   }
 
-  /* Right pill: promo + Discord + newsletter + cart, a touch lighter than
-     the links pill. */
+  /* Promo link: an icon at the end of the link pill, set off by a thin
+     divider (its text label is mobile-menu only). */
+  .nav-links a.nav-promo-link {
+    width: 38px;
+    padding: 0;
+    margin-left: 6px;
+  }
+
+  .nav-links a.nav-promo-link::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 7px;
+    bottom: 7px;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Right pill: Discord + newsletter + cart, a touch lighter than the
+     links pill. */
   .hero-actions {
     padding: 0 14px;
     gap: 2px;
@@ -3354,8 +3371,7 @@ img {
 
   /* Too many icons for the phone pill - Discord and the promo link are in
      the menu instead. */
-  .hero-actions .hero-discord,
-  .hero-actions .hero-promo {
+  .hero-actions .hero-discord {
     display: none;
   }
 
@@ -3514,6 +3530,8 @@ img {
   }
 
   .nav-wrap .nav-links a.nav-promo-link svg {
+    width: 26px;
+    height: 26px;
     flex-shrink: 0;
   }
 
