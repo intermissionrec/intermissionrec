@@ -442,25 +442,15 @@ button.hero-icon:focus-visible {
     background: rgba(255, 255, 255, 0.14);
   }
 
-  /* Discord: an icon at the end of the link pill, set off by a thin
-     divider. */
-  .nav-links a.nav-discord {
-    width: 38px;
-    padding: 0;
-    margin-left: 6px;
+  /* Discord and the promo link live in the right pill on desktop; their
+     copies in the link list below are only for the mobile menu. */
+  .nav-links a.nav-discord,
+  .nav-links a.nav-promo-link {
+    display: none;
   }
 
-  .nav-links a.nav-discord::before {
-    content: '';
-    position: absolute;
-    left: -4px;
-    top: 7px;
-    bottom: 7px;
-    width: 1px;
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  /* Right pill: newsletter + cart, a touch lighter than the links pill. */
+  /* Right pill: promo + Discord + newsletter + cart, a touch lighter than
+     the links pill. */
   .hero-actions {
     padding: 0 14px;
     gap: 2px;
@@ -3362,6 +3352,13 @@ img {
 
   .hero-actions { right: 12px; gap: 0; }
 
+  /* Too many icons for the phone pill - Discord and the promo link are in
+     the menu instead. */
+  .hero-actions .hero-discord,
+  .hero-actions .hero-promo {
+    display: none;
+  }
+
   .mobile-nav-toggle:focus-visible {
     outline: 2px solid rgba(255, 255, 255, 0.75);
     outline-offset: 2px;
@@ -3470,7 +3467,7 @@ img {
       opacity .25s ease,
       transform .25s ease,
       color .2s ease;
-    transition-delay: calc((5 - var(--i, 0)) * 30ms), calc((5 - var(--i, 0)) * 30ms), 0s;
+    transition-delay: calc((6 - var(--i, 0)) * 30ms), calc((6 - var(--i, 0)) * 30ms), 0s;
   }
 
   .nav-wrap .nav-links a:nth-child(1) { --i: 0; }
@@ -3479,6 +3476,7 @@ img {
   .nav-wrap .nav-links a:nth-child(4) { --i: 3; }
   .nav-wrap .nav-links a:nth-child(5) { --i: 4; }
   .nav-wrap .nav-links a:nth-child(6) { --i: 5; }
+  .nav-wrap .nav-links a:nth-child(7) { --i: 6; }
 
   /* Open: links slide in from the left and fade up one after another,
      top to bottom. */
@@ -3507,6 +3505,16 @@ img {
   .nav-wrap .nav-links a.nav-discord svg {
     width: 26px;
     height: 26px;
+  }
+
+  .nav-wrap .nav-links a.nav-promo-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .nav-wrap .nav-links a.nav-promo-link svg {
+    flex-shrink: 0;
   }
 
   .nav-wrap .nav-discord-text {
